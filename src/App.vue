@@ -23,3 +23,13 @@ import { isPersistenceAvailable } from './db/db.js';
 
 const persistence = isPersistenceAvailable();
 </script>
+
+<style>
+body.body--dark {
+  background: #3d3d3d;
+}
+
+.q-page {
+  background: #3d3d3d;
+}
+</style>

@@ -15,8 +15,8 @@
               v-for="child in children"
               :key="child.id"
               dense
-              :color="isEarned(child.id, reward) ? 'primary' : 'grey-3'"
-              :text-color="isEarned(child.id, reward) ? 'black' : 'grey-7'"
+              :color="isEarned(child.id, reward) ? 'primary' : 'grey-8'"
+              :text-color="isEarned(child.id, reward) ? 'black' : 'grey-4'"
               :icon="isEarned(child.id, reward) ? 'check' : 'lock'"
             >
               {{ child.name }}
