@@ -1,7 +1,8 @@
 <template>
   <div class="goal-meter">
     <q-avatar size="52px" color="grey-9" class="goal-meter__avatar-slot">
-      <MonsterTruck :color="entry.carColor" :size="38" />
+      <img v-if="entry.photo" :src="entry.photo" :alt="entry.name" />
+      <MonsterTruck v-else :color="entry.carColor" :size="38" />
     </q-avatar>
 
     <div class="goal-meter__body">
