@@ -1,18 +1,20 @@
 <template>
   <div class="child-checklist">
-    <q-list separator>
-      <TaskRow
-        v-for="task in tasks"
-        :key="task.id"
-        :task="task"
-        :checked="checked.has(task.id)"
-        :disabled="isLocked(task.id)"
-        @update:checked="toggle(task.id, $event)"
-      />
-    </q-list>
+    <div class="ios-card">
+      <q-list separator>
+        <TaskRow
+          v-for="task in tasks"
+          :key="task.id"
+          :task="task"
+          :checked="checked.has(task.id)"
+          :disabled="isLocked(task.id)"
+          @update:checked="toggle(task.id, $event)"
+        />
+      </q-list>
+    </div>
 
     <div class="row justify-end q-mt-md">
-      <q-btn color="primary" unelevated icon="check" label="Принять" :disable="!dirty" @click="accept" />
+      <q-btn color="primary" rounded unelevated icon="check" label="Принять" class="text-weight-bold" :disable="!dirty" @click="accept" />
     </div>
   </div>
 </template>

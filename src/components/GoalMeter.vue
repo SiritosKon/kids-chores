@@ -36,8 +36,8 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
   align-items: center;
   gap: 16px;
   padding: 16px;
-  border-radius: 14px;
-  background: #2e2e2e;
+  border-radius: 16px;
+  background: #1c1c1e;
 }
 
 .goal-meter__avatar-slot {

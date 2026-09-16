@@ -1,7 +1,9 @@
 <template>
-  <q-item v-ripple tag="label" :disable="disabled">
+  <q-item v-ripple tag="label" :disable="disabled" class="q-py-md">
     <q-item-section avatar>
-      <q-icon :name="task.icon" size="28px" color="primary" />
+      <div class="task-tile">
+        <q-icon :name="task.icon" size="20px" color="white" />
+      </div>
     </q-item-section>
     <q-item-section>
       <q-item-label>{{ task.name }}</q-item-label>
@@ -25,3 +27,15 @@ defineProps({
 });
 defineEmits(['update:checked']);
 </script>
+
+<style scoped>
+.task-tile {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--q-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

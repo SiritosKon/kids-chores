@@ -1,15 +1,17 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <q-header class="bg-dark text-white">
-      <q-toolbar>
-        <q-toolbar-title>Домашние дела</q-toolbar-title>
-        <div class="text-body2 q-mr-sm text-capitalize">{{ dateLabel }}</div>
+    <q-header class="bg-black text-white">
+      <q-toolbar class="q-py-md items-start">
+        <div class="col">
+          <div class="text-h5 text-weight-bold">Домашние дела</div>
+          <div class="ios-subtitle text-capitalize">{{ dateLabel }}</div>
+        </div>
         <ParentMenu />
       </q-toolbar>
     </q-header>
 
     <q-page-container>
-      <q-banner v-if="!persistence" class="bg-warning text-white">
+      <q-banner v-if="!persistence" class="bg-warning text-black">
         Хранилище недоступно — отметки не сохранятся между сессиями.
       </q-banner>
       <HomePage />
@@ -30,7 +32,7 @@ const { selectedDate } = useSelectedDate();
 const dateLabel = computed(() => {
   const [year, month, day] = selectedDate.value.split('-').map(Number);
   return new Date(year, month - 1, day).toLocaleDateString('ru-RU', {
-    weekday: 'short',
+    weekday: 'long',
     day: 'numeric',
     month: 'long',
   });
@@ -39,10 +41,22 @@ const dateLabel = computed(() => {
 
 <style>
 body.body--dark {
-  background: #3d3d3d;
+  background: #000000;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .q-page {
-  background: #3d3d3d;
+  background: #000000;
+}
+
+.ios-card {
+  background: #1c1c1e;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.ios-subtitle {
+  font-size: 14px;
+  color: #8e8e93;
 }
 </style>
