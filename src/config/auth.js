@@ -1,0 +1,1 @@
+export const PARENT_PASSWORD = '54694945';
