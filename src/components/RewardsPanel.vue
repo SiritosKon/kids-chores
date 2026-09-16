@@ -12,23 +12,38 @@
           <q-item-label caption>{{ reward.points }} б.</q-item-label>
         </q-item-section>
         <q-item-section side>
-          <div class="row q-gutter-xs">
-            <q-btn
-              v-for="(child, index) in children"
-              :key="child.id"
-              dense
-              rounded
-              unelevated
-              no-caps
-              size="sm"
-              :color="canBuy(child, reward) ? childColor(index) : 'grey-8'"
-              :text-color="canBuy(child, reward) ? 'white' : 'grey-5'"
-              :icon="canBuy(child, reward) ? 'shopping_cart' : 'lock'"
-              :disable="!canBuy(child, reward)"
-              :label="child.name"
-              @click="buy(child, reward)"
-            />
-          </div>
+          <q-btn-dropdown
+            color="primary"
+            label="Наградить"
+            icon="redeem"
+            no-caps
+            rounded
+            unelevated
+            dense
+            :disable="!anyCanAfford(reward)"
+          >
+            <q-list style="min-width: 200px">
+              <q-item
+                v-for="child in children"
+                :key="child.id"
+                clickable
+                v-close-popup
+                :disable="!canAfford(child, reward)"
+                @click="reward && award(child, reward)"
+              >
+                <q-item-section avatar>
+                  <q-avatar size="32px" color="grey-9">
+                    <img v-if="child.photo" :src="child.photo" :alt="child.name" />
+                    <q-icon v-else name="person" />
+                  </q-avatar>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ child.name }}</q-item-label>
+                  <q-item-label caption>Баланс: {{ balances[child.id] || 0 }} б.</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
         </q-item-section>
       </q-item>
     </q-list>
@@ -47,25 +62,23 @@ const rewards = REWARDS;
 const children = CHILDREN;
 const { balances } = useBalances();
 
-const CHILD_COLORS = ['blue', 'red'];
-
-function childColor(index) {
-  return CHILD_COLORS[index] || 'primary';
-}
-
-function canBuy(child, reward) {
+function canAfford(child, reward) {
   return (balances.value[child.id] || 0) >= reward.points;
 }
 
-function buy(child, reward) {
+function anyCanAfford(reward) {
+  return children.some((child) => canAfford(child, reward));
+}
+
+function award(child, reward) {
   $q.dialog({
-    title: 'Награда',
-    message: `Купить «${reward.name}» для ${child.name} за ${reward.points} б.?`,
+    title: 'Наградить',
+    message: `Выдать «${reward.name}» для ${child.name} за ${reward.points} б.?`,
     cancel: true,
     persistent: true,
   }).onOk(async () => {
     await addSpend(child.id, reward.id, reward.points);
-    $q.notify({ type: 'positive', message: `${child.name}: куплено «${reward.name}»` });
+    $q.notify({ type: 'positive', message: `${child.name}: выдано «${reward.name}»` });
   });
 }
 </script>
