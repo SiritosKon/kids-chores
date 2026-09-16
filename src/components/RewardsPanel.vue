@@ -20,9 +20,11 @@
               rounded
               unelevated
               no-caps
-              :color="childColor(index)"
-              text-color="white"
-              :disable="(balances[child.id] || 0) < reward.points"
+              size="sm"
+              :color="canBuy(child, reward) ? childColor(index) : 'grey-8'"
+              :text-color="canBuy(child, reward) ? 'white' : 'grey-5'"
+              :icon="canBuy(child, reward) ? 'shopping_cart' : 'lock'"
+              :disable="!canBuy(child, reward)"
               :label="child.name"
               @click="buy(child, reward)"
             />
@@ -49,6 +51,10 @@ const CHILD_COLORS = ['blue', 'red'];
 
 function childColor(index) {
   return CHILD_COLORS[index] || 'primary';
+}
+
+function canBuy(child, reward) {
+  return (balances.value[child.id] || 0) >= reward.points;
 }
 
 function buy(child, reward) {

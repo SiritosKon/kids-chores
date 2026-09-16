@@ -56,12 +56,15 @@ body.body--dark {
 }
 
 .app-viewport {
+  width: 100%;
   min-height: 100vh;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 
 .app-frame {
+  flex: 0 0 auto;
   width: min(834px, 100%);
   height: 100vh;
   background: #000000;
