@@ -5,7 +5,7 @@
         <q-header class="bg-black text-white">
           <q-toolbar class="q-py-md items-start">
             <div class="col">
-              <div class="text-h5 text-weight-bold">Домашние дела</div>
+              <div class="text-h5 text-weight-bold">Домашние дела детей</div>
               <div class="ios-subtitle text-capitalize">{{ dateLabel }}</div>
             </div>
             <ParentMenu />

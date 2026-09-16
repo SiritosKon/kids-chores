@@ -15,8 +15,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['apple-touch-icon.png'],
       manifest: {
-        name: 'Домашние дела',
-        short_name: 'Дела',
+        name: 'Домашние дела детей',
+        short_name: 'Дела детей',
         description: 'Трекер домашних дел для детей',
         lang: 'ru',
         theme_color: '#F57C00',
