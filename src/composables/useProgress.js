@@ -16,7 +16,7 @@ function buildEntries(rows) {
     return {
       childId: child.id,
       name: child.name,
-      avatarIcon: child.avatarIcon,
+      carColor: child.carColor,
       goal: child.weeklyGoal,
       points,
       ratio,

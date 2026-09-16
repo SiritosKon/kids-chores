@@ -1,7 +1,7 @@
 <template>
   <div class="goal-meter">
-    <q-avatar size="52px" color="grey-9" text-color="orange" class="goal-meter__avatar-slot">
-      <q-icon :name="iconName" size="30px" />
+    <q-avatar size="52px" color="grey-9" class="goal-meter__avatar-slot">
+      <MonsterTruck :color="entry.carColor" :size="38" />
     </q-avatar>
 
     <div class="goal-meter__body">
@@ -12,7 +12,7 @@
       <div class="goal-meter__track">
         <div class="goal-meter__fill" :style="{ width: pct + '%' }"></div>
         <q-icon name="sports_score" size="26px" class="goal-meter__flag" />
-        <q-icon :name="iconName" size="30px" class="goal-meter__car" :style="{ left: pct + '%' }" />
+        <MonsterTruck :color="entry.carColor" :size="46" class="goal-meter__car" :style="{ left: carLeft }" />
       </div>
     </div>
   </div>
@@ -20,19 +20,14 @@
 
 <script setup>
 import { computed } from 'vue';
+import MonsterTruck from './MonsterTruck.vue';
 
 const props = defineProps({
   entry: { type: Object, required: true },
 });
 
-const ICONS = {
-  car: 'directions_car',
-  rocket: 'rocket_launch',
-  star: 'star',
-};
-
-const iconName = computed(() => ICONS[props.entry.avatarIcon] || ICONS.car);
 const pct = computed(() => Math.min(100, Math.round((props.entry.ratio || 0) * 100)));
+const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`);
 </script>
 
 <style scoped>
@@ -95,7 +90,7 @@ const pct = computed(() => Math.min(100, Math.round((props.entry.ratio || 0) * 1
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  color: #1a1a1a;
   transition: left 0.4s ease;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
 </style>
