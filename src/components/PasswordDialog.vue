@@ -1,6 +1,6 @@
 <template>
   <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" @hide="reset">
-    <q-card style="min-width: 300px">
+    <q-card style="min-width: 300px; border-radius: 18px">
       <q-card-section>
         <div class="text-h6">Вход в родительский режим</div>
       </q-card-section>
