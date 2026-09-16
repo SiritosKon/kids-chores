@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <q-header elevated class="bg-dark text-white">
+    <q-header class="bg-dark text-white">
       <q-toolbar>
         <q-toolbar-title>Домашние дела</q-toolbar-title>
         <div class="text-body2 q-mr-sm text-capitalize">{{ dateLabel }}</div>
