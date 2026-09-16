@@ -55,6 +55,7 @@ import { useQuasar } from 'quasar';
 import { REWARDS } from '../config/rewards.js';
 import { CHILDREN } from '../config/children.js';
 import { useBalances } from '../composables/useBalances.js';
+import { celebrate } from '../composables/useConfetti.js';
 import { addSpend } from '../db/spendsRepo.js';
 
 const $q = useQuasar();
@@ -79,6 +80,7 @@ function award(child, reward) {
   }).onOk(async () => {
     await addSpend(child.id, reward.id, reward.points);
     $q.notify({ type: 'positive', message: `${child.name}: выдано «${reward.name}»` });
+    celebrate(child.carColor);
   });
 }
 </script>

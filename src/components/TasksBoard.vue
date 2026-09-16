@@ -66,6 +66,7 @@ import { useQuasar } from 'quasar';
 import { TASKS } from '../config/tasks.js';
 import { CHILDREN } from '../config/children.js';
 import { useParentMode } from '../composables/useParentMode.js';
+import { celebrate } from '../composables/useConfetti.js';
 import { getDayCompletions, saveDayMarks } from '../db/completionsRepo.js';
 
 const props = defineProps({
@@ -148,15 +149,24 @@ async function load() {
 }
 
 async function accept() {
+  const celebrated = [];
   for (const child of children) {
+    const wasAllBefore = regularTasks.every((task) => (saved.value[child.id] || new Set()).has(task.id));
+    const earnsBonus = Boolean(bonusTask) && bonusEarned(child.id);
+    if (earnsBonus && !wasAllBefore) {
+      celebrated.push(child);
+    }
     const finalIds = [...(checked.value[child.id] || [])];
-    if (bonusTask && bonusEarned(child.id)) {
+    if (earnsBonus) {
       finalIds.push(BONUS_ID);
     }
     await saveDayMarks(child.id, props.selectedDate, finalIds);
   }
   await load();
   $q.notify({ type: 'positive', message: 'Сохранено' });
+  for (const child of celebrated) {
+    celebrate(child.carColor);
+  }
 }
 
 watch(() => props.selectedDate, load);
