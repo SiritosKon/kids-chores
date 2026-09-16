@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHh lpR fFf">
+  <q-layout view="hHh lpR fFf" container class="app-shell">
     <q-header class="bg-black text-white">
       <q-toolbar class="q-py-md items-start">
         <div class="col">
@@ -40,9 +40,22 @@ const dateLabel = computed(() => {
 </script>
 
 <style>
+html,
+body {
+  height: 100%;
+}
+
 body.body--dark {
-  background: #000000;
+  background: #262626;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.app-shell {
+  max-width: 834px;
+  height: 100vh;
+  margin: 0 auto;
+  background: #000000;
+  box-shadow: 0 0 48px rgba(0, 0, 0, 0.6);
 }
 
 .q-page {
