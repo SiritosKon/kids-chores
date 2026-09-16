@@ -1,7 +1,7 @@
 <template>
   <q-item v-ripple tag="label" :disable="disabled" class="q-py-md">
     <q-item-section avatar>
-      <div class="task-tile">
+      <div class="task-tile" :style="{ background: task.color }">
         <q-icon :name="task.icon" size="20px" color="white" />
       </div>
     </q-item-section>
@@ -13,6 +13,9 @@
       <q-checkbox
         :model-value="checked"
         :disable="disabled"
+        color="primary"
+        checked-icon="check_circle"
+        unchecked-icon="radio_button_unchecked"
         @update:model-value="$emit('update:checked', $event)"
       />
     </q-item-section>
@@ -33,7 +36,6 @@ defineEmits(['update:checked']);
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  background: var(--q-primary);
   display: flex;
   align-items: center;
   justify-content: center;
