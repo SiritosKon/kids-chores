@@ -1,7 +1,6 @@
 <template>
   <div class="row items-center no-wrap q-gutter-xs">
     <q-badge v-if="parentActive" color="orange" text-color="black" label="Родит." />
-    <span class="text-weight-medium">{{ label }}</span>
     <q-btn round flat dense icon="event" color="primary" aria-label="Выбрать дату">
       <q-popup-proxy cover transition-show="scale" transition-hide="scale">
         <q-date :model-value="modelValue" mask="YYYY-MM-DD" :options="dateOptions" @update:model-value="onPick" />
@@ -23,11 +22,6 @@ const emit = defineEmits(['update:modelValue']);
 const { active: parentActive } = useParentMode();
 
 const weekSlashKeys = computed(() => new Set(weekDayKeys(new Date()).map((key) => key.replace(/-/g, '/'))));
-
-const label = computed(() => {
-  const [year, month, day] = props.modelValue.split('-');
-  return `${day}.${month}.${year}`;
-});
 
 function dateOptions(dateStr) {
   if (parentActive.value) {

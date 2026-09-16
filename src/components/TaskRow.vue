@@ -1,5 +1,5 @@
 <template>
-  <q-item tag="label" :disable="disabled">
+  <q-item v-ripple tag="label" :disable="disabled">
     <q-item-section avatar>
       <q-icon :name="task.icon" size="28px" color="primary" />
     </q-item-section>

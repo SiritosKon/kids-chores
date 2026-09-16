@@ -11,7 +11,7 @@
       />
     </q-list>
 
-    <div class="row items-center q-mt-md">
+    <div class="row justify-end q-mt-md">
       <q-btn color="primary" unelevated icon="check" label="Принять" :disable="!dirty" @click="accept" />
     </div>
   </div>

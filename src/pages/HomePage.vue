@@ -1,8 +1,8 @@
 <template>
-  <q-page class="q-pa-md">
-    <GoalMeterBoard class="q-mb-lg" />
+  <q-page class="q-pa-lg">
+    <GoalMeterBoard class="q-mb-xl" />
 
-    <div class="row items-center no-wrap">
+    <div class="row items-center no-wrap q-mb-sm">
       <q-tabs
         v-model="tab"
         class="col text-primary"
@@ -18,13 +18,13 @@
     </div>
     <q-separator />
 
-    <q-tab-panels v-model="tab" animated>
-      <q-tab-panel v-for="child in children" :key="child.id" :name="child.id" class="q-px-none">
+    <q-tab-panels v-model="tab" animated class="bg-transparent">
+      <q-tab-panel v-for="child in children" :key="child.id" :name="child.id" class="q-px-none q-py-md">
         <ChildChecklist :child="child" :selected-date="selectedDate" />
       </q-tab-panel>
     </q-tab-panels>
 
-    <q-separator class="q-my-md" />
+    <q-separator class="q-my-lg" />
     <RewardsPanel />
   </q-page>
 </template>
@@ -36,9 +36,9 @@ import ChildChecklist from '../components/ChildChecklist.vue';
 import DateSelector from '../components/DateSelector.vue';
 import RewardsPanel from '../components/RewardsPanel.vue';
 import { CHILDREN } from '../config/children.js';
-import { todayKey } from '../composables/useWeek.js';
+import { useSelectedDate } from '../composables/useSelectedDate.js';
 
 const children = CHILDREN;
 const tab = ref(CHILDREN[0].id);
-const selectedDate = ref(todayKey());
+const { selectedDate } = useSelectedDate();
 </script>

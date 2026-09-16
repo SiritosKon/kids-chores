@@ -3,6 +3,7 @@
     <q-header elevated class="bg-dark text-white">
       <q-toolbar>
         <q-toolbar-title>Домашние дела</q-toolbar-title>
+        <div class="text-body2 q-mr-sm text-capitalize">{{ dateLabel }}</div>
         <ParentMenu />
       </q-toolbar>
     </q-header>
@@ -17,11 +18,23 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import ParentMenu from './components/ParentMenu.vue';
 import HomePage from './pages/HomePage.vue';
 import { isPersistenceAvailable } from './db/db.js';
+import { useSelectedDate } from './composables/useSelectedDate.js';
 
 const persistence = isPersistenceAvailable();
+const { selectedDate } = useSelectedDate();
+
+const dateLabel = computed(() => {
+  const [year, month, day] = selectedDate.value.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('ru-RU', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'long',
+  });
+});
 </script>
 
 <style>
