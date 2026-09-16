@@ -1,14 +1,14 @@
 <template>
   <div class="goal-meter-board">
-    <GoalMeter v-for="entry in progress" :key="entry.childId" :entry="entry" />
+    <GoalMeter v-for="entry in meterEntries" :key="entry.childId" :entry="entry" />
   </div>
 </template>
 
 <script setup>
 import GoalMeter from './GoalMeter.vue';
-import { useWeeklyProgress } from '../composables/useProgress.js';
+import { useBalances } from '../composables/useBalances.js';
 
-const { progress } = useWeeklyProgress();
+const { meterEntries } = useBalances();
 </script>
 
 <style scoped>

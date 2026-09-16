@@ -8,7 +8,10 @@
     <div class="goal-meter__body">
       <div class="goal-meter__head">
         <span class="goal-meter__name">{{ entry.name }}</span>
-        <span class="goal-meter__score">{{ entry.points }} / {{ entry.goal }}</span>
+        <span class="goal-meter__score">
+          <q-icon name="savings" size="18px" />
+          {{ entry.balance }}
+        </span>
       </div>
       <div class="goal-meter__track">
         <div class="goal-meter__fill" :style="{ width: pct + '%' }"></div>
@@ -59,6 +62,9 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
 }
 
 .goal-meter__score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--q-primary);
 }
 

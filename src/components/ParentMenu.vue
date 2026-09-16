@@ -1,8 +1,45 @@
 <template>
   <div>
-    <q-btn flat round dense icon="more_horiz" aria-label="Меню" @click="openMenu" />
+    <q-btn flat round dense icon="more_vert" aria-label="Меню">
+      <q-menu anchor="bottom right" self="top right">
+        <q-list style="min-width: 220px">
+          <template v-if="!active">
+            <q-item clickable v-close-popup @click="showLogin = true">
+              <q-item-section avatar><q-icon name="lock" /></q-item-section>
+              <q-item-section>Родительский режим</q-item-section>
+            </q-item>
+          </template>
+          <template v-else>
+            <q-item-label header>Родительский режим</q-item-label>
+            <q-item clickable v-close-popup @click="exportFull">
+              <q-item-section avatar><q-icon name="download" /></q-item-section>
+              <q-item-section>Экспорт (всё)</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="exportMonthly">
+              <q-item-section avatar><q-icon name="calendar_month" /></q-item-section>
+              <q-item-section>Экспорт за месяц</q-item-section>
+            </q-item>
+            <q-item clickable @click="pickFile">
+              <q-item-section avatar><q-icon name="upload" /></q-item-section>
+              <q-item-section>Импорт данных</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="showSpends = true">
+              <q-item-section avatar><q-icon name="history" /></q-item-section>
+              <q-item-section>История списаний</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup @click="logout">
+              <q-item-section avatar><q-icon name="logout" /></q-item-section>
+              <q-item-section>Выйти из режима</q-item-section>
+            </q-item>
+          </template>
+        </q-list>
+      </q-menu>
+    </q-btn>
+
     <input ref="fileInput" type="file" accept="application/json" style="display: none" @change="onFile" />
     <PasswordDialog v-model="showLogin" />
+    <SpendsDialog v-model="showSpends" />
   </div>
 </template>
 
@@ -10,30 +47,15 @@
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
 import PasswordDialog from './PasswordDialog.vue';
+import SpendsDialog from './SpendsDialog.vue';
 import { useParentMode } from '../composables/useParentMode.js';
 import { exportAll, exportMonth, importAll } from '../db/completionsRepo.js';
 
 const $q = useQuasar();
 const { active, logout } = useParentMode();
 const showLogin = ref(false);
+const showSpends = ref(false);
 const fileInput = ref(null);
-
-function openMenu() {
-  if (!active.value) {
-    showLogin.value = true;
-    return;
-  }
-  $q.bottomSheet({
-    message: 'Родительский режим',
-    actions: [
-      { label: 'Экспорт (всё)', icon: 'download', id: 'exportAll' },
-      { label: 'Экспорт за месяц', icon: 'calendar_month', id: 'exportMonth' },
-      { label: 'Импорт данных', icon: 'upload', id: 'import' },
-      {},
-      { label: 'Выйти из режима', icon: 'logout', id: 'logout' },
-    ],
-  }).onOk((action) => runAction(action.id));
-}
 
 function download(payload, filename) {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -45,22 +67,21 @@ function download(payload, filename) {
   URL.revokeObjectURL(url);
 }
 
-async function runAction(id) {
-  if (id === 'exportAll') {
-    const data = await exportAll();
-    download(data, `kids-chores-full-${data.exportedAt.slice(0, 10)}.json`);
-  } else if (id === 'exportMonth') {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const data = await exportMonth(year, month);
-    download(data, `kids-chores-${year}-${String(month).padStart(2, '0')}.json`);
-  } else if (id === 'import') {
-    fileInput.value.click();
-  } else if (id === 'logout') {
-    logout();
-    $q.notify({ type: 'info', message: 'Родительский режим выключен' });
-  }
+async function exportFull() {
+  const data = await exportAll();
+  download(data, `kids-chores-full-${data.exportedAt.slice(0, 10)}.json`);
+}
+
+async function exportMonthly() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const data = await exportMonth(year, month);
+  download(data, `kids-chores-${year}-${String(month).padStart(2, '0')}.json`);
+}
+
+function pickFile() {
+  fileInput.value.click();
 }
 
 async function onFile(event) {

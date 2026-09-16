@@ -2,7 +2,7 @@ import { db } from './db.js';
 import { TASKS } from '../config/tasks.js';
 import { weekDayKeys } from '../composables/useWeek.js';
 
-const EXPORT_VERSION = 1;
+const EXPORT_VERSION = 2;
 
 export function getDayCompletions(childId, dateKey) {
   return db.completions.where('[childId+date]').equals([childId, dateKey]).toArray();
@@ -58,21 +58,27 @@ export async function resetWeek(childId, referenceDate = new Date()) {
 }
 
 export async function exportAll() {
-  const completions = await db.completions.toArray();
+  const [completions, spends] = await Promise.all([db.completions.toArray(), db.spends.toArray()]);
   return {
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
     completions,
+    spends,
   };
 }
 
 export async function exportMonth(year, month) {
   const prefix = `${year}-${String(month).padStart(2, '0')}`;
-  const all = await db.completions.toArray();
+  const [completions, spends] = await Promise.all([db.completions.toArray(), db.spends.toArray()]);
   return {
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
-    completions: all.filter((row) => row.date.startsWith(prefix)),
+    completions: completions.filter((row) => row.date.startsWith(prefix)),
+    spends: spends.filter((spend) => {
+      const date = new Date(spend.createdAt);
+      const spendPrefix = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      return spendPrefix === prefix;
+    }),
   };
 }
 
@@ -81,7 +87,7 @@ export async function importAll(data) {
     throw new Error('нет массива completions');
   }
 
-  const isValid = data.completions.every(
+  const completionsValid = data.completions.every(
     (row) =>
       row &&
       typeof row.id === 'string' &&
@@ -90,12 +96,29 @@ export async function importAll(data) {
       typeof row.date === 'string' &&
       typeof row.points === 'number'
   );
-  if (!isValid) {
+  if (!completionsValid) {
     throw new Error('неверный формат отметок');
   }
 
-  await db.transaction('rw', db.completions, async () => {
+  const spends = Array.isArray(data.spends) ? data.spends : [];
+  const spendsValid = spends.every(
+    (row) =>
+      row &&
+      typeof row.id === 'string' &&
+      typeof row.childId === 'string' &&
+      typeof row.rewardId === 'string' &&
+      typeof row.cost === 'number'
+  );
+  if (!spendsValid) {
+    throw new Error('неверный формат списаний');
+  }
+
+  await db.transaction('rw', [db.completions, db.spends], async () => {
     await db.completions.clear();
     await db.completions.bulkAdd(data.completions);
+    await db.spends.clear();
+    if (spends.length > 0) {
+      await db.spends.bulkAdd(spends);
+    }
   });
 }
