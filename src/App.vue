@@ -1,22 +1,26 @@
 <template>
-  <q-layout view="hHh lpR fFf" container class="app-shell">
-    <q-header class="bg-black text-white">
-      <q-toolbar class="q-py-md items-start">
-        <div class="col">
-          <div class="text-h5 text-weight-bold">Домашние дела</div>
-          <div class="ios-subtitle text-capitalize">{{ dateLabel }}</div>
-        </div>
-        <ParentMenu />
-      </q-toolbar>
-    </q-header>
+  <div class="app-viewport">
+    <div class="app-frame">
+      <q-layout view="hHh lpR fFf" container style="height: 100%">
+        <q-header class="bg-black text-white">
+          <q-toolbar class="q-py-md items-start">
+            <div class="col">
+              <div class="text-h5 text-weight-bold">Домашние дела</div>
+              <div class="ios-subtitle text-capitalize">{{ dateLabel }}</div>
+            </div>
+            <ParentMenu />
+          </q-toolbar>
+        </q-header>
 
-    <q-page-container>
-      <q-banner v-if="!persistence" class="bg-warning text-black">
-        Хранилище недоступно — отметки не сохранятся между сессиями.
-      </q-banner>
-      <HomePage />
-    </q-page-container>
-  </q-layout>
+        <q-page-container>
+          <q-banner v-if="!persistence" class="bg-warning text-black">
+            Хранилище недоступно — отметки не сохранятся между сессиями.
+          </q-banner>
+          <HomePage />
+        </q-page-container>
+      </q-layout>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -41,7 +45,8 @@ const dateLabel = computed(() => {
 
 <style>
 html,
-body {
+body,
+#app {
   height: 100%;
 }
 
@@ -50,10 +55,15 @@ body.body--dark {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
 }
 
-.app-shell {
-  max-width: 834px;
+.app-viewport {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.app-frame {
+  width: min(834px, 100%);
   height: 100vh;
-  margin: 0 auto;
   background: #000000;
   box-shadow: 0 0 48px rgba(0, 0, 0, 0.6);
 }
