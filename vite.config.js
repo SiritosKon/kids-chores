@@ -12,6 +12,8 @@ export default defineConfig({
       sassVariables: fileURLToPath(new URL('./src/quasar-variables.sass', import.meta.url)),
     }),
     VitePWA({
+      // TODO: re-enable full PWA (drop selfDestroying) before deploying to GitHub Pages.
+      selfDestroying: true,
       registerType: 'autoUpdate',
       includeAssets: ['apple-touch-icon.png'],
       manifest: {
