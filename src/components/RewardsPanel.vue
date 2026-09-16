@@ -3,7 +3,7 @@
     <q-list separator>
       <q-item v-for="reward in rewards" :key="reward.id">
         <q-item-section avatar>
-          <div class="reward-tile">
+          <div class="reward-tile" :style="{ background: reward.color }">
             <q-icon :name="reward.icon" size="20px" color="white" />
           </div>
         </q-item-section>
@@ -90,7 +90,6 @@ function award(child, reward) {
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  background: var(--q-primary);
   display: flex;
   align-items: center;
   justify-content: center;

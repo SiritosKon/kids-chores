@@ -5,7 +5,21 @@
         <div class="text-h6">Вход в родительский режим</div>
       </q-card-section>
       <q-card-section class="q-pt-none">
-        <q-input v-model="password" type="password" label="Пароль" autofocus @keyup.enter="submit" />
+        <q-input
+          v-model="password"
+          :type="showPassword ? 'text' : 'password'"
+          label="Пароль"
+          autofocus
+          @keyup.enter="submit"
+        >
+          <template #append>
+            <q-icon
+              :name="showPassword ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="showPassword = !showPassword"
+            />
+          </template>
+        </q-input>
       </q-card-section>
       <q-card-actions align="right">
         <q-btn flat label="Отмена" v-close-popup />
@@ -28,9 +42,11 @@ const emit = defineEmits(['update:modelValue']);
 const $q = useQuasar();
 const { login } = useParentMode();
 const password = ref('');
+const showPassword = ref(false);
 
 function reset() {
   password.value = '';
+  showPassword.value = false;
 }
 
 function submit() {

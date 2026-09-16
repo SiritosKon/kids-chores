@@ -7,15 +7,11 @@
             <div class="col">
               <div class="text-h5 text-weight-bold">Домашние дела детей</div>
               <div class="ios-subtitle text-capitalize">{{ dateLabel }}</div>
-              <q-badge
-                v-if="parentActive"
-                color="orange"
-                text-color="black"
-                class="q-mt-xs"
-                label="Родительский контроль"
-              />
             </div>
-            <ParentMenu />
+            <div class="row items-center no-wrap q-gutter-sm">
+              <q-badge v-if="parentActive" color="orange" text-color="black" label="Родительский контроль" />
+              <ParentMenu />
+            </div>
           </q-toolbar>
         </q-header>
 
