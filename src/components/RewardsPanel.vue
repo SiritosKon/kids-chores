@@ -13,9 +13,9 @@
         </q-item-section>
         <q-item-section side>
           <q-btn-dropdown
-            color="primary"
+            :color="anyCanAfford(reward) ? 'primary' : 'grey-8'"
+            :text-color="anyCanAfford(reward) ? 'white' : 'grey-5'"
             label="Наградить"
-            icon="redeem"
             no-caps
             rounded
             unelevated
@@ -58,7 +58,7 @@ import { useBalances } from '../composables/useBalances.js';
 import { addSpend } from '../db/spendsRepo.js';
 
 const $q = useQuasar();
-const rewards = REWARDS;
+const rewards = [...REWARDS].sort((first, second) => first.points - second.points);
 const children = CHILDREN;
 const { balances } = useBalances();
 

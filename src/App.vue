@@ -7,6 +7,13 @@
             <div class="col">
               <div class="text-h5 text-weight-bold">Домашние дела детей</div>
               <div class="ios-subtitle text-capitalize">{{ dateLabel }}</div>
+              <q-badge
+                v-if="parentActive"
+                color="orange"
+                text-color="black"
+                class="q-mt-xs"
+                label="Родительский контроль"
+              />
             </div>
             <ParentMenu />
           </q-toolbar>
@@ -29,9 +36,11 @@ import ParentMenu from './components/ParentMenu.vue';
 import HomePage from './pages/HomePage.vue';
 import { isPersistenceAvailable } from './db/db.js';
 import { useSelectedDate } from './composables/useSelectedDate.js';
+import { useParentMode } from './composables/useParentMode.js';
 
 const persistence = isPersistenceAvailable();
 const { selectedDate } = useSelectedDate();
+const { active: parentActive } = useParentMode();
 
 const dateLabel = computed(() => {
   const [year, month, day] = selectedDate.value.split('-').map(Number);
@@ -84,5 +93,10 @@ body.body--dark {
 .ios-subtitle {
   font-size: 14px;
   color: #8e8e93;
+}
+
+/* Единый стиль всех модалок */
+.q-dialog .q-card {
+  border-radius: 18px;
 }
 </style>

@@ -1,6 +1,5 @@
 <template>
   <div class="row items-center no-wrap q-gutter-xs">
-    <q-badge v-if="parentActive" color="orange" text-color="black" label="Родит." />
     <q-btn round flat dense icon="event" color="primary" aria-label="Выбрать дату">
       <q-popup-proxy cover transition-show="scale" transition-hide="scale">
         <q-date :model-value="modelValue" mask="YYYY-MM-DD" :options="dateOptions" @update:model-value="onPick" />

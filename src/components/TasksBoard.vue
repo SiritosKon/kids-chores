@@ -14,7 +14,7 @@
       </div>
       <q-separator />
 
-      <div v-for="task in tasks" :key="task.id" class="task-row">
+      <div v-for="task in regularTasks" :key="task.id" class="task-row">
         <div class="task-tile" :style="{ background: task.color }">
           <q-icon :name="task.icon" size="20px" color="white" />
         </div>
@@ -30,6 +30,25 @@
             checked-icon="check_circle"
             unchecked-icon="radio_button_unchecked"
             @update:model-value="toggle(child.id, task.id, $event)"
+          />
+        </div>
+      </div>
+
+      <div v-if="bonusTask" class="task-row bonus-row">
+        <div class="task-tile" :style="{ background: bonusTask.color }">
+          <q-icon :name="bonusTask.icon" size="20px" color="white" />
+        </div>
+        <div class="task-info">
+          <div>{{ bonusTask.name }}</div>
+          <div class="task-points">+{{ bonusTask.points }} б. за все задачи дня</div>
+        </div>
+        <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
+          <q-checkbox
+            :model-value="bonusEarned(child.id)"
+            disable
+            :color="checkColor(index)"
+            checked-icon="check_circle"
+            unchecked-icon="radio_button_unchecked"
           />
         </div>
       </div>
@@ -55,8 +74,11 @@ const props = defineProps({
 
 const $q = useQuasar();
 const { active: parentActive } = useParentMode();
-const tasks = TASKS;
 const children = CHILDREN;
+
+const BONUS_ID = 'bonus';
+const regularTasks = TASKS.filter((task) => task.id !== BONUS_ID);
+const bonusTask = TASKS.find((task) => task.id === BONUS_ID);
 
 const CHECK_COLORS = ['blue', 'red'];
 
@@ -73,6 +95,14 @@ function isChecked(childId, taskId) {
 
 function isLocked(childId, taskId) {
   return !parentActive.value && Boolean(saved.value[childId] && saved.value[childId].has(taskId));
+}
+
+function bonusEarned(childId) {
+  const set = checked.value[childId];
+  if (!set || regularTasks.length === 0) {
+    return false;
+  }
+  return regularTasks.every((task) => set.has(task.id));
 }
 
 const dirty = computed(() => {
@@ -104,13 +134,14 @@ function toggle(childId, taskId, isOn) {
 }
 
 async function load() {
+  const regularIds = new Set(regularTasks.map((task) => task.id));
   const nextSaved = {};
   const nextChecked = {};
   for (const child of children) {
     const rows = await getDayCompletions(child.id, props.selectedDate);
-    const ids = new Set(rows.map((row) => row.taskId));
-    nextSaved[child.id] = ids;
-    nextChecked[child.id] = new Set(ids);
+    const savedRegular = new Set(rows.map((row) => row.taskId).filter((id) => regularIds.has(id)));
+    nextSaved[child.id] = savedRegular;
+    nextChecked[child.id] = new Set(savedRegular);
   }
   saved.value = nextSaved;
   checked.value = nextChecked;
@@ -118,7 +149,11 @@ async function load() {
 
 async function accept() {
   for (const child of children) {
-    await saveDayMarks(child.id, props.selectedDate, [...(checked.value[child.id] || [])]);
+    const finalIds = [...(checked.value[child.id] || [])];
+    if (bonusTask && bonusEarned(child.id)) {
+      finalIds.push(BONUS_ID);
+    }
+    await saveDayMarks(child.id, props.selectedDate, finalIds);
   }
   await load();
   $q.notify({ type: 'positive', message: 'Сохранено' });
@@ -148,6 +183,10 @@ onMounted(load);
 
 .task-row:not(:last-child) {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bonus-row {
+  background: rgba(255, 159, 10, 0.07);
 }
 
 .task-tile {
