@@ -4,6 +4,10 @@ import vue from '@vitejs/plugin-vue';
 import { quasar, transformAssetUrls } from '@quasar/vite-plugin';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Полноценный кеширующий PWA-воркер включаем ТОЛЬКО в деплое (ENABLE_PWA=true).
+// Локальные сборки отдают self-destroying SW: без кеша и с авто-очисткой залипших воркеров.
+const enablePwa = process.env.ENABLE_PWA === 'true';
+
 export default defineConfig({
   base: '/kids-chores/',
   plugins: [
@@ -12,6 +16,7 @@ export default defineConfig({
       sassVariables: fileURLToPath(new URL('./src/quasar-variables.sass', import.meta.url)),
     }),
     VitePWA({
+      selfDestroying: !enablePwa,
       registerType: 'autoUpdate',
       includeAssets: ['apple-touch-icon.png'],
       manifest: {
