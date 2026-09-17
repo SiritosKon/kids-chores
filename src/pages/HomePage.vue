@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-md q-pb-xl">
     <GoalMeterBoard class="q-mb-lg" />
 
     <div class="row items-center q-mb-sm">
@@ -13,6 +13,8 @@
     <div class="ios-card q-mt-lg">
       <RewardsPanel />
     </div>
+
+    <div class="text-caption text-grey-7 q-mt-lg">v{{ appVersion }}</div>
   </q-page>
 </template>
 
@@ -24,4 +26,5 @@ import RewardsPanel from '../components/RewardsPanel.vue';
 import { useSelectedDate } from '../composables/useSelectedDate.js';
 
 const { selectedDate } = useSelectedDate();
+const appVersion = __APP_VERSION__;
 </script>

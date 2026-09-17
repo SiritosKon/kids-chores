@@ -22,7 +22,6 @@
           <HomePage />
         </q-page-container>
       </q-layout>
-      <div class="app-version">v{{ appVersion }}</div>
     </div>
   </div>
 </template>
@@ -33,6 +32,7 @@ import { useQuasar } from 'quasar';
 import ParentMenu from './components/ParentMenu.vue';
 import HomePage from './pages/HomePage.vue';
 import { isPersistenceAvailable } from './db/db.js';
+import { recordVersion } from './db/versionRepo.js';
 import { useSelectedDate } from './composables/useSelectedDate.js';
 import { useParentMode } from './composables/useParentMode.js';
 
@@ -42,11 +42,10 @@ const { selectedDate } = useSelectedDate();
 const { active: parentActive } = useParentMode();
 const appVersion = __APP_VERSION__;
 
-onMounted(() => {
+onMounted(async () => {
   try {
-    const key = 'kids-chores-version';
-    const previous = localStorage.getItem(key);
-    if (previous && previous !== appVersion) {
+    const { isNew, hadHistory } = await recordVersion(appVersion);
+    if (isNew && hadHistory) {
       $q.notify({
         message: `Обновлено до v${appVersion}`,
         icon: 'system_update',
@@ -55,9 +54,8 @@ onMounted(() => {
         timeout: 5000,
       });
     }
-    localStorage.setItem(key, appVersion);
   } catch {
-    // localStorage может быть недоступен
+    // БД может быть недоступна
   }
 });
 
@@ -92,22 +90,11 @@ body.body--dark {
 }
 
 .app-frame {
-  position: relative;
   flex: 0 0 auto;
   width: min(834px, 100%);
   height: 100vh;
   background: #000000;
   box-shadow: 0 0 48px rgba(0, 0, 0, 0.6);
-}
-
-.app-version {
-  position: absolute;
-  left: 12px;
-  bottom: 8px;
-  font-size: 11px;
-  color: #5a5a5a;
-  pointer-events: none;
-  z-index: 3000;
 }
 
 .q-page {
