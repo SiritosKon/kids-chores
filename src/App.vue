@@ -22,6 +22,7 @@
           <HomePage />
         </q-page-container>
       </q-layout>
+      <div class="app-version">v{{ appVersion }}</div>
     </div>
   </div>
 </template>
@@ -51,8 +52,7 @@ onMounted(() => {
         icon: 'system_update',
         color: 'dark',
         textColor: 'white',
-        timeout: 0,
-        actions: [{ icon: 'close', color: 'white', round: true, 'aria-label': 'Закрыть', handler: () => {} }],
+        timeout: 5000,
       });
     }
     localStorage.setItem(key, appVersion);
@@ -92,11 +92,22 @@ body.body--dark {
 }
 
 .app-frame {
+  position: relative;
   flex: 0 0 auto;
   width: min(834px, 100%);
   height: 100vh;
   background: #000000;
   box-shadow: 0 0 48px rgba(0, 0, 0, 0.6);
+}
+
+.app-version {
+  position: absolute;
+  left: 12px;
+  bottom: 8px;
+  font-size: 11px;
+  color: #5a5a5a;
+  pointer-events: none;
+  z-index: 3000;
 }
 
 .q-page {

@@ -9,4 +9,9 @@ import App from './App.vue';
 
 const app = createApp(App);
 app.use(Quasar, { plugins: { Notify, Dialog }, config: { dark: true }, lang: langRu });
+
+Notify.setDefaults({
+  actions: [{ icon: 'close', color: 'white', round: true, 'aria-label': 'Закрыть' }],
+});
+
 app.mount('#app');
