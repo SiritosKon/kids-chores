@@ -21,6 +21,10 @@
           </q-banner>
           <HomePage />
         </q-page-container>
+
+        <q-footer class="bg-black text-grey-7">
+          <div class="q-px-md q-py-xs text-caption">v{{ appVersion }}</div>
+        </q-footer>
       </q-layout>
     </div>
   </div>
