@@ -27,7 +27,7 @@
             :model-value="isChecked(child.id, task.id)"
             :disable="isLocked(child.id, task.id)"
             :color="checkColor(index)"
-            checked-icon="check_circle"
+            :checked-icon="isLocked(child.id, task.id) ? 'lock' : 'check_circle'"
             unchecked-icon="radio_button_unchecked"
             @update:model-value="toggle(child.id, task.id, $event)"
           />
