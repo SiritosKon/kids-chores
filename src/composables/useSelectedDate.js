@@ -1,8 +1,8 @@
 import { ref } from 'vue';
-import { todayKey } from './useWeek.js';
+import { date } from 'quasar';
 import { useParentMode } from './useParentMode.js';
 
-const selectedDate = ref(todayKey());
+const selectedDate = ref(date.formatDate(Date.now(), 'YYYY-MM-DD'));
 const { active: parentActive } = useParentMode();
 
 // Установленная PWA не перезагружает JS при возврате из фона, поэтому selectedDate
@@ -11,7 +11,7 @@ const { active: parentActive } = useParentMode();
 // в родительском режиме сохраняем выбранную дату (правка истории).
 function syncToTodayForChild() {
   if (!parentActive.value) {
-    selectedDate.value = todayKey();
+    selectedDate.value = date.formatDate(Date.now(), 'YYYY-MM-DD');
   }
 }
 
