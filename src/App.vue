@@ -6,7 +6,9 @@
           <q-toolbar class="q-py-md items-start">
             <div class="col">
               <div class="text-h5 text-weight-bold">Домашние дела детей</div>
-              <div class="ios-subtitle text-capitalize">{{ dateLabel }}</div>
+              <div class="ios-subtitle">
+                <span class="text-capitalize">{{ dateLabel }}</span> · v{{ appVersion }}
+              </div>
             </div>
             <div class="row items-center no-wrap q-gutter-sm">
               <q-badge v-if="parentActive" color="orange" text-color="black" label="Родительский контроль" />
@@ -21,10 +23,6 @@
           </q-banner>
           <HomePage />
         </q-page-container>
-
-        <q-footer class="bg-black text-grey-7">
-          <div class="q-px-md q-py-xs text-caption">v{{ appVersion }}</div>
-        </q-footer>
       </q-layout>
     </div>
   </div>
