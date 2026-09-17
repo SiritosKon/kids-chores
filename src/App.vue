@@ -27,16 +27,32 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
+import { useQuasar } from 'quasar';
 import ParentMenu from './components/ParentMenu.vue';
 import HomePage from './pages/HomePage.vue';
 import { isPersistenceAvailable } from './db/db.js';
 import { useSelectedDate } from './composables/useSelectedDate.js';
 import { useParentMode } from './composables/useParentMode.js';
 
+const $q = useQuasar();
 const persistence = isPersistenceAvailable();
 const { selectedDate } = useSelectedDate();
 const { active: parentActive } = useParentMode();
+const appVersion = __APP_VERSION__;
+
+onMounted(() => {
+  try {
+    const key = 'kids-chores-version';
+    const previous = localStorage.getItem(key);
+    if (previous && previous !== appVersion) {
+      $q.notify({ type: 'positive', icon: 'system_update', message: `Обновлено до v${appVersion}` });
+    }
+    localStorage.setItem(key, appVersion);
+  } catch {
+    // localStorage может быть недоступен
+  }
+});
 
 const dateLabel = computed(() => {
   const [year, month, day] = selectedDate.value.split('-').map(Number);

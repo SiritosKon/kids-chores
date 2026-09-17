@@ -33,6 +33,11 @@
               <q-item-section>Выйти из режима</q-item-section>
             </q-item>
           </template>
+
+          <q-separator />
+          <q-item>
+            <q-item-section class="text-caption text-grey-6">Версия {{ version }}</q-item-section>
+          </q-item>
         </q-list>
       </q-menu>
     </q-btn>
@@ -56,6 +61,7 @@ const { active, logout } = useParentMode();
 const showLogin = ref(false);
 const showSpends = ref(false);
 const fileInput = ref(null);
+const version = __APP_VERSION__;
 
 function download(payload, filename) {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
