@@ -33,6 +33,12 @@
               <q-item-section>Выйти из режима</q-item-section>
             </q-item>
           </template>
+
+          <q-separator />
+          <q-item clickable v-close-popup @click="openWhatsNew">
+            <q-item-section avatar><q-icon name="auto_awesome" /></q-item-section>
+            <q-item-section>Что нового</q-item-section>
+          </q-item>
         </q-list>
       </q-menu>
     </q-btn>
@@ -49,10 +55,12 @@ import { useQuasar } from 'quasar';
 import PasswordDialog from './PasswordDialog.vue';
 import SpendsDialog from './SpendsDialog.vue';
 import { useParentMode } from '../composables/useParentMode.js';
+import { useWhatsNew } from '../composables/useWhatsNew.js';
 import { exportAll, exportMonth, importAll } from '../db/completionsRepo.js';
 
 const $q = useQuasar();
 const { active, logout } = useParentMode();
+const { open: openWhatsNew } = useWhatsNew();
 const showLogin = ref(false);
 const showSpends = ref(false);
 const fileInput = ref(null);

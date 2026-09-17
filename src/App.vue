@@ -25,6 +25,7 @@
         </q-page-container>
       </q-layout>
     </div>
+    <WhatsNewDialog v-model="whatsNewOpen" />
   </div>
 </template>
 
@@ -37,19 +38,24 @@ import { isPersistenceAvailable } from './db/db.js';
 import { recordVersion } from './db/versionRepo.js';
 import { useSelectedDate } from './composables/useSelectedDate.js';
 import { useParentMode } from './composables/useParentMode.js';
+import { useWhatsNew } from './composables/useWhatsNew.js';
+import WhatsNewDialog from './components/WhatsNewDialog.vue';
 
 const $q = useQuasar();
 const persistence = isPersistenceAvailable();
 const { selectedDate } = useSelectedDate();
 const { active: parentActive } = useParentMode();
+const { isOpen: whatsNewOpen, open: openWhatsNew } = useWhatsNew();
 const appVersion = __APP_VERSION__;
 
 onMounted(async () => {
   try {
     const { isNew, hadHistory } = await recordVersion(appVersion);
     if (isNew && hadHistory) {
+      window.__kidsWhatsNew = openWhatsNew;
       $q.notify({
-        message: `Обновлено до v${appVersion}`,
+        html: true,
+        message: `<span onclick="window.__kidsWhatsNew()" style="cursor:pointer;display:block">Обновлено до v${appVersion}</span>`,
         icon: 'system_update',
         color: 'dark',
         textColor: 'white',
