@@ -46,7 +46,14 @@ onMounted(() => {
     const key = 'kids-chores-version';
     const previous = localStorage.getItem(key);
     if (previous && previous !== appVersion) {
-      $q.notify({ type: 'positive', icon: 'system_update', message: `Обновлено до v${appVersion}` });
+      $q.notify({
+        message: `Обновлено до v${appVersion}`,
+        icon: 'system_update',
+        color: 'dark',
+        textColor: 'white',
+        timeout: 0,
+        actions: [{ icon: 'close', color: 'white', round: true, 'aria-label': 'Закрыть', handler: () => {} }],
+      });
     }
     localStorage.setItem(key, appVersion);
   } catch {
