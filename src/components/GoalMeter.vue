@@ -8,10 +8,10 @@
     <div class="goal-meter__body">
       <div class="goal-meter__head">
         <span class="goal-meter__name">{{ entry.name }}</span>
-        <span class="goal-meter__score">
+        <q-btn flat dense no-caps color="primary" class="goal-meter__score" @click="emit('open-history')">
           <q-icon name="savings" size="18px" />
-          {{ entry.balance }}
-        </span>
+          <span class="q-ml-xs">{{ entry.balance }}</span>
+        </q-btn>
       </div>
       <div class="goal-meter__track">
         <div class="goal-meter__fill" :style="{ width: pct + '%' }"></div>
@@ -29,6 +29,7 @@ import MonsterTruck from './MonsterTruck.vue';
 const props = defineProps({
   entry: { type: Object, required: true },
 });
+const emit = defineEmits(['open-history']);
 
 const pct = computed(() => Math.min(100, Math.round((props.entry.ratio || 0) * 100)));
 const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`);
@@ -62,10 +63,8 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
 }
 
 .goal-meter__score {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--q-primary);
+  padding: 0 6px;
+  min-height: auto;
 }
 
 .goal-meter__track {

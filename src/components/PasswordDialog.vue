@@ -1,11 +1,17 @@
 <template>
-  <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" @hide="reset">
+  <q-dialog
+    :model-value="modelValue"
+    @update:model-value="emit('update:modelValue', $event)"
+    @show="focusInput"
+    @hide="reset"
+  >
     <q-card style="min-width: 300px; border-radius: 18px">
       <q-card-section>
         <div class="text-h6">Вход в родительский режим</div>
       </q-card-section>
       <q-card-section class="q-pt-none">
         <q-input
+          ref="passwordInput"
           v-model="password"
           :type="showPassword ? 'text' : 'password'"
           label="Пароль"
@@ -43,6 +49,13 @@ const $q = useQuasar();
 const { login } = useParentMode();
 const password = ref('');
 const showPassword = ref(false);
+const passwordInput = ref(null);
+
+function focusInput() {
+  if (passwordInput.value) {
+    passwordInput.value.focus();
+  }
+}
 
 function reset() {
   password.value = '';
