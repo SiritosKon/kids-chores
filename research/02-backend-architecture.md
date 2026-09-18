@@ -104,6 +104,68 @@ C4Container
   Rel(api, idp, "OIDC")
 ```
 
+## Плановые выделенные сервисы (закладываем слоты сейчас)
+
+Часть доменов заранее проектируем под вынос в отдельные сервисы — не потому что нужно на старте, а чтобы границы и
+события были готовы к моменту, когда это понадобится. Стартуем модулями в монолите, публикуем доменные события в брокер,
+и по сигналу выносим consumer'ы в отдельные процессы **без переписывания**.
+
+- **Notifications-сервис.** Расписания напоминаний (per-timezone), шаблоны, отправка push/email/Web Push.
+  Первый кандидат на вынос: тяжёлый асинхрон + всплески.
+- **Analytics-сервис + OLAP.** Приём продуктовых/поведенческих событий (отметки, покупки, стрики) → агрегаты и дашборды
+  (для родителя и для продукта). Хранилище — **OLAP (ClickHouse)**: колоночное, дёшево на рядах событий и агрегатах.
+  На старте события можно складывать в Postgres и переехать в ClickHouse при росте объёма.
+
+## Нужен ли брокер сообщений (Kafka)?
+
+**Kafka — нет** (overkill). Он про durable high-throughput streaming и много consumer-групп; операционно тяжёлый, а наши
+объёмы (см. оценку нагрузки) крошечные.
+
+Но **лёгкий брокер/очередь — да, закладываем**, по двум причинам:
+1. **Асинхрон и развязка:** уведомления и аналитика потребляют события независимо от API (API быстро отвечает, работа уходит в очередь).
+2. **Сглаживание всплесков:** аудитория в РФ в разных часовых поясах → нагрузка **постоянная, но неравномерная**
+   (крон «сделай дела в 18:00 локально» бьёт волнами по TZ; редкий скачок регистраций). Очередь гасит пики, consumer'ы разгребают в своём темпе.
+
+**Чем закрываем (по возрастанию тяжести):**
+- **Redis Streams / BullMQ** — Redis у нас уже есть; надёжные очереди задач + pub/sub с consumer-группами. **Рекомендация для старта.**
+- **Managed-очередь** (Cloud Pub/Sub, SQS/SNS, NATS) — если хочется managed без своей эксплуатации.
+- **Kafka / Redpanda** — только если реально появится durable high-volume streaming для аналитики. Для этого приложения — вряд ли когда-либо.
+
+**Защита от скачка пользователей** — это не Kafka, а: stateless API + горизонтальный автоскейл, очередь на асинхрон,
+rate-limit, managed-БД с запасом. Брокер тут про развязку и ровную обработку, а не про «выдержать RPS».
+
+## C4 — Container (целевая, с доп. сервисами)
+
+```mermaid
+C4Container
+  title Container — Chores (целевая: аналитика + уведомления + брокер)
+  Person(parent, "Родитель")
+  Person(child, "Ребёнок")
+  System_Boundary(sys, "Chores (регион)") {
+    Container(spa, "PWA-клиент", "Vue 3 + Quasar", "Offline-first, синк")
+    Container(api, "Backend (монолит-ядро)", "NestJS", "Auth, Family, Children, Tasks, Ledger, Rewards, Sync")
+    Container(broker, "Брокер/очередь", "Redis Streams / BullMQ", "Доменные события, задачи, сглаживание пиков")
+    Container(notify, "Notifications-сервис", "Node", "Расписания per-TZ, шаблоны, push/email")
+    Container(analytics, "Analytics-сервис", "Node", "Приём событий, агрегаты")
+    ContainerDb(db, "PostgreSQL", "managed", "Источник правды")
+    ContainerDb(cache, "Redis", "managed", "Сессии, rate-limit, брокер")
+    ContainerDb(olap, "OLAP", "ClickHouse", "События и агрегаты для дашбордов")
+    Container(storage, "Объектное хранилище", "S3", "Аватарки, выгрузки")
+  }
+  System_Ext(idp, "SSO (OIDC)")
+  System_Ext(push, "Push (APNs/FCM/Web)")
+  Rel(spa, api, "REST + realtime", "HTTPS/WSS")
+  Rel(api, db, "SQL")
+  Rel(api, cache, "кеш/rate-limit")
+  Rel(api, broker, "публикует события")
+  Rel(broker, notify, "события/задачи")
+  Rel(broker, analytics, "события")
+  Rel(analytics, olap, "пишет агрегаты")
+  Rel(notify, push, "push")
+  Rel(api, idp, "OIDC")
+  Rel(spa, storage, "аватарки")
+```
+
 ## Данные (серверные, tenant-scoped)
 `families` · `users` · `memberships(userId, familyId, role)` · `children` · `tasks` · `completions` · `spends` ·
 `rewards` · `devices` · `invites`. Всё, кроме `users`, скоупится по `familyId`. Инвариант из MVP сохраняем:
