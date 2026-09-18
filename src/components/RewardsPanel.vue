@@ -3,7 +3,7 @@
     <q-list separator>
       <q-item v-for="reward in rewards" :key="reward.id">
         <q-item-section avatar>
-          <div class="reward-tile" :style="{ background: reward.color }">
+          <div class="reward-tile" :style="{ background: tierColor(reward.points) }">
             <q-icon :name="reward.icon" size="20px" color="white" />
           </div>
         </q-item-section>
@@ -62,6 +62,16 @@ const $q = useQuasar();
 const rewards = [...REWARDS].sort((first, second) => first.points - second.points);
 const children = CHILDREN;
 const { balances } = useBalances();
+
+function tierColor(points) {
+  if (points < 10) {
+    return '#30D158';
+  }
+  if (points < 20) {
+    return '#0A84FF';
+  }
+  return '#FF453A';
+}
 
 function canAfford(child, reward) {
   return (balances.value[child.id] || 0) >= reward.points;
