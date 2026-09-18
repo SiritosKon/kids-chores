@@ -63,42 +63,47 @@ PWA продолжает работать оффлайн; сервер — ис�
 ## C4 — Context
 
 ```mermaid
-flowchart TB
-  parent["👤 Родитель/опекун"]
-  child["👤 Ребёнок"]
-  app["Chores<br/>мультисемейный трекер<br/>(синк + аккаунты)"]
-  idp["SSO<br/>Google (EU) · Yandex/VK ID (RU)"]
-  push["Push<br/>APNs / FCM / Web Push"]
-  parent --> app
-  child --> app
-  app -->|OIDC| idp
-  app -->|напоминания| push
+C4Context
+  title Chores — контекст
+  Person(parent, "Родитель/опекун", "Настраивает, проверяет, выдаёт награды")
+  Person(child, "Ребёнок", "Отмечает задачи, копит баллы")
+  System(app, "Chores", "Мультисемейный трекер: синк + аккаунты")
+  System_Ext(idp, "SSO", "Google (EU) · Yandex/VK ID (RU)")
+  System_Ext(push, "Push", "APNs / FCM / Web Push")
+  Rel(parent, app, "Пользуется", "HTTPS")
+  Rel(child, app, "Пользуется", "HTTPS")
+  Rel_D(app, idp, "Аутентификация (OIDC)")
+  Rel_D(app, push, "Напоминания")
+  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
 ```
 
 ## C4 — Container (модульный монолит)
 
 ```mermaid
-flowchart TB
-  parent["👤 Родитель"]
-  child["👤 Ребёнок"]
-  spa["PWA-клиент<br/>Vue 3 + Quasar<br/>offline-first, очередь синка"]
-  api["Backend (монолит) · NestJS<br/>Auth · Family · Children · Tasks<br/>Ledger · Rewards · Sync · Export"]
-  worker["Воркер<br/>роллаперы, напоминания"]
-  db[("PostgreSQL<br/>источник правды")]
-  cache[("Redis<br/>сессии, rate-limit, очередь")]
-  storage[("Объектное хранилище S3")]
-  idp["SSO (OIDC)"]
-  push["Push"]
-
-  parent --> spa
-  child --> spa
-  spa -->|REST + WSS| api
-  spa -->|аватарки| storage
-  api -->|SQL| db
-  api --> cache
-  api -->|OIDC| idp
-  worker --> db
-  worker --> push
+C4Container
+  title Chores — контейнеры (монолит, один регион)
+  Person(parent, "Родитель")
+  Person(child, "Ребёнок")
+  Container(spa, "PWA-клиент", "Vue 3 + Quasar", "Offline-first + очередь синка")
+  System_Boundary(sys, "Chores (регион)") {
+    Container(api, "Backend монолит", "NestJS", "Auth · Family · Children · Tasks · Ledger · Rewards · Sync · Export")
+    Container(worker, "Воркер", "Node", "Роллаперы, напоминания")
+    ContainerDb(db, "PostgreSQL", "managed", "Источник правды")
+    ContainerDb(cache, "Redis", "managed", "Сессии, rate-limit, очередь")
+    Container(storage, "Объектное хранилище", "S3", "Аватарки, выгрузки")
+  }
+  System_Ext(idp, "SSO (OIDC)")
+  System_Ext(push, "Push")
+  Rel(parent, spa, "HTTPS")
+  Rel(child, spa, "HTTPS")
+  Rel(spa, api, "REST + WSS")
+  Rel(spa, storage, "Аватарки")
+  Rel(api, db, "SQL")
+  Rel(api, cache, "Кеш/очередь")
+  Rel(api, idp, "OIDC")
+  Rel(worker, db, "Джобы")
+  Rel(worker, push, "Push")
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 
 ## Плановые выделенные сервисы (закладываем слоты сейчас)
@@ -134,33 +139,36 @@ rate-limit, managed-БД с запасом. Брокер тут про разв�
 ## C4 — Container (целевая, с доп. сервисами)
 
 ```mermaid
-flowchart TB
-  parent["👤 Родитель"]
-  child["👤 Ребёнок"]
-  spa["PWA-клиент<br/>Vue 3 + Quasar"]
-  api["Backend монолит-ядро · NestJS<br/>Auth · Family · Children · Tasks<br/>Ledger · Rewards · Sync"]
-  broker["Брокер/очередь<br/>Redis Streams / BullMQ"]
-  notify["Notifications-сервис<br/>расписания per-TZ, push/email"]
-  analytics["Analytics-сервис<br/>приём событий, агрегаты"]
-  db[("PostgreSQL")]
-  cache[("Redis")]
-  olap[("OLAP · ClickHouse")]
-  storage[("Объектное хранилище S3")]
-  idp["SSO (OIDC)"]
-  push["Push"]
-
-  parent --> spa
-  child --> spa
-  spa -->|REST + WSS| api
-  spa -->|аватарки| storage
-  api -->|SQL| db
-  api --> cache
-  api -->|OIDC| idp
-  api -->|события| broker
-  broker --> notify
-  broker --> analytics
-  analytics -->|агрегаты| olap
-  notify --> push
+C4Container
+  title Chores — контейнеры (целевая: аналитика, уведомления, брокер)
+  Person(parent, "Родитель")
+  Person(child, "Ребёнок")
+  Container(spa, "PWA-клиент", "Vue 3 + Quasar", "Offline-first + синк")
+  System_Boundary(sys, "Chores (регион)") {
+    Container(api, "Backend монолит-ядро", "NestJS", "Auth · Family · Children · Tasks · Ledger · Rewards · Sync")
+    Container(broker, "Брокер/очередь", "Redis Streams / BullMQ", "События, задачи, сглаживание пиков")
+    Container(notify, "Notifications", "Node", "Расписания per-TZ, push/email")
+    Container(analytics, "Analytics", "Node", "Приём событий, агрегаты")
+    ContainerDb(db, "PostgreSQL", "managed", "Источник правды")
+    ContainerDb(cache, "Redis", "managed", "Сессии, rate-limit")
+    ContainerDb(olap, "OLAP", "ClickHouse", "События, агрегаты")
+    Container(storage, "Объектное хранилище", "S3", "Аватарки")
+  }
+  System_Ext(idp, "SSO (OIDC)")
+  System_Ext(push, "Push")
+  Rel(parent, spa, "HTTPS")
+  Rel(child, spa, "HTTPS")
+  Rel(spa, api, "REST + WSS")
+  Rel(spa, storage, "Аватарки")
+  Rel(api, db, "SQL")
+  Rel(api, cache, "Кеш")
+  Rel(api, idp, "OIDC")
+  Rel(api, broker, "Публикует события")
+  Rel(broker, notify, "События/задачи")
+  Rel(broker, analytics, "События")
+  Rel(analytics, olap, "Агрегаты")
+  Rel(notify, push, "Push")
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 
 ## Данные (серверные, tenant-scoped)
