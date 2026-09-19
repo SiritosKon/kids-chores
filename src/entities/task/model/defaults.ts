@@ -9,8 +9,6 @@ export const TASKS: readonly Task[] = taskSchema.array().parse([
   { id: 'bonus', name: 'Доп. баллы', icon: 'star', points: 1, color: '#FF9F0A' },
 ]);
 
-// Бонус начисляется автоматически за все задачи дня, поэтому в списке
-// отмечаемых задач он не участвует.
 export const REGULAR_TASKS: readonly Task[] = TASKS.filter((task) => task.id !== BONUS_TASK_ID);
 
 export const BONUS_TASK: Task | undefined = TASKS.find((task) => task.id === BONUS_TASK_ID);

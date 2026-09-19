@@ -4,8 +4,6 @@ import { storedCompletionSchema, type Completion } from '../model/schema';
 
 export const completionsTable = table<Completion>('completions');
 
-// Что записать за день: id задачи и её стоимость на этот момент. Стоимость
-// приходит снаружи, чтобы отметка не зависела от каталога задач.
 export interface TaskMark {
   taskId: string;
   points: number;

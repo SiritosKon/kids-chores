@@ -19,7 +19,6 @@ const emit = defineEmits<{ 'update:modelValue': [dayKey: string] }>();
 
 const { active: parentActive } = storeToRefs(useParentSessionStore());
 
-// q-date отдаёт даты через слэш, ключи храним через дефис.
 const weekSlashKeys = computed(
   () => new Set(weekDayKeys(Date.now()).map((key) => key.replace(/-/g, '/')))
 );

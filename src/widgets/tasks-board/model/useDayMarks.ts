@@ -7,11 +7,6 @@ import { getDayCompletions, saveDayMarks, type TaskMark } from '@/entities/compl
 
 type MarksByChild = Record<string, Set<string>>;
 
-/**
- * Отметки выбранного дня: что уже сохранено, что натыкали сейчас и что из
- * этого станет записью в базе по кнопке «Принять». Бонус не отмечают руками —
- * он начисляется, когда закрыты все обычные задачи дня.
- */
 export function useDayMarks(selectedDate: Ref<string>) {
   const $q = useQuasar();
   const saved = ref<MarksByChild>({});

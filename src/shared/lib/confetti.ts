@@ -5,9 +5,7 @@ export function celebrate(color = '#FF9F0A'): void {
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return;
     }
-  } catch {
-    // matchMedia may be unavailable; fall through and animate.
-  }
+  } catch {}
 
   const end = Date.now() + 1200;
   const colors = [color, '#FDD835', '#ffffff'];

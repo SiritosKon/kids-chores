@@ -52,8 +52,6 @@ const appVersion = __APP_VERSION__;
 
 const dateLabel = computed(() => formatDayKeyLong(selectedDate.value));
 
-// Уведомление об обновлении кликабельно, а q-notify отдаёт только html-строку,
-// поэтому обработчик приходится вешать через window.
 declare global {
   interface Window {
     __kidsWhatsNew?: () => void;
@@ -74,8 +72,6 @@ onMounted(async () => {
         timeout: 5000,
       });
     }
-  } catch {
-    // БД может быть недоступна
-  }
+  } catch {}
 });
 </script>

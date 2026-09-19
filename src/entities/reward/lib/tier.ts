@@ -1,4 +1,3 @@
-// Цвет плитки по «ценовой» группе: дешёвые — зелёные, средние — синие, дорогие — красные.
 export function rewardTierColor(points: number): string {
   if (points < 10) {
     return '#30D158';

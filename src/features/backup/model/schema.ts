@@ -4,8 +4,6 @@ import { storedSpendSchema } from '@/entities/spend';
 
 export const BACKUP_VERSION = 2;
 
-// Файл приезжает от пользователя, поэтому схема — единственное, что стоит между
-// чужим JSON и базой. Сущности валидируют себя сами, бэкап только их собирает.
 export const backupSchema = z.object({
   version: z.number().int().optional(),
   exportedAt: z.string().optional(),

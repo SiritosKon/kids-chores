@@ -4,8 +4,6 @@ import type { Child } from '@/entities/child';
 import type { Reward } from '@/entities/reward';
 import { addSpend } from '@/entities/spend';
 
-// Выдача награды: подтверждение, списание баллов и праздник. Панель наград
-// только рисует список — сама транзакция живёт здесь.
 export function useAwardReward() {
   const $q = useQuasar();
 

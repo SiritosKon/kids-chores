@@ -4,9 +4,7 @@ import { versionLogEntrySchema, type VersionLogEntry } from '../model/schema';
 export const versionLogTable = table<VersionLogEntry>('versionLog');
 
 export interface VersionVisit {
-  /** Версия впервые открыта на этом устройстве. */
   isNew: boolean;
-  /** До неё устройство уже видело другие версии — значит это обновление, а не установка. */
   hadHistory: boolean;
 }
 

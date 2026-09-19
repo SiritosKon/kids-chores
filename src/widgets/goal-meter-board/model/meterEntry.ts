@@ -1,4 +1,3 @@
-/** Вью-модель полосы прогресса: ребёнок + его баланс в долях до планки копилки. */
 export interface MeterEntry {
   childId: string;
   name: string;

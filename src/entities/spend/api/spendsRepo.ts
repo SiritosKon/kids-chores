@@ -20,7 +20,6 @@ export async function deleteSpend(id: string): Promise<void> {
   await spendsTable.delete(id);
 }
 
-// Живой список списаний: Dexie сам пересчитает подписку после любой записи.
 export function watchSpends(onNext: (spends: Spend[]) => void): Subscription {
   return liveQuery(() => getSpends()).subscribe({ next: onNext });
 }

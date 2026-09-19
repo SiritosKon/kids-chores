@@ -6,8 +6,6 @@ import { spendsTable } from '@/entities/spend/@x/wallet';
 
 export type Balances = Readonly<Record<string, number>>;
 
-// Баланс = сумма отметок минус списания. Живёт в одном месте и пересчитывается
-// подпиской Dexie, поэтому любой экран видит одно и то же число.
 export const useWalletStore = defineStore('wallet', () => {
   const balances = ref<Balances>({});
 

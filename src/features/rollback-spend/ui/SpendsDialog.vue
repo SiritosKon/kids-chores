@@ -43,7 +43,6 @@ const $q = useQuasar();
 const spends = ref<Spend[]>([]);
 let subscription: Subscription | null = null;
 
-// Подписку держим только пока диалог открыт.
 function start(): void {
   subscription ??= watchSpends((rows) => {
     spends.value = rows;

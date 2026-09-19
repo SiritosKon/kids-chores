@@ -6,7 +6,6 @@ export function todayKey(): string {
   return date.formatDate(Date.now(), DAY_KEY_FORMAT);
 }
 
-/** 2026-09-19 → «суббота, 19 сентября» */
 export function formatDayKeyLong(dayKey: string): string {
   return toDate(dayKey).toLocaleDateString('ru-RU', {
     weekday: 'long',
@@ -15,13 +14,11 @@ export function formatDayKeyLong(dayKey: string): string {
   });
 }
 
-/** 2026-09-19 → «19.09.2026» */
 export function formatDayKeyNumeric(dayKey: string): string {
   const [year, month, day] = dayKey.split('-');
   return `${day}.${month}.${year}`;
 }
 
-/** Таймстемп → «19.09.2026» */
 export function formatTimestampNumeric(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString('ru-RU', {
     day: '2-digit',
@@ -30,7 +27,6 @@ export function formatTimestampNumeric(timestamp: number): string {
   });
 }
 
-/** Таймстемп → «19 сент.» */
 export function formatTimestampShort(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
