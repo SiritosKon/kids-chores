@@ -17,9 +17,6 @@ export const formatDayKeyLong = (dayKey: string): string => {
   });
 };
 
-export const formatDayKeyWeekday = (dayKey: string): string =>
-  toDate(dayKey).toLocaleDateString('ru-RU', { weekday: 'short' });
-
 export const formatDayKeyNumeric = (dayKey: string): string => {
   const [year, month, day] = dayKey.split('-');
   return `${day}.${month}.${year}`;
