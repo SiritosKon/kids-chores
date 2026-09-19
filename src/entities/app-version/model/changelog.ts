@@ -6,6 +6,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '0.2.7',
+    date: '2026-09-19',
+    notes: ['Экран загрузки при запуске с домашнего экрана'],
+  },
+  {
     version: '0.2.6',
     date: '2026-09-19',
     notes: [

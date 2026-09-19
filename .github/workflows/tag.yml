@@ -1,0 +1,29 @@
+name: Tag release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: version
+        run: echo "value=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Create tag when the version is new
+        run: |
+          tag='${{ steps.version.outputs.value }}'
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "$tag already exists, nothing to do"
+            exit 0
+          fi
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag -a "$tag" -m "$tag"
+          git push origin "$tag"
