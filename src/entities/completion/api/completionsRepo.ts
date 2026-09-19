@@ -49,6 +49,11 @@ export const resetWeek = async (childId: string, referenceDate: Date | number = 
   await completionsTable.where('[childId+date]').anyOf(pairs).delete();
 };
 
+export const getChildCompletions = async (childId: string): Promise<Completion[]> =>
+  storedCompletionSchema
+    .array()
+    .parse(await completionsTable.where('childId').equals(childId).toArray());
+
 export const getAllCompletions = async (): Promise<Completion[]> => {
   return storedCompletionSchema.array().parse(await completionsTable.toArray());
 };

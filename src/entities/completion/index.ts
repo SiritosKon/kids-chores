@@ -4,6 +4,7 @@ export {
   getDayCompletions,
   saveDayMarks,
   resetWeek,
+  getChildCompletions,
   getAllCompletions,
   type TaskMark,
 } from './api/completionsRepo';

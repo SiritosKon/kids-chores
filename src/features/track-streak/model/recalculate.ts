@@ -5,7 +5,12 @@ import { tasksCatalogue, STREAK_TASK_ID } from '@/entities/task';
 import { completionsTable, getAllCompletions, type Completion } from '@/entities/completion';
 import { spendsTable, getAllSpends, type Spend } from '@/entities/spend';
 import { getSettings } from '@/entities/settings';
-import { streaksTable, summariseStreak, type StreakState } from '@/entities/streak';
+import {
+  streaksTable,
+  summariseStreak,
+  closedDaysFrom,
+  type StreakState,
+} from '@/entities/streak';
 
 const awardId = (childId: string, milestoneId: string, day: string): string =>
   `streak:${childId}:${milestoneId}:${day}`;
@@ -45,20 +50,10 @@ export const recalculateStreaks = async (
   const now = Date.now();
 
   for (const child of children) {
-    const own = completions.filter((row) => row.childId === child.id);
-    const marksByDay = new Map<string, Set<string>>();
-    for (const row of own) {
-      const marks = marksByDay.get(row.date) ?? new Set<string>();
-      marks.add(row.taskId);
-      marksByDay.set(row.date, marks);
-    }
-
-    const closedDays =
-      requiredIds.length === 0
-        ? []
-        : [...marksByDay.entries()]
-            .filter(([, marks]) => requiredIds.every((taskId) => marks.has(taskId)))
-            .map(([day]) => day);
+    const closedDays = closedDaysFrom(
+      completions.filter((row) => row.childId === child.id),
+      requiredIds
+    );
 
     const summary = summariseStreak(closedDays, settings.streak.milestones, today);
 

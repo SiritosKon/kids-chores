@@ -34,6 +34,21 @@
       </q-card-section>
 
       <q-separator />
+      <q-card-section>
+        <div class="streak-week">
+          <div v-for="day in week" :key="day.key" class="streak-day">
+            <div class="streak-day__name">{{ day.weekday }}</div>
+            <div class="streak-day__dot" :class="{ 'streak-day__dot--closed': day.closed }">
+              <q-icon v-if="day.closed" name="check" size="16px" color="black" />
+            </div>
+          </div>
+        </div>
+        <div class="streak-week__hint">
+          День засчитан, когда выполнены все задачи
+        </div>
+      </q-card-section>
+
+      <q-separator />
       <q-item-label header>Награда за серию</q-item-label>
       <q-card-section class="q-pa-none q-pb-sm">
         <q-list separator>
@@ -61,12 +76,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { pluralize } from '@/shared/lib/plural';
+import { todayKey, shiftDayKey, formatDayKeyWeekday } from '@/shared/lib/date';
+import { getChildCompletions } from '@/entities/completion';
+import { useTasksStore } from '@/entities/task';
 import { useChildrenStore } from '@/entities/child';
 import { useRewardsStore, rewardColor } from '@/entities/reward';
 import { useSettingsStore, type StreakMilestone } from '@/entities/settings';
-import { useStreakStore, streakProgress } from '@/entities/streak';
+import { useStreakStore, streakProgress, closedDaysFrom } from '@/entities/streak';
 
 const props = withDefaults(
   defineProps<{
@@ -80,6 +98,7 @@ const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 const DAYS = ['день', 'дня', 'дней'] as const;
 
 const childrenStore = useChildrenStore();
+const tasksStore = useTasksStore();
 const rewardsStore = useRewardsStore();
 const settingsStore = useSettingsStore();
 const streakStore = useStreakStore();
@@ -97,6 +116,35 @@ const progress = computed(() => streakProgress(current.value, milestones.value))
 
 const daysLabel = computed(() => pluralize(current.value, DAYS));
 const remainingLabel = computed(() => pluralize(progress.value?.remaining ?? 0, DAYS));
+
+const closedDays = ref<Set<string>>(new Set());
+
+const week = computed(() => {
+  const today = todayKey();
+  return Array.from({ length: 7 }, (_, index) => {
+    const key = shiftDayKey(today, index - 6);
+    return { key, weekday: formatDayKeyWeekday(key), closed: closedDays.value.has(key) };
+  });
+});
+
+const loadWeek = async (): Promise<void> => {
+  if (!props.childId) {
+    closedDays.value = new Set();
+    return;
+  }
+  const required = tasksStore.active.map((task) => task.id);
+  const marks = await getChildCompletions(props.childId);
+  closedDays.value = new Set(closedDaysFrom(marks, required));
+};
+
+watch(
+  () => [props.modelValue, props.childId],
+  ([open]) => {
+    if (open) {
+      void loadWeek();
+    }
+  }
+);
 
 const rewardIcon = (rewardId: string | undefined): string =>
   (rewardId ? rewardsStore.byId(rewardId)?.icon : undefined) ?? 'star';
@@ -182,6 +230,47 @@ const rewardLabel = (milestone: StreakMilestone): string => {
   font-size: 13px;
   font-weight: 600;
   color: #ffb340;
+}
+
+.streak-week {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.streak-day {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.streak-day__name {
+  font-size: 11px;
+  color: #8e8e93;
+  text-transform: lowercase;
+}
+
+.streak-day__dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.streak-day__dot--closed {
+  background: #ff9f0a;
+  border-color: #ff9f0a;
+}
+
+.streak-week__hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #8e8e93;
 }
 
 .streak-tile {
