@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
     "preview": "vite preview",
     "icons": "node scripts/generateIcons.mjs"
   },
@@ -24,10 +25,12 @@
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^26.6.2",
     "@vitejs/plugin-vue": "^5.2.0",
+    "fake-indexeddb": "^6.2.5",
     "sass-embedded": "^1.80.0",
     "typescript": "^5.9.3",
     "vite": "^6.0.0",
     "vite-plugin-pwa": "^0.21.0",
+    "vitest": "^5.0.1",
     "vue-tsc": "^3.3.11"
   }
 }

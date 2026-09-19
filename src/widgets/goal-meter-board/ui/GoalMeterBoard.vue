@@ -1,5 +1,5 @@
 <template>
-  <div class="goal-meter-board">
+  <div v-if="childrenStore.active.length > 0" class="goal-meter-board">
     <GoalMeter
       v-for="entry in meterEntries"
       :key="entry.childId"
@@ -13,21 +13,22 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { WalletHistoryDialog } from '@/features/wallet-history';
-import { CHILDREN } from '@/entities/child';
+import { useChildrenStore, childPhotoUrl } from '@/entities/child';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
 import GoalMeter from './GoalMeter.vue';
 import type { MeterEntry } from '../model/meterEntry';
 
 const wallet = useWalletStore();
+const childrenStore = useChildrenStore();
 
 const meterEntries = computed<MeterEntry[]>(() =>
-  CHILDREN.map((child) => {
+  childrenStore.active.map((child) => {
     const balance = wallet.balanceOf(child.id);
     const max = piggyMax(balance);
     return {
       childId: child.id,
       name: child.name,
-      photo: child.photo,
+      photo: childPhotoUrl(child.photo) ?? '',
       carColor: child.carColor,
       balance,
       ratio: max > 0 ? balance / max : 0,

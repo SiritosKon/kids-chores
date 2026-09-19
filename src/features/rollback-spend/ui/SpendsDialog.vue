@@ -33,13 +33,17 @@ import { useQuasar } from 'quasar';
 import type { Subscription } from 'dexie';
 import { formatTimestampShort } from '@/shared/lib/date';
 import { deleteSpend, watchSpends, type Spend } from '@/entities/spend';
-import { rewardName } from '@/entities/reward';
-import { childName } from '@/entities/child';
+import { useRewardsStore } from '@/entities/reward';
+import { useChildrenStore } from '@/entities/child';
 
 const props = withDefaults(defineProps<{ modelValue?: boolean }>(), { modelValue: false });
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
 const $q = useQuasar();
+const rewardsStore = useRewardsStore();
+const childrenStore = useChildrenStore();
+const rewardName = (rewardId: string): string => rewardsStore.nameOf(rewardId);
+const childName = (childId: string): string => childrenStore.nameOf(childId);
 const spends = ref<Spend[]>([]);
 let subscription: Subscription | null = null;
 

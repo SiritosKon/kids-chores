@@ -39,12 +39,14 @@
 import { ref } from 'vue';
 import { useQuasar, type QInput } from 'quasar';
 import { useParentSessionStore } from '@/entities/parent-session';
+import { useSettingsStore } from '@/entities/settings';
 
 withDefaults(defineProps<{ modelValue?: boolean }>(), { modelValue: false });
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
 const $q = useQuasar();
 const parentSession = useParentSessionStore();
+const settingsStore = useSettingsStore();
 const password = ref('');
 const showPassword = ref(false);
 const passwordInput = ref<QInput | null>(null);
@@ -59,7 +61,8 @@ const reset = (): void => {
 };
 
 const submit = (): void => {
-  if (parentSession.login(password.value)) {
+  if (password.value === settingsStore.settings.parentPassword) {
+    parentSession.unlock();
     $q.notify({ type: 'positive', message: 'Родительский режим включён' });
     emit('update:modelValue', false);
   } else {

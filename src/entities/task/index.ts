@@ -1,2 +1,11 @@
 export { taskSchema, type Task } from './model/schema';
-export { TASKS, REGULAR_TASKS, BONUS_TASK, BONUS_TASK_ID, taskName } from './model/defaults';
+export { DEFAULT_TASKS } from './model/defaults';
+export { useTasksStore } from './model/store';
+export { tasksCatalogue } from './api/tasksRepo';
+export {
+  BONUS_TASK_ID,
+  STREAK_TASK_ID,
+  RESERVED_TASK_IDS,
+  reservedTaskName,
+  isReservedTaskId,
+} from './lib/reserved';

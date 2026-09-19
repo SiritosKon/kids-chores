@@ -37,9 +37,9 @@
 import { ref, computed, watch } from 'vue';
 import { formatDayKeyNumeric, formatTimestampNumeric } from '@/shared/lib/date';
 import { getChildLedger } from '@/entities/wallet';
-import { taskName } from '@/entities/task';
-import { rewardName } from '@/entities/reward';
-import { findChild } from '@/entities/child';
+import { useTasksStore } from '@/entities/task';
+import { useRewardsStore } from '@/entities/reward';
+import { useChildrenStore } from '@/entities/child';
 
 interface LedgerItem {
   id: string;
@@ -58,9 +58,13 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
+const tasksStore = useTasksStore();
+const rewardsStore = useRewardsStore();
+const childrenStore = useChildrenStore();
+
 const ledger = ref<LedgerItem[]>([]);
 
-const childName = computed(() => (props.childId ? (findChild(props.childId)?.name ?? '') : ''));
+const childName = computed(() => (props.childId ? childrenStore.nameOf(props.childId) : ''));
 
 const total = computed(() => ledger.value.reduce((sum, item) => sum + item.amount, 0));
 
@@ -73,14 +77,14 @@ const load = async (): Promise<void> => {
   const items: LedgerItem[] = [
     ...completions.map((row) => ({
       id: row.id,
-      label: taskName(row.taskId),
+      label: tasksStore.nameOf(row.taskId),
       amount: row.points,
       ts: row.createdAt,
       dayLabel: formatDayKeyNumeric(row.date),
     })),
     ...spends.map((spend) => ({
       id: spend.id,
-      label: rewardName(spend.rewardId),
+      label: rewardsStore.nameOf(spend.rewardId),
       amount: -spend.cost,
       ts: spend.createdAt,
       dayLabel: formatTimestampNumeric(spend.createdAt),
