@@ -5,7 +5,7 @@
     @show="focusInput"
     @hide="reset"
   >
-    <q-card>
+    <q-card class="dialog--narrow">
       <q-card-section>
         <div class="text-h6">Вход в родительский режим</div>
       </q-card-section>

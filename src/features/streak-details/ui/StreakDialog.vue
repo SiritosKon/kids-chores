@@ -1,6 +1,6 @@
 <template>
   <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
-    <q-card>
+    <q-card class="dialog--wide">
       <q-card-section class="row items-center">
         <div class="text-h6">Серия · {{ childName }}</div>
         <q-space />
@@ -32,7 +32,7 @@
 
       <q-separator />
       <q-item-label header>Награда за серию</q-item-label>
-      <q-card-section class="q-pa-none">
+      <q-card-section class="q-pa-none q-pb-sm">
         <q-list separator>
           <q-item v-for="milestone in milestones" :key="milestone.id">
             <q-item-section avatar>

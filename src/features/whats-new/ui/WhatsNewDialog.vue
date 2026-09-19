@@ -1,6 +1,6 @@
 <template>
   <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
-    <q-card>
+    <q-card class="dialog--wide">
       <q-card-section class="row items-center">
         <div class="text-h6">Что нового</div>
         <q-space />
