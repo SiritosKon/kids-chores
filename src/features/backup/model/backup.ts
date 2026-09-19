@@ -1,24 +1,40 @@
 import { transaction } from '@/shared/api/db';
 import { completionsTable, getAllCompletions } from '@/entities/completion';
 import { spendsTable, getAllSpends } from '@/entities/spend';
+import { childrenCatalogue } from '@/entities/child';
+import { tasksCatalogue } from '@/entities/task';
+import { rewardsCatalogue } from '@/entities/reward';
+import { settingsTable, getSettings, saveSettings } from '@/entities/settings';
 import { backupSchema, describeIssues, BACKUP_VERSION, type Backup } from './schema';
 
-export const exportAll = async (): Promise<Backup> => {
-  const [completions, spends] = await Promise.all([getAllCompletions(), getAllSpends()]);
-  return { version: BACKUP_VERSION, exportedAt: new Date().toISOString(), completions, spends };
-};
+const TABLES = [
+  completionsTable,
+  spendsTable,
+  childrenCatalogue.table,
+  tasksCatalogue.table,
+  rewardsCatalogue.table,
+  settingsTable,
+];
 
-export const exportMonth = async (year: number, month: number): Promise<Backup> => {
-  const prefix = `${year}-${String(month).padStart(2, '0')}`;
-  const { completions, spends } = await exportAll();
+export const exportAll = async (): Promise<Backup> => {
+  const [completions, spends, children, tasks, rewards, settings] = await Promise.all([
+    getAllCompletions(),
+    getAllSpends(),
+    childrenCatalogue.read(),
+    tasksCatalogue.read(),
+    rewardsCatalogue.read(),
+    getSettings(),
+  ]);
+
   return {
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
-    completions: completions.filter((row) => row.date.startsWith(prefix)),
-    spends: (spends ?? []).filter((spend) => {
-      const day = new Date(spend.createdAt);
-      return `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}` === prefix;
-    }),
+    completions,
+    spends,
+    children,
+    tasks,
+    rewards,
+    ...(settings ? { settings } : {}),
   };
 };
 
@@ -27,14 +43,31 @@ export const importAll = async (data: unknown): Promise<void> => {
   if (!parsed.success) {
     throw new Error(describeIssues(parsed.error));
   }
-  const { completions, spends = [] } = parsed.data;
+  const { completions, spends = [], children, tasks, rewards, settings } = parsed.data;
 
-  await transaction([completionsTable, spendsTable], async () => {
+  await transaction(TABLES, async () => {
     await completionsTable.clear();
     await completionsTable.bulkAdd(completions);
+
     await spendsTable.clear();
     if (spends.length > 0) {
       await spendsTable.bulkAdd(spends);
+    }
+
+    if (children) {
+      await childrenCatalogue.table.clear();
+      await childrenCatalogue.putMany(children);
+    }
+    if (tasks) {
+      await tasksCatalogue.table.clear();
+      await tasksCatalogue.putMany(tasks);
+    }
+    if (rewards) {
+      await rewardsCatalogue.table.clear();
+      await rewardsCatalogue.putMany(rewards);
+    }
+    if (settings) {
+      await saveSettings(settings);
     }
   });
 };

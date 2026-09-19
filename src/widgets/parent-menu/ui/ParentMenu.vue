@@ -11,13 +11,9 @@
           </template>
           <template v-else>
             <q-item-label header>Родительский режим</q-item-label>
-            <q-item clickable v-close-popup @click="exportFull">
+            <q-item clickable v-close-popup @click="exportData">
               <q-item-section avatar><q-icon name="download" /></q-item-section>
-              <q-item-section>Экспорт (всё)</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup @click="exportMonthly">
-              <q-item-section avatar><q-icon name="calendar_month" /></q-item-section>
-              <q-item-section>Экспорт за месяц</q-item-section>
+              <q-item-section>Экспорт данных</q-item-section>
             </q-item>
             <q-item clickable @click="pickFile">
               <q-item-section avatar><q-icon name="upload" /></q-item-section>
@@ -57,7 +53,7 @@ import { useParentSessionStore } from '@/entities/parent-session';
 import { PasswordDialog } from '@/features/parent-login';
 import { SpendsDialog } from '@/features/rollback-spend';
 import { useWhatsNewStore } from '@/features/whats-new';
-import { exportAll, exportMonth, importAll, downloadJson } from '@/features/backup';
+import { exportAll, importAll, downloadJson } from '@/features/backup';
 
 const $q = useQuasar();
 const parentSession = useParentSessionStore();
@@ -69,17 +65,9 @@ const showLogin = ref(false);
 const showSpends = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const exportFull = async (): Promise<void> => {
+const exportData = async (): Promise<void> => {
   const data = await exportAll();
-  downloadJson(data, `kids-chores-full-${data.exportedAt?.slice(0, 10) ?? 'export'}.json`);
-};
-
-const exportMonthly = async (): Promise<void> => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const data = await exportMonth(year, month);
-  downloadJson(data, `kids-chores-${year}-${String(month).padStart(2, '0')}.json`);
+  downloadJson(data, `kids-chores-${data.exportedAt?.slice(0, 10) ?? 'export'}.json`);
 };
 
 const pickFile = (): void => {
