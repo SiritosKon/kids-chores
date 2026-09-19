@@ -77,6 +77,23 @@ describe('summariseStreak', () => {
     expect(summary.current).toBe(2);
   });
 
+  it('ignores days marked ahead of today instead of breaking the run', () => {
+    const summary = summariseStreak(
+      ['2026-09-17', '2026-09-18', '2026-09-19', '2026-09-20'],
+      MILESTONES,
+      '2026-09-19'
+    );
+
+    expect(summary.current).toBe(3);
+    expect(summary.lastClosedDate).toBe('2026-09-19');
+  });
+
+  it('counts a day marked ahead only once that day arrives', () => {
+    const days = ['2026-09-17', '2026-09-18', '2026-09-19', '2026-09-20'];
+
+    expect(summariseStreak(days, MILESTONES, '2026-09-20').current).toBe(4);
+  });
+
   it('returns nothing for an empty history', () => {
     const summary = summariseStreak([], MILESTONES, '2026-09-17');
 

@@ -27,7 +27,7 @@ export const summariseStreak = (
   milestones: readonly StreakMilestoneInput[],
   today: string
 ): StreakSummary => {
-  const days = [...new Set(closedDays)].sort();
+  const days = [...new Set(closedDays)].filter((day) => day <= today).sort();
   const hits: StreakHit[] = [];
   let run = 0;
   let best = 0;
