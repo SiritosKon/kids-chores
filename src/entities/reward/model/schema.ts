@@ -7,6 +7,7 @@ export const rewardSchema = z.object({
   name: z.string().min(1),
   icon: z.string().min(1),
   points: z.number().int().positive(),
+  color: z.string().min(1).optional(),
   order: z.number().int().nonnegative(),
   active: z.boolean(),
   createdAt: timestamp,

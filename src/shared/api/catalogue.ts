@@ -22,6 +22,7 @@ export const createCatalogue = <Row extends CatalogueRow>(
     watch: (onNext: (items: Row[]) => void): Subscription =>
       liveQuery(read).subscribe({ next: onNext }),
     count: (): Promise<number> => rows.count(),
+    existingIds: async (): Promise<Set<string>> => new Set(await rows.toCollection().primaryKeys()),
     put: async (row: Row): Promise<void> => {
       await rows.put(row);
     },

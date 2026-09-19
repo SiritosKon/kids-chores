@@ -6,19 +6,34 @@ import { rewardsCatalogue, DEFAULT_REWARDS } from '@/entities/reward';
 import { settingsTable, getSettings, saveSettings, DEFAULT_SETTINGS } from '@/entities/settings';
 import { recalculateStreaks } from '@/features/track-streak';
 
+interface SeededCatalogue<Row> {
+  existingIds: () => Promise<Set<string>>;
+  count: () => Promise<number>;
+  putMany: (items: Row[]) => Promise<void>;
+}
+
+const seedMissing = async <Seed extends { id: string }, Row>(
+  catalogue: SeededCatalogue<Row>,
+  defaults: readonly Seed[]
+): Promise<void> => {
+  const existing = await catalogue.existingIds();
+  const missing = defaults.filter((seed) => !existing.has(seed.id));
+  if (missing.length === 0) {
+    return;
+  }
+  const offset = await catalogue.count();
+  await catalogue.putMany(
+    withCatalogueDefaults(missing).map((row, index) => ({ ...row, order: offset + index })) as Row[]
+  );
+};
+
 export const bootstrap = async (): Promise<void> => {
   await transaction(
     [childrenCatalogue.table, tasksCatalogue.table, rewardsCatalogue.table, settingsTable],
     async () => {
-      if ((await childrenCatalogue.count()) === 0) {
-        await childrenCatalogue.putMany(withCatalogueDefaults(DEFAULT_CHILDREN));
-      }
-      if ((await tasksCatalogue.count()) === 0) {
-        await tasksCatalogue.putMany(withCatalogueDefaults(DEFAULT_TASKS));
-      }
-      if ((await rewardsCatalogue.count()) === 0) {
-        await rewardsCatalogue.putMany(withCatalogueDefaults(DEFAULT_REWARDS));
-      }
+      await seedMissing(childrenCatalogue, DEFAULT_CHILDREN);
+      await seedMissing(tasksCatalogue, DEFAULT_TASKS);
+      await seedMissing(rewardsCatalogue, DEFAULT_REWARDS);
       if (!(await getSettings())) {
         await saveSettings(DEFAULT_SETTINGS);
       }

@@ -62,6 +62,19 @@ describe('bootstrap', () => {
     expect(children[0]?.name).toBe('Переименован');
   });
 
+  it('adds a default that a later version introduced', async () => {
+    await bootstrap();
+    const before = await rewardsCatalogue.read();
+    await rewardsCatalogue.table.delete('bubble-tea');
+    expect(await rewardsCatalogue.read()).toHaveLength(before.length - 1);
+
+    await bootstrap();
+
+    const rewards = await rewardsCatalogue.read();
+    expect(rewards).toHaveLength(before.length);
+    expect(rewards.some((reward) => reward.id === 'bubble-tea')).toBe(true);
+  });
+
   it('gives every seeded row an order and an active flag', async () => {
     await bootstrap();
 

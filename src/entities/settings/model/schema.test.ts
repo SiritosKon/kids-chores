@@ -18,7 +18,9 @@ describe('storedSettingsSchema', () => {
     const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111' });
 
     expect(settings.bonus).toEqual({ enabled: true, points: 1 });
-    expect(settings.streak.milestones.map((milestone) => milestone.days)).toEqual([3, 7]);
+    expect(settings.streak.milestones).toEqual([
+      { id: 'week', days: 7, rewardId: 'bubble-tea' },
+    ]);
   });
 
   it('drops the legacy field from the parsed settings', () => {

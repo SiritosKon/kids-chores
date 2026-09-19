@@ -43,10 +43,7 @@ const DEFAULT_BONUS: BonusSettings = { enabled: true, points: 1 };
 
 const DEFAULT_STREAK: StreakSettings = {
   enabled: true,
-  milestones: [
-    { id: 'three-days', days: 3, rewardId: 'icecream-shop' },
-    { id: 'week', days: 7, rewardId: 'icecream-cafe' },
-  ],
+  milestones: [{ id: 'week', days: 7, rewardId: 'bubble-tea' }],
 };
 
 export const storedSettingsSchema = z

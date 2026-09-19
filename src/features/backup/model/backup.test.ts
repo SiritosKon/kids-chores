@@ -24,7 +24,7 @@ describe('export and import', () => {
     expect(backup.version).toBe(3);
     expect(backup.children).toHaveLength(2);
     expect(backup.tasks).toHaveLength(3);
-    expect(backup.rewards).toHaveLength(7);
+    expect(backup.rewards).toHaveLength(8);
     expect(backup.settings?.bonus).toEqual({ enabled: true, points: 1 });
   });
 
@@ -64,7 +64,7 @@ describe('export and import', () => {
     expect(await getAllCompletions()).toHaveLength(1);
     expect(await childrenCatalogue.read()).toHaveLength(2);
     expect(await tasksCatalogue.read()).toHaveLength(3);
-    expect(await rewardsCatalogue.read()).toHaveLength(7);
+    expect(await rewardsCatalogue.read()).toHaveLength(8);
     expect(await getSettings()).toBeDefined();
   });
 });

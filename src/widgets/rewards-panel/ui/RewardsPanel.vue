@@ -9,7 +9,7 @@
     <q-list v-else separator>
       <q-item v-for="reward in rewards" :key="reward.id">
         <q-item-section avatar>
-          <div class="reward-tile" :style="{ background: rewardTierColor(reward.points) }">
+          <div class="reward-tile" :style="{ background: rewardColor(reward) }">
             <q-icon :name="reward.icon" size="20px" color="white" />
           </div>
         </q-item-section>
@@ -59,7 +59,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useChildrenStore, childPhotoUrl, type Child } from '@/entities/child';
-import { useRewardsStore, rewardTierColor, type Reward } from '@/entities/reward';
+import { useRewardsStore, rewardColor, type Reward } from '@/entities/reward';
 import { useWalletStore } from '@/entities/wallet';
 import { useAwardReward } from '@/features/award-reward';
 

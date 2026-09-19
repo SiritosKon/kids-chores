@@ -31,11 +31,12 @@
       </q-card-section>
 
       <q-separator />
+      <q-item-label header>Награда за серию</q-item-label>
       <q-card-section class="q-pa-none">
         <q-list separator>
           <q-item v-for="milestone in milestones" :key="milestone.id">
             <q-item-section avatar>
-              <div class="streak-tile">
+              <div class="streak-tile" :style="{ background: milestoneColor(milestone) }">
                 <q-icon :name="rewardIcon(milestone.rewardId)" size="20px" color="white" />
               </div>
             </q-item-section>
@@ -60,7 +61,7 @@
 import { computed } from 'vue';
 import { pluralize } from '@/shared/lib/plural';
 import { useChildrenStore } from '@/entities/child';
-import { useRewardsStore } from '@/entities/reward';
+import { useRewardsStore, rewardColor } from '@/entities/reward';
 import { useSettingsStore, type StreakMilestone } from '@/entities/settings';
 import { useStreakStore, streakProgress } from '@/entities/streak';
 
@@ -96,6 +97,11 @@ const remainingLabel = computed(() => pluralize(progress.value?.remaining ?? 0, 
 
 const rewardIcon = (rewardId: string | undefined): string =>
   (rewardId ? rewardsStore.byId(rewardId)?.icon : undefined) ?? 'star';
+
+const milestoneColor = (milestone: StreakMilestone): string => {
+  const reward = milestone.rewardId ? rewardsStore.byId(milestone.rewardId) : undefined;
+  return reward ? rewardColor(reward) : '#FF9F0A';
+};
 
 const rewardLabel = (milestone: StreakMilestone): string => {
   if (milestone.rewardId) {
@@ -169,6 +175,5 @@ const rewardLabel = (milestone: StreakMilestone): string => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ff9f0a;
 }
 </style>
