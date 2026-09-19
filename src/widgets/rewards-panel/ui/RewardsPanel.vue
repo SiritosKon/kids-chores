@@ -50,9 +50,9 @@
   </q-expansion-item>
 </template>
 
-<script setup>
-import { CHILDREN } from '@/entities/child';
-import { REWARDS, rewardTierColor } from '@/entities/reward';
+<script setup lang="ts">
+import { CHILDREN, type Child } from '@/entities/child';
+import { REWARDS, rewardTierColor, type Reward } from '@/entities/reward';
 import { useWalletStore } from '@/entities/wallet';
 import { useAwardReward } from '@/features/award-reward';
 
@@ -61,14 +61,13 @@ const children = CHILDREN;
 const wallet = useWalletStore();
 const { award } = useAwardReward();
 
-function canAfford(child, reward) {
+function canAfford(child: Child, reward: Reward): boolean {
   return wallet.balanceOf(child.id) >= reward.points;
 }
 
-function anyCanAfford(reward) {
+function anyCanAfford(reward: Reward): boolean {
   return children.some((child) => canAfford(child, reward));
 }
-
 </script>
 
 <style scoped>

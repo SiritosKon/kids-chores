@@ -32,7 +32,7 @@
 <script setup>
 import { computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
-import ParentMenu from './components/ParentMenu.vue';
+import { ParentMenu } from '@/widgets/parent-menu';
 import HomePage from './pages/HomePage.vue';
 import { isPersistenceAvailable } from '@/shared/api/db';
 import { recordVersion } from '@/entities/app-version';

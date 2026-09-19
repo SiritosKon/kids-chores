@@ -10,16 +10,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue';
-import GoalMeter from './GoalMeter.vue';
 import { WalletHistoryDialog } from '@/features/wallet-history';
 import { CHILDREN } from '@/entities/child';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
+import GoalMeter from './GoalMeter.vue';
+import type { MeterEntry } from '../model/meterEntry';
 
 const wallet = useWalletStore();
 
-const meterEntries = computed(() =>
+const meterEntries = computed<MeterEntry[]>(() =>
   CHILDREN.map((child) => {
     const balance = wallet.balanceOf(child.id);
     const max = piggyMax(balance);
@@ -35,9 +36,9 @@ const meterEntries = computed(() =>
 );
 
 const historyOpen = ref(false);
-const historyChildId = ref(null);
+const historyChildId = ref<string | null>(null);
 
-function openHistory(childId) {
+function openHistory(childId: string): void {
   historyChildId.value = childId;
   historyOpen.value = true;
 }

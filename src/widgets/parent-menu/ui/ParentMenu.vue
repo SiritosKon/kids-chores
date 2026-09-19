@@ -49,13 +49,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
-import { PasswordDialog } from '@/features/parent-login';
-import { SpendsDialog } from '@/features/rollback-spend';
 import { storeToRefs } from 'pinia';
 import { useParentSessionStore } from '@/entities/parent-session';
+import { PasswordDialog } from '@/features/parent-login';
+import { SpendsDialog } from '@/features/rollback-spend';
 import { useWhatsNewStore } from '@/features/whats-new';
 import { exportAll, exportMonth, importAll, downloadJson } from '@/features/backup';
 
@@ -64,16 +64,17 @@ const parentSession = useParentSessionStore();
 const { active } = storeToRefs(parentSession);
 const logout = parentSession.logout;
 const openWhatsNew = useWhatsNewStore().open;
+
 const showLogin = ref(false);
 const showSpends = ref(false);
-const fileInput = ref(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 
-async function exportFull() {
+async function exportFull(): Promise<void> {
   const data = await exportAll();
-  downloadJson(data, `kids-chores-full-${data.exportedAt.slice(0, 10)}.json`);
+  downloadJson(data, `kids-chores-full-${data.exportedAt?.slice(0, 10) ?? 'export'}.json`);
 }
 
-async function exportMonthly() {
+async function exportMonthly(): Promise<void> {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
@@ -81,24 +82,24 @@ async function exportMonthly() {
   downloadJson(data, `kids-chores-${year}-${String(month).padStart(2, '0')}.json`);
 }
 
-function pickFile() {
-  fileInput.value.click();
+function pickFile(): void {
+  fileInput.value?.click();
 }
 
-async function onFile(event) {
-  const file = event.target.files[0];
+async function onFile(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
   if (!file) {
     return;
   }
   try {
-    const text = await file.text();
-    const data = JSON.parse(text);
-    await importAll(data);
+    await importAll(JSON.parse(await file.text()));
     $q.notify({ type: 'positive', message: 'Импорт выполнен' });
   } catch (error) {
-    $q.notify({ type: 'negative', message: `Ошибка импорта: ${error.message}` });
+    const reason = error instanceof Error ? error.message : String(error);
+    $q.notify({ type: 'negative', message: `Ошибка импорта: ${reason}` });
   } finally {
-    event.target.value = '';
+    input.value = '';
   }
 }
 </script>

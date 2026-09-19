@@ -59,112 +59,25 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch, onMounted } from 'vue';
-import { useQuasar } from 'quasar';
-import { celebrate } from '@/shared/lib/confetti';
+<script setup lang="ts">
+import { toRef } from 'vue';
 import { CHILDREN } from '@/entities/child';
-import { REGULAR_TASKS, BONUS_TASK, BONUS_TASK_ID } from '@/entities/task';
-import { getDayCompletions, saveDayMarks } from '@/entities/completion';
+import { REGULAR_TASKS, BONUS_TASK } from '@/entities/task';
+import { useDayMarks } from '../model/useDayMarks';
 
-const props = defineProps({
-  selectedDate: { type: String, required: true },
-});
+const props = defineProps<{ selectedDate: string }>();
 
-const $q = useQuasar();
 const children = CHILDREN;
-
 const regularTasks = REGULAR_TASKS;
 const bonusTask = BONUS_TASK;
 
 const CHECK_COLORS = ['blue', 'red'];
 
-const saved = ref({});
-const checked = ref({});
+const { isChecked, bonusEarned, toggle, dirty, accept } = useDayMarks(toRef(props, 'selectedDate'));
 
-function checkColor(index) {
-  return CHECK_COLORS[index] || 'primary';
+function checkColor(index: number): string {
+  return CHECK_COLORS[index] ?? 'primary';
 }
-
-function isChecked(childId, taskId) {
-  return Boolean(checked.value[childId] && checked.value[childId].has(taskId));
-}
-
-function bonusEarned(childId) {
-  const set = checked.value[childId];
-  if (!set || regularTasks.length === 0) {
-    return false;
-  }
-  return regularTasks.every((task) => set.has(task.id));
-}
-
-const dirty = computed(() => {
-  for (const child of children) {
-    const current = checked.value[child.id] || new Set();
-    const stored = saved.value[child.id] || new Set();
-    if (current.size !== stored.size) {
-      return true;
-    }
-    for (const id of current) {
-      if (!stored.has(id)) {
-        return true;
-      }
-    }
-  }
-  return false;
-});
-
-function toggle(childId, taskId, isOn) {
-  const nextChecked = { ...checked.value };
-  const set = new Set(nextChecked[childId]);
-  if (isOn) {
-    set.add(taskId);
-  } else {
-    set.delete(taskId);
-  }
-  nextChecked[childId] = set;
-  checked.value = nextChecked;
-}
-
-async function load() {
-  const regularIds = new Set(regularTasks.map((task) => task.id));
-  const nextSaved = {};
-  const nextChecked = {};
-  for (const child of children) {
-    const rows = await getDayCompletions(child.id, props.selectedDate);
-    const savedRegular = new Set(rows.map((row) => row.taskId).filter((id) => regularIds.has(id)));
-    nextSaved[child.id] = savedRegular;
-    nextChecked[child.id] = new Set(savedRegular);
-  }
-  saved.value = nextSaved;
-  checked.value = nextChecked;
-}
-
-async function accept() {
-  const celebrated = [];
-  for (const child of children) {
-    const wasAllBefore = regularTasks.every((task) => (saved.value[child.id] || new Set()).has(task.id));
-    const earnsBonus = Boolean(bonusTask) && bonusEarned(child.id);
-    if (earnsBonus && !wasAllBefore) {
-      celebrated.push(child);
-    }
-    const marks = regularTasks
-      .filter((task) => isChecked(child.id, task.id))
-      .map((task) => ({ taskId: task.id, points: task.points }));
-    if (earnsBonus && bonusTask) {
-      marks.push({ taskId: BONUS_TASK_ID, points: bonusTask.points });
-    }
-    await saveDayMarks(child.id, props.selectedDate, marks);
-  }
-  await load();
-  $q.notify({ type: 'positive', message: 'Сохранено' });
-  for (const child of celebrated) {
-    celebrate(child.carColor);
-  }
-}
-
-watch(() => props.selectedDate, load);
-onMounted(load);
 </script>
 
 <style scoped>

@@ -22,16 +22,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
+import type { MeterEntry } from '../model/meterEntry';
 
-const props = defineProps({
-  entry: { type: Object, required: true },
-});
-const emit = defineEmits(['open-history']);
+const props = defineProps<{ entry: MeterEntry }>();
+const emit = defineEmits<{ 'open-history': [] }>();
 
-const pct = computed(() => Math.min(100, Math.round((props.entry.ratio || 0) * 100)));
+const pct = computed(() => Math.min(100, Math.round(props.entry.ratio * 100)));
 const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`);
 </script>
 

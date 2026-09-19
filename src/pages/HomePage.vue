@@ -18,10 +18,10 @@
 
 <script setup>
 import { storeToRefs } from 'pinia';
-import GoalMeterBoard from '../components/GoalMeterBoard.vue';
-import TasksBoard from '../components/TasksBoard.vue';
+import { GoalMeterBoard } from '@/widgets/goal-meter-board';
+import { TasksBoard } from '@/widgets/tasks-board';
+import { RewardsPanel } from '@/widgets/rewards-panel';
 import { DateSelector, useSelectedDateStore } from '@/features/select-date';
-import RewardsPanel from '../components/RewardsPanel.vue';
 
 const { selectedDate } = storeToRefs(useSelectedDateStore());
 </script>
