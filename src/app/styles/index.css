@@ -17,9 +17,14 @@ body.body--dark {
   align-items: flex-start;
 }
 
+:root {
+  --app-frame-width: min(834px, 100%);
+  --dialog-width: calc(min(834px, 100vw) * 0.8);
+}
+
 .app-frame {
   flex: 0 0 auto;
-  width: min(834px, 100%);
+  width: var(--app-frame-width);
   height: 100vh;
   background: #000000;
   box-shadow: 0 0 48px rgba(0, 0, 0, 0.6);
@@ -43,4 +48,6 @@ body.body--dark {
 /* Единый стиль всех модалок */
 .q-dialog .q-card {
   border-radius: 18px;
+  width: var(--dialog-width);
+  max-width: var(--dialog-width);
 }
