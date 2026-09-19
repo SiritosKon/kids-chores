@@ -2,11 +2,9 @@
   <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
     <q-card class="dialog--wide">
       <q-card-section class="award-head">
-        <div class="award-flame">🔥</div>
-        <div>
-          <div class="text-h6">Серия!</div>
-          <div class="award-caption">{{ headline }}</div>
-        </div>
+        <div class="award-trophy">🏆</div>
+        <div class="text-h5 text-weight-bold">Серия!</div>
+        <div class="award-caption">{{ headline }}</div>
       </q-card-section>
       <q-separator />
 
@@ -29,8 +27,16 @@
         </q-list>
       </q-card-section>
 
-      <q-card-actions align="right">
-        <q-btn unelevated color="primary" label="Ура!" v-close-popup />
+      <q-card-actions class="q-px-md q-pt-md q-pb-md">
+        <q-btn
+          v-close-popup
+          unelevated
+          rounded
+          no-caps
+          color="primary"
+          label="Ура!"
+          class="award-button text-weight-bold"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -81,18 +87,27 @@ const awardColor = (award: StreakAward): string => {
 <style scoped>
 .award-head {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
+  text-align: center;
+  gap: 6px;
+  padding-top: 28px;
 }
 
-.award-flame {
-  font-size: 44px;
+.award-trophy {
+  font-size: 84px;
   line-height: 1;
 }
 
 .award-caption {
-  font-size: 13px;
+  font-size: 14px;
   color: #8e8e93;
+}
+
+.award-button {
+  flex: 1 1 auto;
+  min-height: 52px;
+  font-size: 17px;
 }
 
 .award-tile {
