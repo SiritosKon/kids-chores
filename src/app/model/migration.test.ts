@@ -50,8 +50,8 @@ beforeEach(async () => {
   await db.delete();
 });
 
-describe('апгрейд схемы 3 → 4 на устройстве с историей', () => {
-  it('сохраняет историю и делает её читаемой после сида каталогов', async () => {
+describe('schema upgrade from 3 to 4 on a device with history', () => {
+  it('keeps history readable once the catalogues are seeded', async () => {
     await openLegacyDatabase();
 
     await db.open();
@@ -75,7 +75,7 @@ describe('апгрейд схемы 3 → 4 на устройстве с ист�
     ).toEqual([]);
   });
 
-  it('оставляет зарезервированный бонус читаемым, хотя его нет в каталоге', async () => {
+  it('keeps the reserved bonus readable although it is not in the catalogue', async () => {
     await openLegacyDatabase();
 
     await db.open();
@@ -86,7 +86,7 @@ describe('апгрейд схемы 3 → 4 на устройстве с ист�
     expect(reservedTaskName('bonus')).toBe('Доп. баллы');
   });
 
-  it('не добавляет новых полей к старым отметкам и списаниям', async () => {
+  it('adds no new fields to rows written by older versions', async () => {
     await openLegacyDatabase();
 
     await db.open();
@@ -100,7 +100,7 @@ describe('апгрейд схемы 3 → 4 на устройстве с ист�
     );
   });
 
-  it('заводит настройки, которых на старом устройстве не было', async () => {
+  it('creates the settings the old device never had', async () => {
     await openLegacyDatabase();
 
     await db.open();

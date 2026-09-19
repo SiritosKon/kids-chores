@@ -17,8 +17,8 @@ beforeEach(async () => {
   await bootstrap();
 });
 
-describe('экспорт и импорт', () => {
-  it('выгружает каталоги и настройки, а не только историю', async () => {
+describe('export and import', () => {
+  it('exports catalogues and settings, not history alone', async () => {
     const backup = await exportAll();
 
     expect(backup.version).toBe(3);
@@ -28,7 +28,7 @@ describe('экспорт и импорт', () => {
     expect(backup.settings?.bonus).toEqual({ enabled: true, points: 1 });
   });
 
-  it('возвращает и правки каталога, и историю после полной очистки базы', async () => {
+  it('restores both a catalogue edit and history after the database is dropped', async () => {
     const [child] = await childrenCatalogue.read();
     await childrenCatalogue.put({ ...child!, name: 'Переименован' });
     await saveDayMarks('timofey', '2026-09-16', [{ taskId: 'study', points: 1 }]);
@@ -45,7 +45,7 @@ describe('экспорт и импорт', () => {
     expect(await getAllCompletions()).toHaveLength(1);
   });
 
-  it('принимает старый файл без каталогов и не трогает их', async () => {
+  it('accepts a pre-catalogue file and leaves the catalogues alone', async () => {
     await importAll({
       version: 2,
       completions: [
