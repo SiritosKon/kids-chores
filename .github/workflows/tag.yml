@@ -15,15 +15,24 @@ jobs:
         with:
           fetch-depth: 0
       - id: version
-        run: echo "value=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Create tag when the version is new
         run: |
-          tag='${{ steps.version.outputs.value }}'
-          if git rev-parse "$tag" >/dev/null 2>&1; then
-            echo "$tag already exists, nothing to do"
+          version="$(node -p "require('./package.json').version")"
+          case "$version" in
+            '' | *[!0-9A-Za-z.+-]*)
+              echo "Refusing to tag an unexpected version: $version" >&2
+              exit 1
+              ;;
+          esac
+          printf 'value=v%s\n' "$version" >> "$GITHUB_OUTPUT"
+      - name: Create tag when the version is new
+        env:
+          TAG: ${{ steps.version.outputs.value }}
+        run: |
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "$TAG already exists, nothing to do"
             exit 0
           fi
           git config user.name  'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git tag -a "$tag" -m "$tag"
-          git push origin "$tag"
+          git tag -a "$TAG" -m "$TAG"
+          git push origin "$TAG"
