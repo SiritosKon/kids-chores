@@ -9,7 +9,7 @@
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "preview": "vite preview",
-    "icons": "node scripts/generateIcons.mjs"
+    "splash": "node scripts/generateSplash.mjs"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.0",
