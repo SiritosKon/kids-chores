@@ -1,7 +1,11 @@
 export {
   settingsSchema,
   storedSettingsSchema,
+  parentPinSchema,
+  isValidPin,
   SETTINGS_ID,
+  PARENT_PIN_LENGTH,
+  DEFAULT_PARENT_PIN,
   type Settings,
   type BonusSettings,
   type StreakSettings,

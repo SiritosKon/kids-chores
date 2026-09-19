@@ -6,6 +6,9 @@ export const todayKey = (): string => {
   return date.formatDate(Date.now(), DAY_KEY_FORMAT);
 };
 
+export const shiftDayKey = (dayKey: string, days: number): string =>
+  date.formatDate(date.addToDate(toDate(dayKey), { days }), DAY_KEY_FORMAT);
+
 export const formatDayKeyLong = (dayKey: string): string => {
   return toDate(dayKey).toLocaleDateString('ru-RU', {
     weekday: 'long',

@@ -1,6 +1,14 @@
 import { z } from 'zod';
 
 export const SETTINGS_ID = 'app';
+export const PARENT_PIN_LENGTH = 6;
+export const DEFAULT_PARENT_PIN = '546949';
+
+const PIN_PATTERN = /^\d{6}$/;
+
+export const parentPinSchema = z.string().regex(PIN_PATTERN);
+
+export const isValidPin = (value: string): boolean => PIN_PATTERN.test(value);
 
 export const bonusSettingsSchema = z.object({
   enabled: z.boolean(),
@@ -21,7 +29,7 @@ export const streakSettingsSchema = z.object({
 
 export const settingsSchema = z.object({
   id: z.literal(SETTINGS_ID),
-  parentPassword: z.string(),
+  parentPin: parentPinSchema,
   bonus: bonusSettingsSchema,
   streak: streakSettingsSchema,
 });
@@ -31,14 +39,30 @@ export type StreakMilestone = z.infer<typeof streakMilestoneSchema>;
 export type StreakSettings = z.infer<typeof streakSettingsSchema>;
 export type Settings = z.infer<typeof settingsSchema>;
 
-export const storedSettingsSchema = settingsSchema.extend({
-  parentPassword: z.string().default(''),
-  bonus: bonusSettingsSchema.default({ enabled: true, points: 1 }),
-  streak: streakSettingsSchema.default({
-    enabled: true,
-    milestones: [
-      { id: 'three-days', days: 3, points: 2 },
-      { id: 'week', days: 7, points: 5 },
-    ],
-  }),
-});
+const DEFAULT_BONUS: BonusSettings = { enabled: true, points: 1 };
+
+const DEFAULT_STREAK: StreakSettings = {
+  enabled: true,
+  milestones: [
+    { id: 'three-days', days: 3, points: 2 },
+    { id: 'week', days: 7, points: 5 },
+  ],
+};
+
+export const storedSettingsSchema = z
+  .object({
+    id: z.literal(SETTINGS_ID),
+    parentPin: z.string().optional(),
+    parentPassword: z.string().optional(),
+    bonus: bonusSettingsSchema.default(DEFAULT_BONUS),
+    streak: streakSettingsSchema.default(DEFAULT_STREAK),
+  })
+  .transform((row): Settings => {
+    const stored = row.parentPin ?? row.parentPassword ?? '';
+    return {
+      id: row.id,
+      parentPin: isValidPin(stored) ? stored : DEFAULT_PARENT_PIN,
+      bonus: row.bonus,
+      streak: row.streak,
+    };
+  });

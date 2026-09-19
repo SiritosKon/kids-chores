@@ -1,1 +1,1 @@
-export { default as PasswordDialog } from './ui/PasswordDialog.vue';
+export { default as PinDialog } from './ui/PinDialog.vue';

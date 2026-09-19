@@ -11,35 +11,41 @@
       </q-card-section>
       <q-card-section class="q-pt-none">
         <q-input
-          ref="passwordInput"
-          v-model="password"
-          :type="showPassword ? 'text' : 'password'"
-          label="Пароль"
+          ref="pinInput"
+          v-model="pin"
+          :type="showPin ? 'text' : 'password'"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          autocomplete="off"
+          :maxlength="PARENT_PIN_LENGTH"
+          label="PIN-код"
           autofocus
+          input-class="pin-field"
+          @update:model-value="onInput"
           @keyup.enter="submit"
         >
           <template #append>
             <q-icon
-              :name="showPassword ? 'visibility_off' : 'visibility'"
+              :name="showPin ? 'visibility_off' : 'visibility'"
               class="cursor-pointer"
-              @click="showPassword = !showPassword"
+              @click="showPin = !showPin"
             />
           </template>
         </q-input>
       </q-card-section>
       <q-card-actions align="right">
         <q-btn flat label="Отмена" v-close-popup />
-        <q-btn unelevated color="primary" label="Войти" @click="submit" />
+        <q-btn unelevated color="primary" label="Войти" :disable="!complete" @click="submit" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useQuasar, type QInput } from 'quasar';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { useSettingsStore } from '@/entities/settings';
+import { useSettingsStore, isValidPin, PARENT_PIN_LENGTH } from '@/entities/settings';
 
 withDefaults(defineProps<{ modelValue?: boolean }>(), { modelValue: false });
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
@@ -47,26 +53,49 @@ const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 const $q = useQuasar();
 const parentSession = useParentSessionStore();
 const settingsStore = useSettingsStore();
-const password = ref('');
-const showPassword = ref(false);
-const passwordInput = ref<QInput | null>(null);
+
+const pin = ref('');
+const showPin = ref(false);
+const pinInput = ref<QInput | null>(null);
+
+const complete = computed(() => isValidPin(pin.value));
 
 const focusInput = (): void => {
-  passwordInput.value?.focus();
+  pinInput.value?.focus();
 };
 
 const reset = (): void => {
-  password.value = '';
-  showPassword.value = false;
+  pin.value = '';
+  showPin.value = false;
 };
 
 const submit = (): void => {
-  if (password.value === settingsStore.settings.parentPassword) {
+  if (!complete.value) {
+    return;
+  }
+  if (pin.value === settingsStore.settings.parentPin) {
     parentSession.unlock();
     $q.notify({ type: 'positive', message: 'Родительский режим включён' });
     emit('update:modelValue', false);
   } else {
-    $q.notify({ type: 'negative', message: 'Неверный пароль' });
+    $q.notify({ type: 'negative', message: 'Неверный PIN-код' });
+    pin.value = '';
+  }
+};
+
+const onInput = (value: string | number | null): void => {
+  pin.value = String(value ?? '')
+    .replace(/\D/g, '')
+    .slice(0, PARENT_PIN_LENGTH);
+  if (complete.value) {
+    submit();
   }
 };
 </script>
+
+<style scoped>
+:deep(.pin-field) {
+  letter-spacing: 6px;
+  font-size: 20px;
+}
+</style>

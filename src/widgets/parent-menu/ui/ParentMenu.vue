@@ -40,7 +40,7 @@
     </q-btn>
 
     <input ref="fileInput" type="file" accept="application/json" style="display: none" @change="onFile" />
-    <PasswordDialog v-model="showLogin" />
+    <PinDialog v-model="showLogin" />
     <SpendsDialog v-model="showSpends" />
   </div>
 </template>
@@ -50,10 +50,11 @@ import { ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { PasswordDialog } from '@/features/parent-login';
+import { PinDialog } from '@/features/parent-login';
 import { SpendsDialog } from '@/features/rollback-spend';
 import { useWhatsNewStore } from '@/features/whats-new';
 import { exportAll, importAll, downloadJson } from '@/features/backup';
+import { recalculateStreaks } from '@/features/track-streak';
 
 const $q = useQuasar();
 const parentSession = useParentSessionStore();
@@ -82,6 +83,7 @@ const onFile = async (event: Event): Promise<void> => {
   }
   try {
     await importAll(JSON.parse(await file.text()));
+    await recalculateStreaks();
     $q.notify({ type: 'positive', message: 'Импорт выполнен' });
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);

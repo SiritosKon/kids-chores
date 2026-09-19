@@ -5,4 +5,5 @@ export interface MeterEntry {
   carColor: string;
   balance: number;
   ratio: number;
+  streak: number;
 }

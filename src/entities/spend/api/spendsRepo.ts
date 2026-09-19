@@ -5,7 +5,14 @@ import { storedSpendSchema, type Spend } from '../model/schema';
 export const spendsTable = table<Spend>('spends');
 
 export const addSpend = async (childId: string, rewardId: string, cost: number): Promise<void> => {
-  await spendsTable.add({ id: crypto.randomUUID(), childId, rewardId, cost, createdAt: Date.now() });
+  await spendsTable.add({
+    id: crypto.randomUUID(),
+    childId,
+    rewardId,
+    cost,
+    createdAt: Date.now(),
+    source: 'purchase',
+  });
 };
 
 export const getSpends = async (): Promise<Spend[]> => {

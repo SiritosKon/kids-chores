@@ -15,11 +15,13 @@ import { ref, computed } from 'vue';
 import { WalletHistoryDialog } from '@/features/wallet-history';
 import { useChildrenStore, childPhotoUrl } from '@/entities/child';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
+import { useStreakStore } from '@/entities/streak';
 import GoalMeter from './GoalMeter.vue';
 import type { MeterEntry } from '../model/meterEntry';
 
 const wallet = useWalletStore();
 const childrenStore = useChildrenStore();
+const streakStore = useStreakStore();
 
 const meterEntries = computed<MeterEntry[]>(() =>
   childrenStore.active.map((child) => {
@@ -32,6 +34,7 @@ const meterEntries = computed<MeterEntry[]>(() =>
       carColor: child.carColor,
       balance,
       ratio: max > 0 ? balance / max : 0,
+      streak: streakStore.currentOf(child.id),
     };
   })
 );

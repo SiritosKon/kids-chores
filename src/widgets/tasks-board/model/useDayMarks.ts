@@ -6,6 +6,7 @@ import { useTasksStore, BONUS_TASK_ID } from '@/entities/task';
 import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { getDayCompletions, saveDayMarks, type TaskMark } from '@/entities/completion';
+import { recalculateStreaks } from '@/features/track-streak';
 
 type MarksByChild = Record<string, Set<string>>;
 
@@ -91,6 +92,7 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
       await saveDayMarks(child.id, selectedDate.value, marks);
     }
 
+    await recalculateStreaks();
     await load();
     $q.notify({ type: 'positive', message: 'Сохранено' });
     for (const child of celebrated) {

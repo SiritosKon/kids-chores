@@ -7,7 +7,10 @@
 
     <div class="goal-meter__body">
       <div class="goal-meter__head">
-        <span class="goal-meter__name">{{ entry.name }}</span>
+        <span class="goal-meter__name">
+          {{ entry.name }}
+          <span v-if="entry.streak > 0" class="goal-meter__streak">🔥 {{ entry.streak }}</span>
+        </span>
         <q-btn flat dense no-caps color="primary" class="goal-meter__score" @click="emit('open-history')">
           <q-icon name="savings" size="18px" />
           <span class="q-ml-xs">{{ entry.balance }}</span>
@@ -59,6 +62,12 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
   align-items: baseline;
   margin-bottom: 10px;
   font-weight: 600;
+}
+
+.goal-meter__streak {
+  margin-left: 6px;
+  font-size: 13px;
+  color: #ff9f0a;
 }
 
 .goal-meter__score {

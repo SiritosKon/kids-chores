@@ -108,6 +108,6 @@ describe('schema upgrade from 3 to 4 on a device with history', () => {
 
     const settings = await getSettings();
     expect(settings?.bonus).toEqual({ enabled: true, points: 1 });
-    expect(settings?.parentPassword).not.toBe('');
+    expect(settings?.parentPin).toMatch(/^\d{6}$/);
   });
 });

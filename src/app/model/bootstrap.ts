@@ -4,6 +4,7 @@ import { childrenCatalogue, DEFAULT_CHILDREN } from '@/entities/child';
 import { tasksCatalogue, DEFAULT_TASKS } from '@/entities/task';
 import { rewardsCatalogue, DEFAULT_REWARDS } from '@/entities/reward';
 import { settingsTable, getSettings, saveSettings, DEFAULT_SETTINGS } from '@/entities/settings';
+import { recalculateStreaks } from '@/features/track-streak';
 
 export const bootstrap = async (): Promise<void> => {
   await transaction(
@@ -23,4 +24,6 @@ export const bootstrap = async (): Promise<void> => {
       }
     }
   );
+
+  await recalculateStreaks();
 };
