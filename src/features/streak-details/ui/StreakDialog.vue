@@ -25,8 +25,11 @@
         <div class="streak-track">
           <div class="streak-track__fill" :style="{ width: `${Math.round(progress.ratio * 100)}%` }"></div>
         </div>
-        <div class="streak-remaining">
-          ещё {{ progress.remaining }} {{ remainingLabel }} до награды
+        <div class="streak-progress-row">
+          <span class="streak-remaining">
+            ещё {{ progress.remaining }} {{ remainingLabel }} до награды
+          </span>
+          <span class="streak-fraction">{{ progress.achieved }} / {{ progress.days }}</span>
         </div>
       </q-card-section>
 
@@ -162,10 +165,23 @@ const rewardLabel = (milestone: StreakMilestone): string => {
   transition: width 0.4s ease;
 }
 
-.streak-remaining {
+.streak-progress-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 8px;
+}
+
+.streak-remaining {
   font-size: 13px;
   color: #8e8e93;
+}
+
+.streak-fraction {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffb340;
 }
 
 .streak-tile {
