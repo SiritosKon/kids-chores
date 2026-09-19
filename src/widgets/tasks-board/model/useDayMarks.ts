@@ -6,7 +6,7 @@ import { useTasksStore, BONUS_TASK_ID } from '@/entities/task';
 import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { getDayCompletions, saveDayMarks, type TaskMark } from '@/entities/completion';
-import { recalculateStreaks } from '@/features/track-streak';
+import { recalculateStreaks, type StreakAward } from '@/features/track-streak';
 
 type MarksByChild = Record<string, Set<string>>;
 
@@ -21,6 +21,7 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   const tasks = computed(() => tasksStore.active);
   const bonus = computed(() => settingsStore.settings.bonus);
 
+  const grantedAwards = ref<StreakAward[]>([]);
   const saved = ref<MarksByChild>({});
   const checked = ref<MarksByChild>({});
 
@@ -92,7 +93,7 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
       await saveDayMarks(child.id, selectedDate.value, marks);
     }
 
-    await recalculateStreaks();
+    grantedAwards.value = await recalculateStreaks();
     await load();
     $q.notify({ type: 'positive', message: 'Сохранено' });
     if (!parentSession.active) {
@@ -105,5 +106,21 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   watch([selectedDate, children, tasks], load);
   onMounted(load);
 
-  return { children, tasks, bonus, isChecked, isLocked, bonusEarned, toggle, dirty, accept };
+  const clearAwards = (): void => {
+    grantedAwards.value = [];
+  };
+
+  return {
+    children,
+    tasks,
+    bonus,
+    grantedAwards,
+    clearAwards,
+    isChecked,
+    isLocked,
+    bonusEarned,
+    toggle,
+    dirty,
+    accept,
+  };
 };

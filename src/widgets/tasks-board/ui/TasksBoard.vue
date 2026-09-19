@@ -71,6 +71,12 @@
     <div v-if="ready && children.length > 0 && regularTasks.length > 0" class="row justify-end q-mt-md">
       <q-btn color="primary" rounded unelevated icon="check" label="Принять" class="text-weight-bold" :disable="!dirty" @click="accept" />
     </div>
+
+    <StreakAwardDialog
+      :model-value="grantedAwards.length > 0"
+      :awards="grantedAwards"
+      @update:model-value="clearAwards"
+    />
   </div>
 </template>
 
@@ -79,6 +85,7 @@ import { computed, toRef } from 'vue';
 import { useChildrenStore } from '@/entities/child';
 import { useTasksStore, reservedTaskName, BONUS_TASK_ID } from '@/entities/task';
 import { useSettingsStore } from '@/entities/settings';
+import { StreakAwardDialog } from '@/features/celebrate-streak';
 import { useDayMarks } from '../model/useDayMarks';
 
 const props = defineProps<{ selectedDate: string }>();
@@ -101,6 +108,8 @@ const {
   children,
   tasks: regularTasks,
   bonus,
+  grantedAwards,
+  clearAwards,
   isChecked,
   isLocked,
   bonusEarned,

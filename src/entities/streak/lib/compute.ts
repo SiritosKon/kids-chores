@@ -9,6 +9,7 @@ export interface StreakMilestoneInput {
 
 export interface StreakHit {
   milestoneId: string;
+  days: number;
   day: string;
   points?: number;
   rewardId?: string;
@@ -41,6 +42,7 @@ export const summariseStreak = (
       if (run % milestone.days === 0) {
         hits.push({
           milestoneId: milestone.id,
+          days: milestone.days,
           day,
           ...(milestone.points === undefined ? {} : { points: milestone.points }),
           ...(milestone.rewardId === undefined ? {} : { rewardId: milestone.rewardId }),

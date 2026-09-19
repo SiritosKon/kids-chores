@@ -1,1 +1,1 @@
-export { recalculateStreaks } from './model/recalculate';
+export { recalculateStreaks, type StreakAward } from './model/recalculate';

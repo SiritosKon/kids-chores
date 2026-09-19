@@ -167,6 +167,37 @@ describe('recalculateStreaks', () => {
     expect(await streakRewards()).toHaveLength(1);
   });
 
+  it('reports an award only on the run that grants it', async () => {
+    await closeDays('timofey', september(7));
+
+    const first = await recalculateStreaks('2026-09-16');
+    const second = await recalculateStreaks('2026-09-16');
+
+    expect(first).toHaveLength(1);
+    expect(first[0]).toMatchObject({
+      childId: 'timofey',
+      milestoneId: 'week',
+      days: 7,
+      rewardId: 'bubble-tea',
+    });
+    expect(second).toEqual([]);
+  });
+
+  it('reports nothing while the milestone is still out of reach', async () => {
+    await closeDays('timofey', september(6));
+
+    expect(await recalculateStreaks('2026-09-15')).toEqual([]);
+  });
+
+  it('reports one award per child that earned it', async () => {
+    await closeDays('timofey', september(7));
+    await closeDays('daniil', september(7));
+
+    const granted = await recalculateStreaks('2026-09-16');
+
+    expect(granted.map((award) => award.childId).sort()).toEqual(['daniil', 'timofey']);
+  });
+
   it('stays out of the way when the streak is switched off', async () => {
     const settings = await getSettings();
     await saveSettings({ ...settings!, streak: { ...settings!.streak, enabled: false } });
