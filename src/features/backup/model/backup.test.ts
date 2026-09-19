@@ -28,7 +28,7 @@ describe('экспорт и импорт', () => {
     expect(backup.settings?.bonus).toEqual({ enabled: true, points: 1 });
   });
 
-  it('возвращает правки каталога после полной очистки', async () => {
+  it('возвращает и правки каталога, и историю после полной очистки базы', async () => {
     const [child] = await childrenCatalogue.read();
     await childrenCatalogue.put({ ...child!, name: 'Переименован' });
     await saveDayMarks('timofey', '2026-09-16', [{ taskId: 'study', points: 1 }]);
