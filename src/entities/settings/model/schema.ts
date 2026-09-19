@@ -44,8 +44,8 @@ const DEFAULT_BONUS: BonusSettings = { enabled: true, points: 1 };
 const DEFAULT_STREAK: StreakSettings = {
   enabled: true,
   milestones: [
-    { id: 'three-days', days: 3, points: 2 },
-    { id: 'week', days: 7, points: 5 },
+    { id: 'three-days', days: 3, rewardId: 'icecream-shop' },
+    { id: 'week', days: 7, rewardId: 'icecream-cafe' },
   ],
 };
 

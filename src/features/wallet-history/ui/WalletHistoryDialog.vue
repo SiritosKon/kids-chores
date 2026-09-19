@@ -15,8 +15,9 @@
               <q-item-label caption>{{ item.dayLabel }}</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <span :class="item.amount >= 0 ? 'text-positive' : 'text-negative'">
-                {{ item.amount >= 0 ? '+' : '' }}{{ item.amount }} б.
+              <span v-if="item.amount === 0" class="text-orange">приз</span>
+              <span v-else :class="item.amount > 0 ? 'text-positive' : 'text-negative'">
+                {{ item.amount > 0 ? '+' : '' }}{{ item.amount }} б.
               </span>
             </q-item-section>
           </q-item>

@@ -8,7 +8,16 @@
     <div class="goal-meter__body">
       <div class="goal-meter__head">
         <span class="goal-meter__name">{{ entry.name }}</span>
-        <span v-if="entry.streak > 0" class="goal-meter__streak">
+        <span
+          v-if="entry.streak > 0"
+          v-ripple
+          class="goal-meter__streak"
+          role="button"
+          tabindex="0"
+          :aria-label="`Серия: ${entry.streak}`"
+          @click="emit('open-streak')"
+          @keyup.enter="emit('open-streak')"
+        >
           <span class="goal-meter__flame">🔥</span>
           <span class="goal-meter__streak-count">{{ entry.streak }}</span>
           <span class="goal-meter__streak-label">{{ streakLabel }} подряд</span>
@@ -35,7 +44,7 @@ import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
 import type { MeterEntry } from '../model/meterEntry';
 
 const props = defineProps<{ entry: MeterEntry }>();
-const emit = defineEmits<{ 'open-history': [] }>();
+const emit = defineEmits<{ 'open-history': []; 'open-streak': [] }>();
 
 const streakLabel = computed(() => pluralize(props.entry.streak, ['день', 'дня', 'дней']));
 
@@ -72,6 +81,9 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
 }
 
 .goal-meter__streak {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
   display: inline-flex;
   align-items: center;
   gap: 4px;

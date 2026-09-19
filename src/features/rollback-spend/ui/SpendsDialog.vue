@@ -49,7 +49,7 @@ let subscription: Subscription | null = null;
 
 const start = (): void => {
   subscription ??= watchSpends((rows) => {
-    spends.value = rows;
+    spends.value = rows.filter((row) => row.source === 'purchase');
   });
 };
 
