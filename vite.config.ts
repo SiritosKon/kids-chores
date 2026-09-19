@@ -25,7 +25,7 @@ export default defineConfig({
   plugins: [
     vue({ template: { transformAssetUrls } }),
     quasar({
-      sassVariables: fileURLToPath(new URL('./src/quasar-variables.sass', import.meta.url)),
+      sassVariables: fileURLToPath(new URL('./src/app/styles/quasar-variables.sass', import.meta.url)),
     }),
     VitePWA({
       selfDestroying: !enablePwa,

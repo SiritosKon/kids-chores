@@ -16,7 +16,7 @@
   </q-page>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { GoalMeterBoard } from '@/widgets/goal-meter-board';
 import { TasksBoard } from '@/widgets/tasks-board';
