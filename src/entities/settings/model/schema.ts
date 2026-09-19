@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const SETTINGS_ID = 'app';
+export const SETTINGS_SEED_VERSION = 1;
 export const PARENT_PIN_LENGTH = 6;
 export const DEFAULT_PARENT_PIN = '546949';
 
@@ -29,6 +30,7 @@ export const streakSettingsSchema = z.object({
 
 export const settingsSchema = z.object({
   id: z.literal(SETTINGS_ID),
+  seedVersion: z.number().int().nonnegative(),
   parentPin: parentPinSchema,
   bonus: bonusSettingsSchema,
   streak: streakSettingsSchema,
@@ -49,6 +51,7 @@ const DEFAULT_STREAK: StreakSettings = {
 export const storedSettingsSchema = z
   .object({
     id: z.literal(SETTINGS_ID),
+    seedVersion: z.number().int().nonnegative().default(0),
     parentPin: z.string().optional(),
     parentPassword: z.string().optional(),
     bonus: bonusSettingsSchema.default(DEFAULT_BONUS),
@@ -58,6 +61,7 @@ export const storedSettingsSchema = z
     const stored = row.parentPin ?? row.parentPassword ?? '';
     return {
       id: row.id,
+      seedVersion: row.seedVersion,
       parentPin: isValidPin(stored) ? stored : DEFAULT_PARENT_PIN,
       bonus: row.bonus,
       streak: row.streak,

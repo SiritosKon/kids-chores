@@ -26,6 +26,12 @@ describe('storedSettingsSchema', () => {
   it('drops the legacy field from the parsed settings', () => {
     const settings = storedSettingsSchema.parse({ id: 'app', parentPassword: '222222' });
 
-    expect(Object.keys(settings).sort()).toEqual(['bonus', 'id', 'parentPin', 'streak']);
+    expect(Object.keys(settings).sort()).toEqual([
+      'bonus',
+      'id',
+      'parentPin',
+      'seedVersion',
+      'streak',
+    ]);
   });
 });

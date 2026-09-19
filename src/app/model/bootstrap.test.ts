@@ -3,7 +3,7 @@ import { db } from '@/shared/api/db';
 import { childrenCatalogue, DEFAULT_CHILDREN } from '@/entities/child';
 import { tasksCatalogue, DEFAULT_TASKS } from '@/entities/task';
 import { rewardsCatalogue, DEFAULT_REWARDS } from '@/entities/reward';
-import { getSettings } from '@/entities/settings';
+import { getSettings, saveSettings } from '@/entities/settings';
 import { bootstrap } from './bootstrap';
 
 beforeEach(async () => {
@@ -73,6 +73,57 @@ describe('bootstrap', () => {
     const rewards = await rewardsCatalogue.read();
     expect(rewards).toHaveLength(before.length);
     expect(rewards.some((reward) => reward.id === 'bubble-tea')).toBe(true);
+  });
+
+  it('fills fields a default gained in a later version', async () => {
+    await bootstrap();
+    await rewardsCatalogue.table.update('bubble-tea', {
+      purchasable: undefined,
+      visibility: undefined,
+    });
+
+    await bootstrap();
+
+    const prize = (await rewardsCatalogue.read()).find((reward) => reward.id === 'bubble-tea');
+    expect(prize).toMatchObject({ purchasable: false, visibility: 'streak' });
+  });
+
+  it('keeps the streak prize out of the shop', async () => {
+    await bootstrap();
+
+    const rewards = await rewardsCatalogue.read();
+    expect(rewards.filter((reward) => reward.visibility === 'shop')).toHaveLength(7);
+    expect(rewards.find((reward) => reward.id === 'bubble-tea')?.visibility).toBe('streak');
+  });
+
+  it('re-seeds settings written before the seed version moved', async () => {
+    await bootstrap();
+    const settings = await getSettings();
+    await saveSettings({
+      ...settings!,
+      seedVersion: 0,
+      parentPin: '999999',
+      streak: { enabled: true, milestones: [{ id: 'legacy', days: 3, points: 2 }] },
+    });
+
+    await bootstrap();
+
+    const updated = await getSettings();
+    expect(updated?.streak.milestones).toEqual([{ id: 'week', days: 7, rewardId: 'bubble-tea' }]);
+    expect(updated?.parentPin).toBe('999999');
+  });
+
+  it('leaves settings alone once the seed version matches', async () => {
+    await bootstrap();
+    const settings = await getSettings();
+    await saveSettings({
+      ...settings!,
+      streak: { enabled: false, milestones: [] },
+    });
+
+    await bootstrap();
+
+    expect((await getSettings())?.streak).toEqual({ enabled: false, milestones: [] });
   });
 
   it('gives every seeded row an order and an active flag', async () => {

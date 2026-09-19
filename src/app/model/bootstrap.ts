@@ -1,42 +1,72 @@
 import { transaction } from '@/shared/api/db';
-import { withCatalogueDefaults } from '@/shared/api/catalogue';
+import { withCatalogueDefaults, type CatalogueRow } from '@/shared/api/catalogue';
 import { childrenCatalogue, DEFAULT_CHILDREN } from '@/entities/child';
 import { tasksCatalogue, DEFAULT_TASKS } from '@/entities/task';
 import { rewardsCatalogue, DEFAULT_REWARDS } from '@/entities/reward';
-import { settingsTable, getSettings, saveSettings, DEFAULT_SETTINGS } from '@/entities/settings';
+import {
+  settingsTable,
+  getSettings,
+  saveSettings,
+  DEFAULT_SETTINGS,
+  SETTINGS_SEED_VERSION,
+} from '@/entities/settings';
 import { recalculateStreaks } from '@/features/track-streak';
 
-interface SeededCatalogue<Row> {
-  existingIds: () => Promise<Set<string>>;
-  count: () => Promise<number>;
+interface SeededCatalogue<Row extends CatalogueRow> {
+  table: { toArray: () => Promise<Row[]> };
   putMany: (items: Row[]) => Promise<void>;
 }
 
-const seedMissing = async <Seed extends { id: string }, Row>(
+const seedDefaults = async <Seed extends { id: string }, Row extends CatalogueRow>(
   catalogue: SeededCatalogue<Row>,
   defaults: readonly Seed[]
 ): Promise<void> => {
-  const existing = await catalogue.existingIds();
-  const missing = defaults.filter((seed) => !existing.has(seed.id));
-  if (missing.length === 0) {
+  const stored = (await catalogue.table.toArray()) as unknown as Record<string, unknown>[];
+  const byId = new Map(stored.map((row) => [String(row.id), row]));
+
+  const missing = defaults.filter((seed) => !byId.has(seed.id));
+  const added = withCatalogueDefaults(missing).map((row, index) => ({
+    ...row,
+    order: stored.length + index,
+  }));
+
+  const patched: Record<string, unknown>[] = [];
+  for (const seed of defaults) {
+    const row = byId.get(seed.id);
+    if (!row) {
+      continue;
+    }
+    const patch = Object.entries(seed).filter(([key]) => row[key] === undefined);
+    if (patch.length > 0) {
+      patched.push({ ...row, ...Object.fromEntries(patch) });
+    }
+  }
+
+  const rows = [...added, ...patched] as unknown as Row[];
+  if (rows.length > 0) {
+    await catalogue.putMany(rows);
+  }
+};
+
+const seedSettings = async (): Promise<void> => {
+  const stored = await getSettings();
+  if (!stored) {
+    await saveSettings(DEFAULT_SETTINGS);
     return;
   }
-  const offset = await catalogue.count();
-  await catalogue.putMany(
-    withCatalogueDefaults(missing).map((row, index) => ({ ...row, order: offset + index })) as Row[]
-  );
+  if (stored.seedVersion < SETTINGS_SEED_VERSION) {
+    await saveSettings({ ...DEFAULT_SETTINGS, parentPin: stored.parentPin });
+  }
 };
 
 export const bootstrap = async (): Promise<void> => {
   await transaction(
     [childrenCatalogue.table, tasksCatalogue.table, rewardsCatalogue.table, settingsTable],
     async () => {
-      await seedMissing(childrenCatalogue, DEFAULT_CHILDREN);
-      await seedMissing(tasksCatalogue, DEFAULT_TASKS);
-      await seedMissing(rewardsCatalogue, DEFAULT_REWARDS);
-      if (!(await getSettings())) {
-        await saveSettings(DEFAULT_SETTINGS);
-      }
+      await seedDefaults(childrenCatalogue, DEFAULT_CHILDREN);
+      await seedDefaults(tasksCatalogue, DEFAULT_TASKS);
+      await seedDefaults(rewardsCatalogue, DEFAULT_REWARDS);
+      await seedSettings();
     }
   );
 

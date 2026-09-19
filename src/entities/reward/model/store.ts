@@ -14,13 +14,17 @@ export const useRewardsStore = defineStore('rewards', () => {
   onScopeDispose(() => subscription.unsubscribe());
 
   const active = computed(() =>
-    items.value.filter((reward) => reward.active).sort((first, second) => first.points - second.points)
+    items.value
+      .filter((reward) => reward.active)
+      .sort((first, second) => first.points - second.points)
   );
+
+  const shop = computed(() => active.value.filter((reward) => reward.visibility === 'shop'));
 
   const byId = (rewardId: string): Reward | undefined =>
     items.value.find((reward) => reward.id === rewardId);
 
   const nameOf = (rewardId: string): string => byId(rewardId)?.name ?? rewardId;
 
-  return { items, active, loaded, byId, nameOf };
+  return { items, active, shop, loaded, byId, nameOf };
 });

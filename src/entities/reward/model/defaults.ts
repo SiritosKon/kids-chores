@@ -6,5 +6,13 @@ export const DEFAULT_REWARDS = [
   { id: 'ps5-30', name: 'PS5 30 минут', icon: 'sports_esports', points: 15 },
   { id: 'youtube-60', name: 'YouTube 1 час', icon: 'smart_display', points: 20 },
   { id: 'ps5-60', name: 'PlayStation 1 час', icon: 'sports_esports', points: 25 },
-  { id: 'bubble-tea', name: 'Бабл Чай', icon: 'local_drink', points: 30, color: '#FF9F0A' },
+  {
+    id: 'bubble-tea',
+    name: 'Бабл Чай',
+    icon: 'local_drink',
+    points: 30,
+    color: '#FF9F0A',
+    purchasable: false,
+    visibility: 'streak' as const,
+  },
 ];

@@ -69,13 +69,13 @@ const wallet = useWalletStore();
 const { award } = useAwardReward();
 
 const ready = computed(() => childrenStore.loaded && rewardsStore.loaded);
-const rewards = computed(() => rewardsStore.active);
+const rewards = computed(() => rewardsStore.shop);
 const children = computed(() => childrenStore.active);
 
 const photoUrl = (child: Child): string | undefined => childPhotoUrl(child.photo);
 
 const canAfford = (child: Child, reward: Reward): boolean =>
-  wallet.balanceOf(child.id) >= reward.points;
+  reward.purchasable && wallet.balanceOf(child.id) >= reward.points;
 
 const anyCanAfford = (reward: Reward): boolean =>
   children.value.some((child) => canAfford(child, reward));

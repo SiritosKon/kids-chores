@@ -4,6 +4,7 @@ export {
   parentPinSchema,
   isValidPin,
   SETTINGS_ID,
+  SETTINGS_SEED_VERSION,
   PARENT_PIN_LENGTH,
   DEFAULT_PARENT_PIN,
   type Settings,
