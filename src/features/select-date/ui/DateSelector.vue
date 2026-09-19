@@ -23,13 +23,13 @@ const weekSlashKeys = computed(
   () => new Set(weekDayKeys(Date.now()).map((key) => key.replace(/-/g, '/')))
 );
 
-function dateOptions(dayKey: string): boolean {
+const dateOptions = (dayKey: string): boolean => {
   return parentActive.value || weekSlashKeys.value.has(dayKey);
-}
+};
 
-function onPick(value: unknown): void {
+const onPick = (value: unknown): void => {
   if (typeof value === 'string') {
     emit('update:modelValue', value);
   }
-}
+};
 </script>

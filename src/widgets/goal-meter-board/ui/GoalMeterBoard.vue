@@ -38,10 +38,10 @@ const meterEntries = computed<MeterEntry[]>(() =>
 const historyOpen = ref(false);
 const historyChildId = ref<string | null>(null);
 
-function openHistory(childId: string): void {
+const openHistory = (childId: string): void => {
   historyChildId.value = childId;
   historyOpen.value = true;
-}
+};
 </script>
 
 <style scoped>

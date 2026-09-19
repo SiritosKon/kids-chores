@@ -75,9 +75,9 @@ const CHECK_COLORS = ['blue', 'red'];
 
 const { isChecked, bonusEarned, toggle, dirty, accept } = useDayMarks(toRef(props, 'selectedDate'));
 
-function checkColor(index: number): string {
+const checkColor = (index: number): string => {
   return CHECK_COLORS[index] ?? 'primary';
-}
+};
 </script>
 
 <style scoped>

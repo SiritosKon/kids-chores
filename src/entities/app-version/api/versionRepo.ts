@@ -8,11 +8,11 @@ export interface VersionVisit {
   hadHistory: boolean;
 }
 
-export async function getVersionLog(): Promise<VersionLogEntry[]> {
+export const getVersionLog = async (): Promise<VersionLogEntry[]> => {
   return versionLogEntrySchema.array().parse(await versionLogTable.orderBy('firstSeenAt').toArray());
-}
+};
 
-export async function recordVersion(version: string): Promise<VersionVisit> {
+export const recordVersion = async (version: string): Promise<VersionVisit> => {
   const existing = await versionLogTable.get(version);
   if (existing) {
     return { isNew: false, hadHistory: true };
@@ -20,4 +20,4 @@ export async function recordVersion(version: string): Promise<VersionVisit> {
   const count = await versionLogTable.count();
   await versionLogTable.add({ version, firstSeenAt: Date.now() });
   return { isNew: true, hadHistory: count > 0 };
-}
+};

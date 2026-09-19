@@ -13,6 +13,6 @@ export const REGULAR_TASKS: readonly Task[] = TASKS.filter((task) => task.id !==
 
 export const BONUS_TASK: Task | undefined = TASKS.find((task) => task.id === BONUS_TASK_ID);
 
-export function taskName(taskId: string): string {
+export const taskName = (taskId: string): string => {
   return TASKS.find((task) => task.id === taskId)?.name ?? taskId;
-}
+};

@@ -13,7 +13,7 @@ export const backupSchema = z.object({
 
 export type Backup = z.infer<typeof backupSchema>;
 
-export function describeIssues(error: z.ZodError): string {
+export const describeIssues = (error: z.ZodError): string => {
   return error.issues
     .slice(0, 3)
     .map((issue) => {
@@ -21,4 +21,4 @@ export function describeIssues(error: z.ZodError): string {
       return path ? `${path}: ${issue.message}` : issue.message;
     })
     .join('; ');
-}
+};

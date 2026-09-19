@@ -8,7 +8,7 @@ export interface ChildLedger {
   spends: Spend[];
 }
 
-export async function getChildLedger(childId: string): Promise<ChildLedger> {
+export const getChildLedger = async (childId: string): Promise<ChildLedger> => {
   const [completions, spends] = await Promise.all([
     completionsTable.where('childId').equals(childId).toArray(),
     spendsTable.where('childId').equals(childId).toArray(),
@@ -17,4 +17,4 @@ export async function getChildLedger(childId: string): Promise<ChildLedger> {
     completions: storedCompletionSchema.array().parse(completions),
     spends: storedSpendSchema.array().parse(spends),
   };
-}
+};

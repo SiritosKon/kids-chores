@@ -33,9 +33,9 @@ export const useWalletStore = defineStore('wallet', () => {
 
   onScopeDispose(() => subscription.unsubscribe());
 
-  function balanceOf(childId: string): number {
+  const balanceOf = (childId: string): number => {
     return balances.value[childId] ?? 0;
-  }
+  };
 
   return { balances, balanceOf };
 });

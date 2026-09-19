@@ -1,4 +1,4 @@
-export function rewardTierColor(points: number): string {
+export const rewardTierColor = (points: number): string => {
   if (points < 10) {
     return '#30D158';
   }
@@ -6,4 +6,4 @@ export function rewardTierColor(points: number): string {
     return '#0A84FF';
   }
   return '#FF453A';
-}
+};

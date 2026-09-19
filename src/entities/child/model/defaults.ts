@@ -7,10 +7,10 @@ export const CHILDREN: readonly Child[] = childSchema.array().parse([
   { id: 'daniil', name: 'Даниил', carColor: '#EF5350', weeklyGoal: 28, photo: daniilPhoto },
 ]);
 
-export function findChild(childId: string): Child | undefined {
+export const findChild = (childId: string): Child | undefined => {
   return CHILDREN.find((child) => child.id === childId);
-}
+};
 
-export function childName(childId: string): string {
+export const childName = (childId: string): string => {
   return findChild(childId)?.name ?? childId;
-}
+};

@@ -7,26 +7,26 @@ import { getDayCompletions, saveDayMarks, type TaskMark } from '@/entities/compl
 
 type MarksByChild = Record<string, Set<string>>;
 
-export function useDayMarks(selectedDate: Ref<string>) {
+export const useDayMarks = (selectedDate: Ref<string>) => {
   const $q = useQuasar();
   const saved = ref<MarksByChild>({});
   const checked = ref<MarksByChild>({});
 
-  function marksOf(source: MarksByChild, childId: string): Set<string> {
+  const marksOf = (source: MarksByChild, childId: string): Set<string> => {
     return source[childId] ?? new Set<string>();
-  }
+  };
 
-  function isChecked(childId: string, taskId: string): boolean {
+  const isChecked = (childId: string, taskId: string): boolean => {
     return marksOf(checked.value, childId).has(taskId);
-  }
+  };
 
-  function bonusEarned(childId: string): boolean {
+  const bonusEarned = (childId: string): boolean => {
     if (REGULAR_TASKS.length === 0) {
       return false;
     }
     const marks = marksOf(checked.value, childId);
     return REGULAR_TASKS.every((task) => marks.has(task.id));
-  }
+  };
 
   const dirty = computed(() =>
     CHILDREN.some((child) => {
@@ -36,7 +36,7 @@ export function useDayMarks(selectedDate: Ref<string>) {
     })
   );
 
-  function toggle(childId: string, taskId: string, isOn: boolean): void {
+  const toggle = (childId: string, taskId: string, isOn: boolean): void => {
     const marks = new Set(marksOf(checked.value, childId));
     if (isOn) {
       marks.add(taskId);
@@ -44,9 +44,9 @@ export function useDayMarks(selectedDate: Ref<string>) {
       marks.delete(taskId);
     }
     checked.value = { ...checked.value, [childId]: marks };
-  }
+  };
 
-  async function load(): Promise<void> {
+  const load = async (): Promise<void> => {
     const regularIds = new Set(REGULAR_TASKS.map((task) => task.id));
     const nextSaved: MarksByChild = {};
     const nextChecked: MarksByChild = {};
@@ -58,9 +58,9 @@ export function useDayMarks(selectedDate: Ref<string>) {
     }
     saved.value = nextSaved;
     checked.value = nextChecked;
-  }
+  };
 
-  async function accept(): Promise<void> {
+  const accept = async (): Promise<void> => {
     const celebrated: Child[] = [];
     for (const child of CHILDREN) {
       const stored = marksOf(saved.value, child.id);
@@ -84,10 +84,10 @@ export function useDayMarks(selectedDate: Ref<string>) {
     for (const child of celebrated) {
       celebrate(child.carColor);
     }
-  }
+  };
 
   watch(selectedDate, load);
   onMounted(load);
 
   return { isChecked, bonusEarned, toggle, dirty, accept };
-}
+};

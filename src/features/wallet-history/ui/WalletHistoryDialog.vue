@@ -64,7 +64,7 @@ const childName = computed(() => (props.childId ? (findChild(props.childId)?.nam
 
 const total = computed(() => ledger.value.reduce((sum, item) => sum + item.amount, 0));
 
-async function load(): Promise<void> {
+const load = async (): Promise<void> => {
   if (!props.childId) {
     ledger.value = [];
     return;
@@ -88,7 +88,7 @@ async function load(): Promise<void> {
   ];
   items.sort((first, second) => second.ts - first.ts);
   ledger.value = items;
-}
+};
 
 watch(
   () => [props.modelValue, props.childId],

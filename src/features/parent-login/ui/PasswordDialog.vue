@@ -49,21 +49,21 @@ const password = ref('');
 const showPassword = ref(false);
 const passwordInput = ref<QInput | null>(null);
 
-function focusInput(): void {
+const focusInput = (): void => {
   passwordInput.value?.focus();
-}
+};
 
-function reset(): void {
+const reset = (): void => {
   password.value = '';
   showPassword.value = false;
-}
+};
 
-function submit(): void {
+const submit = (): void => {
   if (parentSession.login(password.value)) {
     $q.notify({ type: 'positive', message: 'Родительский режим включён' });
     emit('update:modelValue', false);
   } else {
     $q.notify({ type: 'negative', message: 'Неверный пароль' });
   }
-}
+};
 </script>

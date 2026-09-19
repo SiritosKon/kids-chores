@@ -61,13 +61,13 @@ const children = CHILDREN;
 const wallet = useWalletStore();
 const { award } = useAwardReward();
 
-function canAfford(child: Child, reward: Reward): boolean {
+const canAfford = (child: Child, reward: Reward): boolean => {
   return wallet.balanceOf(child.id) >= reward.points;
-}
+};
 
-function anyCanAfford(reward: Reward): boolean {
+const anyCanAfford = (reward: Reward): boolean => {
   return children.some((child) => canAfford(child, reward));
-}
+};
 </script>
 
 <style scoped>

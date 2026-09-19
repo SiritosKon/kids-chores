@@ -1,4 +1,4 @@
-export function downloadJson(payload: unknown, filename: string): void {
+export const downloadJson = (payload: unknown, filename: string): void => {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -6,4 +6,4 @@ export function downloadJson(payload: unknown, filename: string): void {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
-}
+};

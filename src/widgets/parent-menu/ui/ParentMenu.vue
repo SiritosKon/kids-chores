@@ -69,24 +69,24 @@ const showLogin = ref(false);
 const showSpends = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
-async function exportFull(): Promise<void> {
+const exportFull = async (): Promise<void> => {
   const data = await exportAll();
   downloadJson(data, `kids-chores-full-${data.exportedAt?.slice(0, 10) ?? 'export'}.json`);
-}
+};
 
-async function exportMonthly(): Promise<void> {
+const exportMonthly = async (): Promise<void> => {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
   const data = await exportMonth(year, month);
   downloadJson(data, `kids-chores-${year}-${String(month).padStart(2, '0')}.json`);
-}
+};
 
-function pickFile(): void {
+const pickFile = (): void => {
   fileInput.value?.click();
-}
+};
 
-async function onFile(event: Event): Promise<void> {
+const onFile = async (event: Event): Promise<void> => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
   if (!file) {
@@ -101,5 +101,5 @@ async function onFile(event: Event): Promise<void> {
   } finally {
     input.value = '';
   }
-}
+};
 </script>

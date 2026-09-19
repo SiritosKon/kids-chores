@@ -4,10 +4,10 @@ import type { Child } from '@/entities/child';
 import type { Reward } from '@/entities/reward';
 import { addSpend } from '@/entities/spend';
 
-export function useAwardReward() {
+export const useAwardReward = () => {
   const $q = useQuasar();
 
-  function award(child: Child, reward: Reward): void {
+  const award = (child: Child, reward: Reward): void => {
     $q.dialog({
       title: 'Наградить',
       message: `Выдать «${reward.name}» для ${child.name} за ${reward.points} б.?`,
@@ -18,7 +18,7 @@ export function useAwardReward() {
       $q.notify({ type: 'positive', message: `${child.name}: выдано «${reward.name}»` });
       celebrate(child.carColor);
     });
-  }
+  };
 
   return { award };
-}
+};

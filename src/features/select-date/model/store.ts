@@ -7,17 +7,17 @@ export const useSelectedDateStore = defineStore('selected-date', () => {
   const selectedDate = ref(todayKey());
   const parentSession = useParentSessionStore();
 
-  function syncToTodayForChild(): void {
+  const syncToTodayForChild = (): void => {
     if (!parentSession.active) {
       selectedDate.value = todayKey();
     }
-  }
+  };
 
-  function onVisibilityChange(): void {
+  const onVisibilityChange = (): void => {
     if (document.visibilityState === 'visible') {
       syncToTodayForChild();
     }
-  }
+  };
 
   if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', onVisibilityChange);

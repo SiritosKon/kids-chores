@@ -9,12 +9,12 @@ export interface TaskMark {
   points: number;
 }
 
-export async function getDayCompletions(childId: string, dateKey: string): Promise<Completion[]> {
+export const getDayCompletions = async (childId: string, dateKey: string): Promise<Completion[]> => {
   const rows = await completionsTable.where('[childId+date]').equals([childId, dateKey]).toArray();
   return storedCompletionSchema.array().parse(rows);
-}
+};
 
-export async function saveDayMarks(childId: string, dateKey: string, marks: TaskMark[]): Promise<void> {
+export const saveDayMarks = async (childId: string, dateKey: string, marks: TaskMark[]): Promise<void> => {
   const existing = await getDayCompletions(childId, dateKey);
   const existingTaskIds = new Set(existing.map((row) => row.taskId));
   const markedTaskIds = new Set(marks.map((mark) => mark.taskId));
@@ -42,13 +42,13 @@ export async function saveDayMarks(childId: string, dateKey: string, marks: Task
       await completionsTable.bulkAdd(toAdd);
     }
   });
-}
+};
 
-export async function resetWeek(childId: string, referenceDate: Date | number = Date.now()): Promise<void> {
+export const resetWeek = async (childId: string, referenceDate: Date | number = Date.now()): Promise<void> => {
   const pairs = weekDayKeys(referenceDate).map((key) => [childId, key]);
   await completionsTable.where('[childId+date]').anyOf(pairs).delete();
-}
+};
 
-export async function getAllCompletions(): Promise<Completion[]> {
+export const getAllCompletions = async (): Promise<Completion[]> => {
   return storedCompletionSchema.array().parse(await completionsTable.toArray());
-}
+};

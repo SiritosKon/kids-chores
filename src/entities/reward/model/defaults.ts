@@ -10,6 +10,6 @@ export const REWARDS: readonly Reward[] = rewardSchema.array().parse([
   { id: 'ps5-60', name: 'PlayStation 1 час', icon: 'sports_esports', points: 25 },
 ]);
 
-export function rewardName(rewardId: string): string {
+export const rewardName = (rewardId: string): string => {
   return REWARDS.find((reward) => reward.id === rewardId)?.name ?? rewardId;
-}
+};

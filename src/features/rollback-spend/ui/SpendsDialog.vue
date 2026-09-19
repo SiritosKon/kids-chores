@@ -43,16 +43,16 @@ const $q = useQuasar();
 const spends = ref<Spend[]>([]);
 let subscription: Subscription | null = null;
 
-function start(): void {
+const start = (): void => {
   subscription ??= watchSpends((rows) => {
     spends.value = rows;
   });
-}
+};
 
-function stop(): void {
+const stop = (): void => {
   subscription?.unsubscribe();
   subscription = null;
-}
+};
 
 watch(
   () => props.modelValue,
@@ -61,7 +61,7 @@ watch(
 
 onUnmounted(stop);
 
-function rollback(spend: Spend): void {
+const rollback = (spend: Spend): void => {
   $q.dialog({
     title: 'Вернуть баллы',
     message: `Отменить списание «${rewardName(spend.rewardId)}» и вернуть ${spend.cost} б. ${childName(spend.childId)}?`,
@@ -71,5 +71,5 @@ function rollback(spend: Spend): void {
     await deleteSpend(spend.id);
     $q.notify({ type: 'warning', message: 'Списание отменено, баллы возвращены' });
   });
-}
+};
 </script>
