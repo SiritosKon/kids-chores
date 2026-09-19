@@ -25,9 +25,8 @@
         <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
           <q-checkbox
             :model-value="isChecked(child.id, task.id)"
-            :disable="isLocked(child.id, task.id)"
             :color="checkColor(index)"
-            :checked-icon="isLocked(child.id, task.id) ? 'lock' : 'check_circle'"
+            checked-icon="check_circle"
             unchecked-icon="radio_button_unchecked"
             @update:model-value="toggle(child.id, task.id, $event)"
           />
@@ -65,7 +64,6 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { TASKS } from '../config/tasks.js';
 import { CHILDREN } from '../config/children.js';
-import { useParentMode } from '../composables/useParentMode.js';
 import { celebrate } from '../composables/useConfetti.js';
 import { getDayCompletions, saveDayMarks } from '../db/completionsRepo.js';
 
@@ -74,7 +72,6 @@ const props = defineProps({
 });
 
 const $q = useQuasar();
-const { active: parentActive } = useParentMode();
 const children = CHILDREN;
 
 const BONUS_ID = 'bonus';
@@ -92,10 +89,6 @@ function checkColor(index) {
 
 function isChecked(childId, taskId) {
   return Boolean(checked.value[childId] && checked.value[childId].has(taskId));
-}
-
-function isLocked(childId, taskId) {
-  return !parentActive.value && Boolean(saved.value[childId] && saved.value[childId].has(taskId));
 }
 
 function bonusEarned(childId) {
