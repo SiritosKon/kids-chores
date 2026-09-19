@@ -6,6 +6,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '0.2.6',
+    date: '2026-09-19',
+    notes: [
+      'Праздник за выполненный день теперь каждый раз разный',
+      'Особая анимация за достижение серии',
+    ],
+  },
+  {
     version: '0.2.5',
     date: '2026-09-19',
     notes: [

@@ -1,6 +1,6 @@
 import { ref, computed, watch, onMounted, type Ref } from 'vue';
 import { useQuasar } from 'quasar';
-import { celebrate } from '@/shared/lib/confetti';
+import { celebrate, celebrateStreak } from '@/shared/lib/confetti';
 import { useChildrenStore, type Child } from '@/entities/child';
 import { useTasksStore, BONUS_TASK_ID } from '@/entities/task';
 import { useSettingsStore } from '@/entities/settings';
@@ -97,8 +97,13 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
     await load();
     $q.notify({ type: 'positive', message: 'Сохранено' });
     if (!parentSession.active) {
-      for (const child of celebrated) {
-        celebrate(child.carColor);
+      const [firstAward] = grantedAwards.value;
+      if (firstAward) {
+        celebrateStreak(childrenStore.byId(firstAward.childId)?.carColor);
+      } else {
+        for (const child of celebrated) {
+          celebrate(child.carColor);
+        }
       }
     }
   };
