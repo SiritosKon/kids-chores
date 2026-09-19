@@ -1,6 +1,20 @@
 <template>
   <div class="tasks-board">
-    <div class="ios-card">
+    <div v-if="!ready" class="ios-card board-stub">
+      <q-skeleton type="text" width="40%" />
+      <q-skeleton type="text" width="70%" />
+      <q-skeleton type="text" width="55%" />
+    </div>
+
+    <div v-else-if="children.length === 0" class="ios-card board-stub text-grey-5">
+      Детей пока нет. Добавьте ребёнка в родительском режиме.
+    </div>
+
+    <div v-else-if="regularTasks.length === 0" class="ios-card board-stub text-grey-5">
+      Задач пока нет. Добавьте задачи в родительском режиме.
+    </div>
+
+    <div v-else class="ios-card">
       <div class="tasks-head">
         <div class="tasks-head__spacer"></div>
         <div
@@ -25,6 +39,7 @@
         <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
           <q-checkbox
             :model-value="isChecked(child.id, task.id)"
+            :disable="isLocked(child.id, task.id)"
             :color="checkColor(index)"
             checked-icon="check_circle"
             unchecked-icon="radio_button_unchecked"
@@ -33,13 +48,13 @@
         </div>
       </div>
 
-      <div v-if="bonusTask" class="task-row bonus-row">
-        <div class="task-tile" :style="{ background: bonusTask.color }">
-          <q-icon :name="bonusTask.icon" size="20px" color="white" />
+      <div v-if="bonus.enabled" class="task-row bonus-row">
+        <div class="task-tile" :style="{ background: BONUS_ROW.color }">
+          <q-icon :name="BONUS_ROW.icon" size="20px" color="white" />
         </div>
         <div class="task-info">
-          <div>{{ bonusTask.name }}</div>
-          <div class="task-points">+{{ bonusTask.points }} б. за все задачи дня</div>
+          <div>{{ BONUS_ROW.name }}</div>
+          <div class="task-points">+{{ bonus.points }} б. за все задачи дня</div>
         </div>
         <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
           <q-checkbox
@@ -53,34 +68,67 @@
       </div>
     </div>
 
-    <div class="row justify-end q-mt-md">
+    <div v-if="ready && children.length > 0 && regularTasks.length > 0" class="row justify-end q-mt-md">
       <q-btn color="primary" rounded unelevated icon="check" label="Принять" class="text-weight-bold" :disable="!dirty" @click="accept" />
     </div>
+
+    <StreakAwardDialog
+      :model-value="grantedAwards.length > 0"
+      :awards="grantedAwards"
+      @update:model-value="clearAwards"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { toRef } from 'vue';
-import { CHILDREN } from '@/entities/child';
-import { REGULAR_TASKS, BONUS_TASK } from '@/entities/task';
+import { computed, toRef } from 'vue';
+import { useChildrenStore } from '@/entities/child';
+import { useTasksStore, reservedTaskName, BONUS_TASK_ID } from '@/entities/task';
+import { useSettingsStore } from '@/entities/settings';
+import { StreakAwardDialog } from '@/features/celebrate-streak';
 import { useDayMarks } from '../model/useDayMarks';
 
 const props = defineProps<{ selectedDate: string }>();
 
-const children = CHILDREN;
-const regularTasks = REGULAR_TASKS;
-const bonusTask = BONUS_TASK;
+const childrenStore = useChildrenStore();
+const tasksStore = useTasksStore();
+const settingsStore = useSettingsStore();
+
+const ready = computed(() => childrenStore.loaded && tasksStore.loaded && settingsStore.loaded);
+
+const BONUS_ROW = {
+  name: reservedTaskName(BONUS_TASK_ID) ?? 'Бонус',
+  icon: 'star',
+  color: '#FF9F0A',
+};
 
 const CHECK_COLORS = ['blue', 'red'];
 
-const { isChecked, bonusEarned, toggle, dirty, accept } = useDayMarks(toRef(props, 'selectedDate'));
+const {
+  children,
+  tasks: regularTasks,
+  bonus,
+  grantedAwards,
+  clearAwards,
+  isChecked,
+  isLocked,
+  bonusEarned,
+  toggle,
+  dirty,
+  accept,
+} = useDayMarks(toRef(props, 'selectedDate'));
 
-const checkColor = (index: number): string => {
-  return CHECK_COLORS[index] ?? 'primary';
-};
+const checkColor = (index: number): string => CHECK_COLORS[index] ?? 'primary';
 </script>
 
 <style scoped>
+.board-stub {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .tasks-head {
   display: flex;
   align-items: center;

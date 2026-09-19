@@ -3,9 +3,11 @@ import { celebrate } from '@/shared/lib/confetti';
 import type { Child } from '@/entities/child';
 import type { Reward } from '@/entities/reward';
 import { addSpend } from '@/entities/spend';
+import { useParentSessionStore } from '@/entities/parent-session';
 
 export const useAwardReward = () => {
   const $q = useQuasar();
+  const parentSession = useParentSessionStore();
 
   const award = (child: Child, reward: Reward): void => {
     $q.dialog({
@@ -16,7 +18,9 @@ export const useAwardReward = () => {
     }).onOk(async () => {
       await addSpend(child.id, reward.id, reward.points);
       $q.notify({ type: 'positive', message: `${child.name}: выдано «${reward.name}»` });
-      celebrate(child.carColor);
+      if (!parentSession.active) {
+        celebrate(child.carColor);
+      }
     });
   };
 

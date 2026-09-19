@@ -8,6 +8,21 @@
     <div class="goal-meter__body">
       <div class="goal-meter__head">
         <span class="goal-meter__name">{{ entry.name }}</span>
+        <span
+          v-if="entry.streak > 0"
+          v-ripple
+          class="goal-meter__streak"
+          role="button"
+          tabindex="0"
+          :aria-label="`Серия: ${entry.streak}`"
+          @click="emit('open-streak')"
+          @keyup.enter="emit('open-streak')"
+        >
+          <span class="goal-meter__flame">🔥</span>
+          <span class="goal-meter__streak-count">{{ entry.streak }}</span>
+          <span class="goal-meter__streak-label">{{ streakLabel }} подряд</span>
+        </span>
+        <q-space />
         <q-btn flat dense no-caps color="primary" class="goal-meter__score" @click="emit('open-history')">
           <q-icon name="savings" size="18px" />
           <span class="q-ml-xs">{{ entry.balance }}</span>
@@ -24,11 +39,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { pluralize } from '@/shared/lib/plural';
 import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
 import type { MeterEntry } from '../model/meterEntry';
 
 const props = defineProps<{ entry: MeterEntry }>();
-const emit = defineEmits<{ 'open-history': [] }>();
+const emit = defineEmits<{ 'open-history': []; 'open-streak': [] }>();
+
+const streakLabel = computed(() => pluralize(props.entry.streak, ['день', 'дня', 'дней']));
 
 const pct = computed(() => Math.min(100, Math.round(props.entry.ratio * 100)));
 const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`);
@@ -55,10 +73,41 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
 
 .goal-meter__head {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 2px;
   margin-bottom: 10px;
   font-weight: 600;
+}
+
+.goal-meter__streak {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  padding: 2px 10px 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 159, 10, 0.16);
+}
+
+.goal-meter__flame {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.goal-meter__streak-count {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ff9f0a;
+}
+
+.goal-meter__streak-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffb340;
 }
 
 .goal-meter__score {

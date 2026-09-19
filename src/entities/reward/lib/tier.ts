@@ -7,3 +7,6 @@ export const rewardTierColor = (points: number): string => {
   }
   return '#FF453A';
 };
+
+export const rewardColor = (reward: { points: number; color?: string }): string =>
+  reward.color ?? rewardTierColor(reward.points);

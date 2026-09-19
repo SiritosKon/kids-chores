@@ -30,14 +30,14 @@ export default defineConfig({
     VitePWA({
       selfDestroying: !enablePwa,
       registerType: 'autoUpdate',
-      includeAssets: ['apple-touch-icon.png'],
+      includeAssets: ['apple-touch-icon.png', 'splash/*.png'],
       manifest: {
         name: 'Домашние дела детей',
         short_name: 'Дела детей',
         description: 'Трекер домашних дел для детей',
         lang: 'ru',
         theme_color: '#F57C00',
-        background_color: '#1a1a1a',
+        background_color: '#000000',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

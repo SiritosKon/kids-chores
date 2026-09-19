@@ -1,6 +1,6 @@
 <template>
   <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
-    <q-card style="min-width: 340px; max-width: 92vw; border-radius: 18px">
+    <q-card class="dialog--wide">
       <q-card-section class="row items-center">
         <div class="text-h6">История списаний</div>
         <q-space />
@@ -33,19 +33,23 @@ import { useQuasar } from 'quasar';
 import type { Subscription } from 'dexie';
 import { formatTimestampShort } from '@/shared/lib/date';
 import { deleteSpend, watchSpends, type Spend } from '@/entities/spend';
-import { rewardName } from '@/entities/reward';
-import { childName } from '@/entities/child';
+import { useRewardsStore } from '@/entities/reward';
+import { useChildrenStore } from '@/entities/child';
 
 const props = withDefaults(defineProps<{ modelValue?: boolean }>(), { modelValue: false });
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
 const $q = useQuasar();
+const rewardsStore = useRewardsStore();
+const childrenStore = useChildrenStore();
+const rewardName = (rewardId: string): string => rewardsStore.nameOf(rewardId);
+const childName = (childId: string): string => childrenStore.nameOf(childId);
 const spends = ref<Spend[]>([]);
 let subscription: Subscription | null = null;
 
 const start = (): void => {
   subscription ??= watchSpends((rows) => {
-    spends.value = rows;
+    spends.value = rows.filter((row) => row.source === 'purchase');
   });
 };
 

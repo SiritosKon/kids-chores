@@ -17,9 +17,14 @@ body.body--dark {
   align-items: flex-start;
 }
 
+:root {
+  --app-frame-width: min(834px, 100%);
+  --dialog-width: calc(min(834px, 100vw) * 0.8);
+}
+
 .app-frame {
   flex: 0 0 auto;
-  width: min(834px, 100%);
+  width: var(--app-frame-width);
   height: 100vh;
   background: #000000;
   box-shadow: 0 0 48px rgba(0, 0, 0, 0.6);
@@ -43,4 +48,20 @@ body.body--dark {
 /* Единый стиль всех модалок */
 .q-dialog .q-card {
   border-radius: 18px;
+  background: #1c1c1e;
+  overflow: hidden;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+}
+
+.q-dialog .q-separator {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.q-dialog .q-card.dialog--wide {
+  width: var(--dialog-width);
+  max-width: var(--dialog-width);
+}
+
+.q-dialog .q-card.dialog--narrow {
+  width: min(320px, 88vw);
 }

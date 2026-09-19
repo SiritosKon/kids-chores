@@ -1,9 +1,15 @@
 <template>
   <q-expansion-item icon="emoji_events" label="Награды" header-class="text-weight-medium">
-    <q-list separator>
+    <div v-if="!ready" class="q-pa-md">
+      <q-skeleton type="text" width="60%" />
+    </div>
+    <div v-else-if="rewards.length === 0" class="q-pa-md text-grey-5">
+      Наград пока нет. Добавьте их в родительском режиме.
+    </div>
+    <q-list v-else separator>
       <q-item v-for="reward in rewards" :key="reward.id">
         <q-item-section avatar>
-          <div class="reward-tile" :style="{ background: rewardTierColor(reward.points) }">
+          <div class="reward-tile" :style="{ background: rewardColor(reward) }">
             <q-icon :name="reward.icon" size="20px" color="white" />
           </div>
         </q-item-section>
@@ -33,7 +39,7 @@
               >
                 <q-item-section avatar>
                   <q-avatar size="32px" color="grey-9">
-                    <img v-if="child.photo" :src="child.photo" :alt="child.name" />
+                    <img v-if="photoUrl(child)" :src="photoUrl(child)" :alt="child.name" />
                     <q-icon v-else name="person" />
                   </q-avatar>
                 </q-item-section>
@@ -51,23 +57,28 @@
 </template>
 
 <script setup lang="ts">
-import { CHILDREN, type Child } from '@/entities/child';
-import { REWARDS, rewardTierColor, type Reward } from '@/entities/reward';
+import { computed } from 'vue';
+import { useChildrenStore, childPhotoUrl, type Child } from '@/entities/child';
+import { useRewardsStore, rewardColor, type Reward } from '@/entities/reward';
 import { useWalletStore } from '@/entities/wallet';
 import { useAwardReward } from '@/features/award-reward';
 
-const rewards = [...REWARDS].sort((first, second) => first.points - second.points);
-const children = CHILDREN;
+const childrenStore = useChildrenStore();
+const rewardsStore = useRewardsStore();
 const wallet = useWalletStore();
 const { award } = useAwardReward();
 
-const canAfford = (child: Child, reward: Reward): boolean => {
-  return wallet.balanceOf(child.id) >= reward.points;
-};
+const ready = computed(() => childrenStore.loaded && rewardsStore.loaded);
+const rewards = computed(() => rewardsStore.shop);
+const children = computed(() => childrenStore.active);
 
-const anyCanAfford = (reward: Reward): boolean => {
-  return children.some((child) => canAfford(child, reward));
-};
+const photoUrl = (child: Child): string | undefined => childPhotoUrl(child.photo);
+
+const canAfford = (child: Child, reward: Reward): boolean =>
+  reward.purchasable && wallet.balanceOf(child.id) >= reward.points;
+
+const anyCanAfford = (reward: Reward): boolean =>
+  children.value.some((child) => canAfford(child, reward));
 </script>
 
 <style scoped>

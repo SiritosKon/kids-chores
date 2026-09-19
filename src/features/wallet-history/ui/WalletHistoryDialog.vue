@@ -1,6 +1,6 @@
 <template>
   <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
-    <q-card style="min-width: 340px; max-width: 92vw">
+    <q-card class="dialog--wide">
       <q-card-section class="row items-center">
         <div class="text-h6">Кошелёк · {{ childName }}</div>
         <q-space />
@@ -15,8 +15,9 @@
               <q-item-label caption>{{ item.dayLabel }}</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <span :class="item.amount >= 0 ? 'text-positive' : 'text-negative'">
-                {{ item.amount >= 0 ? '+' : '' }}{{ item.amount }} б.
+              <span v-if="item.amount === 0" class="text-orange">приз</span>
+              <span v-else :class="item.amount > 0 ? 'text-positive' : 'text-negative'">
+                {{ item.amount > 0 ? '+' : '' }}{{ item.amount }} б.
               </span>
             </q-item-section>
           </q-item>
@@ -37,9 +38,9 @@
 import { ref, computed, watch } from 'vue';
 import { formatDayKeyNumeric, formatTimestampNumeric } from '@/shared/lib/date';
 import { getChildLedger } from '@/entities/wallet';
-import { taskName } from '@/entities/task';
-import { rewardName } from '@/entities/reward';
-import { findChild } from '@/entities/child';
+import { useTasksStore } from '@/entities/task';
+import { useRewardsStore } from '@/entities/reward';
+import { useChildrenStore } from '@/entities/child';
 
 interface LedgerItem {
   id: string;
@@ -58,9 +59,13 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
+const tasksStore = useTasksStore();
+const rewardsStore = useRewardsStore();
+const childrenStore = useChildrenStore();
+
 const ledger = ref<LedgerItem[]>([]);
 
-const childName = computed(() => (props.childId ? (findChild(props.childId)?.name ?? '') : ''));
+const childName = computed(() => (props.childId ? childrenStore.nameOf(props.childId) : ''));
 
 const total = computed(() => ledger.value.reduce((sum, item) => sum + item.amount, 0));
 
@@ -73,14 +78,14 @@ const load = async (): Promise<void> => {
   const items: LedgerItem[] = [
     ...completions.map((row) => ({
       id: row.id,
-      label: taskName(row.taskId),
+      label: tasksStore.nameOf(row.taskId),
       amount: row.points,
       ts: row.createdAt,
       dayLabel: formatDayKeyNumeric(row.date),
     })),
     ...spends.map((spend) => ({
       id: spend.id,
-      label: rewardName(spend.rewardId),
+      label: rewardsStore.nameOf(spend.rewardId),
       amount: -spend.cost,
       ts: spend.createdAt,
       dayLabel: formatTimestampNumeric(spend.createdAt),
