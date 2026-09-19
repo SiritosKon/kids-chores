@@ -34,7 +34,7 @@ import { computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import ParentMenu from './components/ParentMenu.vue';
 import HomePage from './pages/HomePage.vue';
-import { isPersistenceAvailable } from './db/db.js';
+import { isPersistenceAvailable } from '@/shared/api/db';
 import { recordVersion } from './db/versionRepo.js';
 import { useSelectedDate } from './composables/useSelectedDate.js';
 import { useParentMode } from './composables/useParentMode.js';

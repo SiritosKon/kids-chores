@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db } from '@/shared/api/db';
 
 export async function addSpend(childId, rewardId, cost) {
   await db.spends.add({

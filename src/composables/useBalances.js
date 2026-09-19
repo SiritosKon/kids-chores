@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import { liveQuery } from 'dexie';
-import { db } from '../db/db.js';
+import { db } from '@/shared/api/db';
 import { CHILDREN } from '../config/children.js';
 
 const PIGGY_STEP = 50;

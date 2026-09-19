@@ -11,7 +11,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useParentMode } from '../composables/useParentMode.js';
-import { weekDayKeys } from '../composables/useWeek.js';
+import { weekDayKeys } from '@/shared/lib/week';
 
 const props = defineProps({
   modelValue: { type: String, required: true },

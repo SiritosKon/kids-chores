@@ -55,7 +55,7 @@ import { useQuasar } from 'quasar';
 import { REWARDS } from '../config/rewards.js';
 import { CHILDREN } from '../config/children.js';
 import { useBalances } from '../composables/useBalances.js';
-import { celebrate } from '../composables/useConfetti.js';
+import { celebrate } from '@/shared/lib/confetti';
 import { addSpend } from '../db/spendsRepo.js';
 
 const $q = useQuasar();

@@ -1,6 +1,6 @@
 import confetti from 'canvas-confetti';
 
-export function celebrate(color = '#FF9F0A') {
+export function celebrate(color = '#FF9F0A'): void {
   try {
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return;

@@ -31,7 +31,7 @@
 import { ref, watch, onUnmounted } from 'vue';
 import { liveQuery } from 'dexie';
 import { useQuasar } from 'quasar';
-import { db } from '../db/db.js';
+import { db } from '@/shared/api/db';
 import { deleteSpend } from '../db/spendsRepo.js';
 import { REWARDS } from '../config/rewards.js';
 import { CHILDREN } from '../config/children.js';

@@ -1,5 +1,5 @@
-import timofeyPhoto from '../assets/timofey.png';
-import daniilPhoto from '../assets/daniil.png';
+import timofeyPhoto from '@/shared/assets/timofey.png';
+import daniilPhoto from '@/shared/assets/daniil.png';
 
 export const CHILDREN = [
   { id: 'timofey', name: 'Тимофей', carColor: '#42A5F5', weeklyGoal: 28, photo: timofeyPhoto },

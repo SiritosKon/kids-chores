@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db } from '@/shared/api/db';
 
 export async function getChildLedger(childId) {
   const [completions, spends] = await Promise.all([

@@ -20,13 +20,16 @@
   </svg>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps({
-  color: { type: String, default: '#42a5f5' },
-  size: { type: Number, default: 46 },
-});
+const props = withDefaults(
+  defineProps<{
+    color?: string;
+    size?: number;
+  }>(),
+  { color: '#42a5f5', size: 46 }
+);
 
 const height = computed(() => Math.round((props.size * 44) / 64));
 </script>

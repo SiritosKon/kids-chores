@@ -24,7 +24,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import MonsterTruck from './MonsterTruck.vue';
+import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
 
 const props = defineProps({
   entry: { type: Object, required: true },

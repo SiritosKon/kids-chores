@@ -64,7 +64,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { TASKS } from '../config/tasks.js';
 import { CHILDREN } from '../config/children.js';
-import { celebrate } from '../composables/useConfetti.js';
+import { celebrate } from '@/shared/lib/confetti';
 import { getDayCompletions, saveDayMarks } from '../db/completionsRepo.js';
 
 const props = defineProps({

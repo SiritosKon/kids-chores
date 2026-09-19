@@ -1,6 +1,6 @@
-import { db } from './db.js';
+import { db } from '@/shared/api/db';
 import { TASKS } from '../config/tasks.js';
-import { weekDayKeys } from '../composables/useWeek.js';
+import { weekDayKeys } from '@/shared/lib/week';
 
 const EXPORT_VERSION = 2;
 

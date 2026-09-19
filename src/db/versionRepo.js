@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db } from '@/shared/api/db';
 
 export function getVersionLog() {
   return db.versionLog.orderBy('firstSeenAt').toArray();
