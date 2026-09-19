@@ -8,10 +8,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
   {
     version: '0.2.0',
     date: '2026-09-19',
-    notes: [
-      'Отметку снова можно снять без родительского режима — замочек убран',
-      'Внутренняя перестройка: фронт переведён на FSD и TypeScript',
-    ],
+    notes: ['Внутренняя перестройка: фронт переведён на FSD и TypeScript'],
   },
   {
     version: '0.1.8',

@@ -4,6 +4,7 @@ import { celebrate } from '@/shared/lib/confetti';
 import { useChildrenStore, type Child } from '@/entities/child';
 import { useTasksStore, BONUS_TASK_ID } from '@/entities/task';
 import { useSettingsStore } from '@/entities/settings';
+import { useParentSessionStore } from '@/entities/parent-session';
 import { getDayCompletions, saveDayMarks, type TaskMark } from '@/entities/completion';
 
 type MarksByChild = Record<string, Set<string>>;
@@ -13,6 +14,7 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   const childrenStore = useChildrenStore();
   const tasksStore = useTasksStore();
   const settingsStore = useSettingsStore();
+  const parentSession = useParentSessionStore();
 
   const children = computed(() => childrenStore.active);
   const tasks = computed(() => tasksStore.active);
@@ -26,6 +28,9 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
 
   const isChecked = (childId: string, taskId: string): boolean =>
     marksOf(checked.value, childId).has(taskId);
+
+  const isLocked = (childId: string, taskId: string): boolean =>
+    !parentSession.active && marksOf(saved.value, childId).has(taskId);
 
   const bonusEarned = (childId: string): boolean => {
     if (!bonus.value.enabled || tasks.value.length === 0) {
@@ -96,5 +101,5 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   watch([selectedDate, children, tasks], load);
   onMounted(load);
 
-  return { children, tasks, bonus, isChecked, bonusEarned, toggle, dirty, accept };
+  return { children, tasks, bonus, isChecked, isLocked, bonusEarned, toggle, dirty, accept };
 };

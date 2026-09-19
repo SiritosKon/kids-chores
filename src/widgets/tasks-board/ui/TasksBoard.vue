@@ -39,6 +39,7 @@
         <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
           <q-checkbox
             :model-value="isChecked(child.id, task.id)"
+            :disable="isLocked(child.id, task.id)"
             :color="checkColor(index)"
             checked-icon="check_circle"
             unchecked-icon="radio_button_unchecked"
@@ -101,6 +102,7 @@ const {
   tasks: regularTasks,
   bonus,
   isChecked,
+  isLocked,
   bonusEarned,
   toggle,
   dirty,
