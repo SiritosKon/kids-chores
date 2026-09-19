@@ -95,8 +95,10 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
     await recalculateStreaks();
     await load();
     $q.notify({ type: 'positive', message: 'Сохранено' });
-    for (const child of celebrated) {
-      celebrate(child.carColor);
+    if (!parentSession.active) {
+      for (const child of celebrated) {
+        celebrate(child.carColor);
+      }
     }
   };
 

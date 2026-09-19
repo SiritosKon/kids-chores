@@ -6,7 +6,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
-    version: '0.3.0',
+    version: '0.2.5',
     date: '2026-09-19',
     notes: [
       'Серия: 🔥 за дни подряд со всеми задачами и баллы за достижения',
