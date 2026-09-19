@@ -8,12 +8,19 @@ import { VitePWA } from 'vite-plugin-pwa';
 // Полноценный кеширующий PWA-воркер включаем ТОЛЬКО в деплое (ENABLE_PWA=true).
 // Локальные сборки отдают self-destroying SW: без кеша и с авто-очисткой залипших воркеров.
 const enablePwa = process.env.ENABLE_PWA === 'true';
-const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'));
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')) as {
+  version: string;
+};
 
 export default defineConfig({
   base: '/kids-chores/',
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+  },
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
   },
   plugins: [
     vue({ template: { transformAssetUrls } }),
