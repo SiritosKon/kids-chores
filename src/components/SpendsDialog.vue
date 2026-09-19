@@ -29,12 +29,10 @@
 
 <script setup>
 import { ref, watch, onUnmounted } from 'vue';
-import { liveQuery } from 'dexie';
 import { useQuasar } from 'quasar';
-import { db } from '@/shared/api/db';
-import { deleteSpend } from '../db/spendsRepo.js';
-import { REWARDS } from '../config/rewards.js';
-import { CHILDREN } from '../config/children.js';
+import { deleteSpend, watchSpends } from '@/entities/spend';
+import { rewardName } from '@/entities/reward';
+import { childName } from '@/entities/child';
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -49,10 +47,8 @@ function start() {
   if (subscription) {
     return;
   }
-  subscription = liveQuery(() => db.spends.orderBy('createdAt').reverse().toArray()).subscribe({
-    next(rows) {
-      spends.value = rows;
-    },
+  subscription = watchSpends((rows) => {
+    spends.value = rows;
   });
 }
 
@@ -69,16 +65,6 @@ watch(
 );
 
 onUnmounted(stop);
-
-function rewardName(id) {
-  const reward = REWARDS.find((item) => item.id === id);
-  return reward ? reward.name : id;
-}
-
-function childName(id) {
-  const child = CHILDREN.find((item) => item.id === id);
-  return child ? child.name : id;
-}
 
 function formatDate(timestamp) {
   return new Date(timestamp).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });

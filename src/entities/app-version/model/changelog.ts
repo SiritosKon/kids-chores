@@ -1,4 +1,10 @@
-export const CHANGELOG = [
+export interface ChangelogEntry {
+  version: string;
+  date: string;
+  notes: string[];
+}
+
+export const CHANGELOG: readonly ChangelogEntry[] = [
   {
     version: '0.1.8',
     date: '2026-09-18',

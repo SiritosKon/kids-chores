@@ -35,16 +35,17 @@ import { useQuasar } from 'quasar';
 import ParentMenu from './components/ParentMenu.vue';
 import HomePage from './pages/HomePage.vue';
 import { isPersistenceAvailable } from '@/shared/api/db';
-import { recordVersion } from './db/versionRepo.js';
+import { recordVersion } from '@/entities/app-version';
 import { useSelectedDate } from './composables/useSelectedDate.js';
-import { useParentMode } from './composables/useParentMode.js';
+import { storeToRefs } from 'pinia';
+import { useParentSessionStore } from '@/entities/parent-session';
 import { useWhatsNew } from './composables/useWhatsNew.js';
 import WhatsNewDialog from './components/WhatsNewDialog.vue';
 
 const $q = useQuasar();
 const persistence = isPersistenceAvailable();
 const { selectedDate } = useSelectedDate();
-const { active: parentActive } = useParentMode();
+const { active: parentActive } = storeToRefs(useParentSessionStore());
 const { isOpen: whatsNewOpen, open: openWhatsNew } = useWhatsNew();
 const appVersion = __APP_VERSION__;
 

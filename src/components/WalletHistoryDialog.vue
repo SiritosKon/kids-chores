@@ -35,10 +35,10 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { getChildLedger } from '../db/walletRepo.js';
-import { TASKS } from '../config/tasks.js';
-import { REWARDS } from '../config/rewards.js';
-import { CHILDREN } from '../config/children.js';
+import { getChildLedger } from '@/entities/wallet';
+import { taskName } from '@/entities/task';
+import { rewardName } from '@/entities/reward';
+import { findChild } from '@/entities/child';
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -48,10 +48,7 @@ const emit = defineEmits(['update:modelValue']);
 
 const ledger = ref([]);
 
-const childName = computed(() => {
-  const child = CHILDREN.find((item) => item.id === props.childId);
-  return child ? child.name : '';
-});
+const childName = computed(() => (props.childId ? (findChild(props.childId)?.name ?? '') : ''));
 
 const total = computed(() => {
   let sum = 0;
@@ -60,16 +57,6 @@ const total = computed(() => {
   }
   return sum;
 });
-
-function taskName(id) {
-  const task = TASKS.find((item) => item.id === id);
-  return task ? task.name : id;
-}
-
-function rewardName(id) {
-  const reward = REWARDS.find((item) => item.id === id);
-  return reward ? reward.name : id;
-}
 
 function formatDay(dateKey) {
   const [year, month, day] = dateKey.split('-');

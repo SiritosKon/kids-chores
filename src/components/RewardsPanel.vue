@@ -3,7 +3,7 @@
     <q-list separator>
       <q-item v-for="reward in rewards" :key="reward.id">
         <q-item-section avatar>
-          <div class="reward-tile" :style="{ background: tierColor(reward.points) }">
+          <div class="reward-tile" :style="{ background: rewardTierColor(reward.points) }">
             <q-icon :name="reward.icon" size="20px" color="white" />
           </div>
         </q-item-section>
@@ -39,7 +39,7 @@
                 </q-item-section>
                 <q-item-section>
                   <q-item-label>{{ child.name }}</q-item-label>
-                  <q-item-label caption>Баланс: {{ balances[child.id] || 0 }} б.</q-item-label>
+                  <q-item-label caption>Баланс: {{ wallet.balanceOf(child.id) }} б.</q-item-label>
                 </q-item-section>
               </q-item>
             </q-list>
@@ -52,29 +52,19 @@
 
 <script setup>
 import { useQuasar } from 'quasar';
-import { REWARDS } from '../config/rewards.js';
-import { CHILDREN } from '../config/children.js';
-import { useBalances } from '../composables/useBalances.js';
 import { celebrate } from '@/shared/lib/confetti';
-import { addSpend } from '../db/spendsRepo.js';
+import { CHILDREN } from '@/entities/child';
+import { REWARDS, rewardTierColor } from '@/entities/reward';
+import { addSpend } from '@/entities/spend';
+import { useWalletStore } from '@/entities/wallet';
 
 const $q = useQuasar();
 const rewards = [...REWARDS].sort((first, second) => first.points - second.points);
 const children = CHILDREN;
-const { balances } = useBalances();
-
-function tierColor(points) {
-  if (points < 10) {
-    return '#30D158';
-  }
-  if (points < 20) {
-    return '#0A84FF';
-  }
-  return '#FF453A';
-}
+const wallet = useWalletStore();
 
 function canAfford(child, reward) {
-  return (balances.value[child.id] || 0) >= reward.points;
+  return wallet.balanceOf(child.id) >= reward.points;
 }
 
 function anyCanAfford(reward) {

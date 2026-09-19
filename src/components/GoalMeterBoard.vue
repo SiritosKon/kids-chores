@@ -11,12 +11,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import GoalMeter from './GoalMeter.vue';
 import WalletHistoryDialog from './WalletHistoryDialog.vue';
-import { useBalances } from '../composables/useBalances.js';
+import { CHILDREN } from '@/entities/child';
+import { useWalletStore, piggyMax } from '@/entities/wallet';
 
-const { meterEntries } = useBalances();
+const wallet = useWalletStore();
+
+const meterEntries = computed(() =>
+  CHILDREN.map((child) => {
+    const balance = wallet.balanceOf(child.id);
+    const max = piggyMax(balance);
+    return {
+      childId: child.id,
+      name: child.name,
+      photo: child.photo,
+      carColor: child.carColor,
+      balance,
+      ratio: max > 0 ? balance / max : 0,
+    };
+  })
+);
 
 const historyOpen = ref(false);
 const historyChildId = ref(null);

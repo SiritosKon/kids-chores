@@ -62,10 +62,10 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
-import { TASKS } from '../config/tasks.js';
-import { CHILDREN } from '../config/children.js';
 import { celebrate } from '@/shared/lib/confetti';
-import { getDayCompletions, saveDayMarks } from '../db/completionsRepo.js';
+import { CHILDREN } from '@/entities/child';
+import { REGULAR_TASKS, BONUS_TASK, BONUS_TASK_ID } from '@/entities/task';
+import { getDayCompletions, saveDayMarks } from '@/entities/completion';
 
 const props = defineProps({
   selectedDate: { type: String, required: true },
@@ -74,9 +74,8 @@ const props = defineProps({
 const $q = useQuasar();
 const children = CHILDREN;
 
-const BONUS_ID = 'bonus';
-const regularTasks = TASKS.filter((task) => task.id !== BONUS_ID);
-const bonusTask = TASKS.find((task) => task.id === BONUS_ID);
+const regularTasks = REGULAR_TASKS;
+const bonusTask = BONUS_TASK;
 
 const CHECK_COLORS = ['blue', 'red'];
 
@@ -149,11 +148,13 @@ async function accept() {
     if (earnsBonus && !wasAllBefore) {
       celebrated.push(child);
     }
-    const finalIds = [...(checked.value[child.id] || [])];
-    if (earnsBonus) {
-      finalIds.push(BONUS_ID);
+    const marks = regularTasks
+      .filter((task) => isChecked(child.id, task.id))
+      .map((task) => ({ taskId: task.id, points: task.points }));
+    if (earnsBonus && bonusTask) {
+      marks.push({ taskId: BONUS_TASK_ID, points: bonusTask.points });
     }
-    await saveDayMarks(child.id, props.selectedDate, finalIds);
+    await saveDayMarks(child.id, props.selectedDate, marks);
   }
   await load();
   $q.notify({ type: 'positive', message: 'Сохранено' });

@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import { Quasar, Notify, Dialog } from 'quasar';
 import langRu from 'quasar/lang/ru';
 
@@ -8,6 +9,7 @@ import 'quasar/src/css/index.sass';
 import App from './App.vue';
 
 const app = createApp(App);
+app.use(createPinia());
 app.use(Quasar, { plugins: { Notify, Dialog }, config: { dark: true }, lang: langRu });
 
 Notify.setDefaults({

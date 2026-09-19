@@ -38,7 +38,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
-import { useParentMode } from '../composables/useParentMode.js';
+import { useParentSessionStore } from '@/entities/parent-session';
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -46,7 +46,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const $q = useQuasar();
-const { login } = useParentMode();
+const parentSession = useParentSessionStore();
 const password = ref('');
 const showPassword = ref(false);
 const passwordInput = ref(null);
@@ -63,7 +63,7 @@ function reset() {
 }
 
 function submit() {
-  if (login(password.value)) {
+  if (parentSession.login(password.value)) {
     $q.notify({ type: 'positive', message: 'Родительский режим включён' });
     emit('update:modelValue', false);
   } else {

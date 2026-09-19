@@ -10,7 +10,8 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useParentMode } from '../composables/useParentMode.js';
+import { storeToRefs } from 'pinia';
+import { useParentSessionStore } from '@/entities/parent-session';
 import { weekDayKeys } from '@/shared/lib/week';
 
 const props = defineProps({
@@ -18,7 +19,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:modelValue']);
 
-const { active: parentActive } = useParentMode();
+const { active: parentActive } = storeToRefs(useParentSessionStore());
 
 const weekSlashKeys = computed(() => new Set(weekDayKeys(new Date()).map((key) => key.replace(/-/g, '/'))));
 

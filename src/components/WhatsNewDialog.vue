@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import { CHANGELOG } from '../config/changelog.js';
+import { CHANGELOG } from '@/entities/app-version';
 
 defineProps({
   modelValue: { type: Boolean, default: false },

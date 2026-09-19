@@ -24,6 +24,12 @@ export function table<Row, Key = string>(name: string): Table<Row, Key> {
   return db.table(name) as unknown as Table<Row, Key>;
 }
 
+// Атомарная запись поверх нескольких таблиц: таблицы приходят из entities,
+// имена схемы наружу не утекают.
+export function transaction<T>(tables: readonly Table[], work: () => Promise<T>): Promise<T> {
+  return db.transaction('rw', tables, work);
+}
+
 export function isPersistenceAvailable(): boolean {
   try {
     return typeof indexedDB !== 'undefined' && indexedDB !== null;

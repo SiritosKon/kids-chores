@@ -54,30 +54,23 @@ import { ref } from 'vue';
 import { useQuasar } from 'quasar';
 import PasswordDialog from './PasswordDialog.vue';
 import SpendsDialog from './SpendsDialog.vue';
-import { useParentMode } from '../composables/useParentMode.js';
+import { storeToRefs } from 'pinia';
+import { useParentSessionStore } from '@/entities/parent-session';
 import { useWhatsNew } from '../composables/useWhatsNew.js';
-import { exportAll, exportMonth, importAll } from '../db/completionsRepo.js';
+import { exportAll, exportMonth, importAll, downloadJson } from '@/features/backup';
 
 const $q = useQuasar();
-const { active, logout } = useParentMode();
+const parentSession = useParentSessionStore();
+const { active } = storeToRefs(parentSession);
+const logout = parentSession.logout;
 const { open: openWhatsNew } = useWhatsNew();
 const showLogin = ref(false);
 const showSpends = ref(false);
 const fileInput = ref(null);
 
-function download(payload, filename) {
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
 async function exportFull() {
   const data = await exportAll();
-  download(data, `kids-chores-full-${data.exportedAt.slice(0, 10)}.json`);
+  downloadJson(data, `kids-chores-full-${data.exportedAt.slice(0, 10)}.json`);
 }
 
 async function exportMonthly() {
@@ -85,7 +78,7 @@ async function exportMonthly() {
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
   const data = await exportMonth(year, month);
-  download(data, `kids-chores-${year}-${String(month).padStart(2, '0')}.json`);
+  downloadJson(data, `kids-chores-${year}-${String(month).padStart(2, '0')}.json`);
 }
 
 function pickFile() {
