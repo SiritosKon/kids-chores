@@ -52,18 +52,18 @@
 <script setup>
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
-import PasswordDialog from './PasswordDialog.vue';
-import SpendsDialog from './SpendsDialog.vue';
+import { PasswordDialog } from '@/features/parent-login';
+import { SpendsDialog } from '@/features/rollback-spend';
 import { storeToRefs } from 'pinia';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { useWhatsNew } from '../composables/useWhatsNew.js';
+import { useWhatsNewStore } from '@/features/whats-new';
 import { exportAll, exportMonth, importAll, downloadJson } from '@/features/backup';
 
 const $q = useQuasar();
 const parentSession = useParentSessionStore();
 const { active } = storeToRefs(parentSession);
 const logout = parentSession.logout;
-const { open: openWhatsNew } = useWhatsNew();
+const openWhatsNew = useWhatsNewStore().open;
 const showLogin = ref(false);
 const showSpends = ref(false);
 const fileInput = ref(null);

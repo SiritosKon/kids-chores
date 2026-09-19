@@ -36,17 +36,19 @@ import ParentMenu from './components/ParentMenu.vue';
 import HomePage from './pages/HomePage.vue';
 import { isPersistenceAvailable } from '@/shared/api/db';
 import { recordVersion } from '@/entities/app-version';
-import { useSelectedDate } from './composables/useSelectedDate.js';
+import { useSelectedDateStore } from '@/features/select-date';
 import { storeToRefs } from 'pinia';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { useWhatsNew } from './composables/useWhatsNew.js';
-import WhatsNewDialog from './components/WhatsNewDialog.vue';
+import { useWhatsNewStore } from '@/features/whats-new';
+import { WhatsNewDialog } from '@/features/whats-new';
 
 const $q = useQuasar();
 const persistence = isPersistenceAvailable();
-const { selectedDate } = useSelectedDate();
+const { selectedDate } = storeToRefs(useSelectedDateStore());
 const { active: parentActive } = storeToRefs(useParentSessionStore());
-const { isOpen: whatsNewOpen, open: openWhatsNew } = useWhatsNew();
+const whatsNew = useWhatsNewStore();
+const { isOpen: whatsNewOpen } = storeToRefs(whatsNew);
+const openWhatsNew = whatsNew.open;
 const appVersion = __APP_VERSION__;
 
 onMounted(async () => {

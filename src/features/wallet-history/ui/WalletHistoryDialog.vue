@@ -33,53 +33,59 @@
   </q-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { formatDayKeyNumeric, formatTimestampNumeric } from '@/shared/lib/date';
 import { getChildLedger } from '@/entities/wallet';
 import { taskName } from '@/entities/task';
 import { rewardName } from '@/entities/reward';
 import { findChild } from '@/entities/child';
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false },
-  childId: { type: String, default: null },
-});
-const emit = defineEmits(['update:modelValue']);
+interface LedgerItem {
+  id: string;
+  label: string;
+  amount: number;
+  ts: number;
+  dayLabel: string;
+}
 
-const ledger = ref([]);
+const props = withDefaults(
+  defineProps<{
+    modelValue?: boolean;
+    childId?: string | null;
+  }>(),
+  { modelValue: false, childId: null }
+);
+const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
+
+const ledger = ref<LedgerItem[]>([]);
 
 const childName = computed(() => (props.childId ? (findChild(props.childId)?.name ?? '') : ''));
 
-const total = computed(() => {
-  let sum = 0;
-  for (const item of ledger.value) {
-    sum += item.amount;
-  }
-  return sum;
-});
+const total = computed(() => ledger.value.reduce((sum, item) => sum + item.amount, 0));
 
-function formatDay(dateKey) {
-  const [year, month, day] = dateKey.split('-');
-  return `${day}.${month}.${year}`;
-}
-
-function formatTimestampDay(timestamp) {
-  return new Date(timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-async function load() {
+async function load(): Promise<void> {
   if (!props.childId) {
     ledger.value = [];
     return;
   }
   const { completions, spends } = await getChildLedger(props.childId);
-  const items = [];
-  for (const row of completions) {
-    items.push({ id: row.id, label: taskName(row.taskId), amount: row.points, ts: row.createdAt, dayLabel: formatDay(row.date) });
-  }
-  for (const spend of spends) {
-    items.push({ id: spend.id, label: rewardName(spend.rewardId), amount: -spend.cost, ts: spend.createdAt, dayLabel: formatTimestampDay(spend.createdAt) });
-  }
+  const items: LedgerItem[] = [
+    ...completions.map((row) => ({
+      id: row.id,
+      label: taskName(row.taskId),
+      amount: row.points,
+      ts: row.createdAt,
+      dayLabel: formatDayKeyNumeric(row.date),
+    })),
+    ...spends.map((spend) => ({
+      id: spend.id,
+      label: rewardName(spend.rewardId),
+      amount: -spend.cost,
+      ts: spend.createdAt,
+      dayLabel: formatTimestampNumeric(spend.createdAt),
+    })),
+  ];
   items.sort((first, second) => second.ts - first.ts);
   ledger.value = items;
 }
@@ -88,7 +94,7 @@ watch(
   () => [props.modelValue, props.childId],
   ([open]) => {
     if (open) {
-      load();
+      void load();
     }
   }
 );

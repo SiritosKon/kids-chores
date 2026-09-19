@@ -24,13 +24,11 @@
   </q-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { CHANGELOG } from '@/entities/app-version';
 
-defineProps({
-  modelValue: { type: Boolean, default: false },
-});
-const emit = defineEmits(['update:modelValue']);
+withDefaults(defineProps<{ modelValue?: boolean }>(), { modelValue: false });
+const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
-const changelog = CHANGELOG;
+const changelog = [...CHANGELOG];
 </script>

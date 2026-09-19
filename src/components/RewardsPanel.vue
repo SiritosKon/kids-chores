@@ -51,17 +51,15 @@
 </template>
 
 <script setup>
-import { useQuasar } from 'quasar';
-import { celebrate } from '@/shared/lib/confetti';
 import { CHILDREN } from '@/entities/child';
 import { REWARDS, rewardTierColor } from '@/entities/reward';
-import { addSpend } from '@/entities/spend';
 import { useWalletStore } from '@/entities/wallet';
+import { useAwardReward } from '@/features/award-reward';
 
-const $q = useQuasar();
 const rewards = [...REWARDS].sort((first, second) => first.points - second.points);
 const children = CHILDREN;
 const wallet = useWalletStore();
+const { award } = useAwardReward();
 
 function canAfford(child, reward) {
   return wallet.balanceOf(child.id) >= reward.points;
@@ -71,18 +69,6 @@ function anyCanAfford(reward) {
   return children.some((child) => canAfford(child, reward));
 }
 
-function award(child, reward) {
-  $q.dialog({
-    title: 'Наградить',
-    message: `Выдать «${reward.name}» для ${child.name} за ${reward.points} б.?`,
-    cancel: true,
-    persistent: true,
-  }).onOk(async () => {
-    await addSpend(child.id, reward.id, reward.points);
-    $q.notify({ type: 'positive', message: `${child.name}: выдано «${reward.name}»` });
-    celebrate(child.carColor);
-  });
-}
 </script>
 
 <style scoped>

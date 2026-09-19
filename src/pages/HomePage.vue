@@ -17,11 +17,11 @@
 </template>
 
 <script setup>
+import { storeToRefs } from 'pinia';
 import GoalMeterBoard from '../components/GoalMeterBoard.vue';
 import TasksBoard from '../components/TasksBoard.vue';
-import DateSelector from '../components/DateSelector.vue';
+import { DateSelector, useSelectedDateStore } from '@/features/select-date';
 import RewardsPanel from '../components/RewardsPanel.vue';
-import { useSelectedDate } from '../composables/useSelectedDate.js';
 
-const { selectedDate } = useSelectedDate();
+const { selectedDate } = storeToRefs(useSelectedDateStore());
 </script>

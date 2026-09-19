@@ -13,7 +13,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import GoalMeter from './GoalMeter.vue';
-import WalletHistoryDialog from './WalletHistoryDialog.vue';
+import { WalletHistoryDialog } from '@/features/wallet-history';
 import { CHILDREN } from '@/entities/child';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
 

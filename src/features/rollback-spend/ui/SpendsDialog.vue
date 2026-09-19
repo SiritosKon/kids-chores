@@ -13,7 +13,7 @@
             <q-item-section>
               <q-item-label>{{ rewardName(spend.rewardId) }}</q-item-label>
               <q-item-label caption>
-                {{ childName(spend.childId) }} · −{{ spend.cost }} б. · {{ formatDate(spend.createdAt) }}
+                {{ childName(spend.childId) }} · −{{ spend.cost }} б. · {{ formatTimestampShort(spend.createdAt) }}
               </q-item-label>
             </q-item-section>
             <q-item-section side>
@@ -27,36 +27,32 @@
   </q-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch, onUnmounted } from 'vue';
 import { useQuasar } from 'quasar';
-import { deleteSpend, watchSpends } from '@/entities/spend';
+import type { Subscription } from 'dexie';
+import { formatTimestampShort } from '@/shared/lib/date';
+import { deleteSpend, watchSpends, type Spend } from '@/entities/spend';
 import { rewardName } from '@/entities/reward';
 import { childName } from '@/entities/child';
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false },
-});
-const emit = defineEmits(['update:modelValue']);
+const props = withDefaults(defineProps<{ modelValue?: boolean }>(), { modelValue: false });
+const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
 const $q = useQuasar();
-const spends = ref([]);
-let subscription = null;
+const spends = ref<Spend[]>([]);
+let subscription: Subscription | null = null;
 
-function start() {
-  if (subscription) {
-    return;
-  }
-  subscription = watchSpends((rows) => {
+// Подписку держим только пока диалог открыт.
+function start(): void {
+  subscription ??= watchSpends((rows) => {
     spends.value = rows;
   });
 }
 
-function stop() {
-  if (subscription) {
-    subscription.unsubscribe();
-    subscription = null;
-  }
+function stop(): void {
+  subscription?.unsubscribe();
+  subscription = null;
 }
 
 watch(
@@ -66,11 +62,7 @@ watch(
 
 onUnmounted(stop);
 
-function formatDate(timestamp) {
-  return new Date(timestamp).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-}
-
-function rollback(spend) {
+function rollback(spend: Spend): void {
   $q.dialog({
     title: 'Вернуть баллы',
     message: `Отменить списание «${rewardName(spend.rewardId)}» и вернуть ${spend.cost} б. ${childName(spend.childId)}?`,

@@ -35,34 +35,30 @@
   </q-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
-import { useQuasar } from 'quasar';
+import { useQuasar, type QInput } from 'quasar';
 import { useParentSessionStore } from '@/entities/parent-session';
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false },
-});
-const emit = defineEmits(['update:modelValue']);
+withDefaults(defineProps<{ modelValue?: boolean }>(), { modelValue: false });
+const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
 const $q = useQuasar();
 const parentSession = useParentSessionStore();
 const password = ref('');
 const showPassword = ref(false);
-const passwordInput = ref(null);
+const passwordInput = ref<QInput | null>(null);
 
-function focusInput() {
-  if (passwordInput.value) {
-    passwordInput.value.focus();
-  }
+function focusInput(): void {
+  passwordInput.value?.focus();
 }
 
-function reset() {
+function reset(): void {
   password.value = '';
   showPassword.value = false;
 }
 
-function submit() {
+function submit(): void {
   if (parentSession.login(password.value)) {
     $q.notify({ type: 'positive', message: 'Родительский режим включён' });
     emit('update:modelValue', false);

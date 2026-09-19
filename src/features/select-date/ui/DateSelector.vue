@@ -8,30 +8,28 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useParentSessionStore } from '@/entities/parent-session';
 import { weekDayKeys } from '@/shared/lib/week';
+import { useParentSessionStore } from '@/entities/parent-session';
 
-const props = defineProps({
-  modelValue: { type: String, required: true },
-});
-const emit = defineEmits(['update:modelValue']);
+defineProps<{ modelValue: string }>();
+const emit = defineEmits<{ 'update:modelValue': [dayKey: string] }>();
 
 const { active: parentActive } = storeToRefs(useParentSessionStore());
 
-const weekSlashKeys = computed(() => new Set(weekDayKeys(new Date()).map((key) => key.replace(/-/g, '/'))));
+// q-date отдаёт даты через слэш, ключи храним через дефис.
+const weekSlashKeys = computed(
+  () => new Set(weekDayKeys(Date.now()).map((key) => key.replace(/-/g, '/')))
+);
 
-function dateOptions(dateStr) {
-  if (parentActive.value) {
-    return true;
-  }
-  return weekSlashKeys.value.has(dateStr);
+function dateOptions(dayKey: string): boolean {
+  return parentActive.value || weekSlashKeys.value.has(dayKey);
 }
 
-function onPick(value) {
-  if (value) {
+function onPick(value: unknown): void {
+  if (typeof value === 'string') {
     emit('update:modelValue', value);
   }
 }
