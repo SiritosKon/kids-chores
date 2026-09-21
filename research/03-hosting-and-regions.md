@@ -28,14 +28,14 @@
   **Cloud Run** (GCP `europe-*`), **AWS eu-central**.
 - **БД:** Neon / Supabase (EU-регион) / провайдерский managed PG. **Redis:** Upstash (EU). **Файлы:** Cloudflare R2 / Scaleway / S3 eu.
 - **Фронт:** Cloudflare Pages / Netlify / тот же GitHub Pages (глобальный CDN; фронт не содержит ПДн — только код).
-- **Auth:** Google OIDC (+ email magic-link). Managed-auth (Clerk/Auth0/Supabase) — ок.
+- **Auth:** свой OIDC (Google; при желании email-magic-link). Managed-auth не используем (см. `02`).
 
 ### RU-сегмент
 - **Облака РФ:** Yandex Cloud, VK Cloud, Selectel, Timeweb Cloud.
   Контейнеры: Yandex Serverless Containers / Managed Kubernetes / просто VM с Docker (для нашего масштаба — VM или serverless-контейнер).
 - **БД:** Managed PostgreSQL (Yandex/VK/Selectel). **Redis:** Managed Redis там же. **Файлы:** Object Storage (Yandex/VK, S3-совместимо).
 - **Домен:** `.ru` через RU-регистратора (reg.ru и т.п.).
-- **Auth (важно):** Google может быть недоступен/нестабилен в РФ → основной вход **Yandex ID / VK ID**, Google опционально.
+- **Auth (важно):** Google в РФ недоступен/нестабилен → вход **Yandex ID / VK ID** (свой OIDC, см. `02`).
 - **Нюанс CDN/DNS:** Cloudflare в РФ временами нестабилен; для RU лучше DNS/edge от РФ-провайдера или напрямую с инстанса.
 
 ## Домены
@@ -85,7 +85,7 @@ flowchart TB
 3. Клонировать конфигурацию во **второй регион** (RU) с РФ-провайдерами и Yandex/VK ID.
 4. Развести по доменам; проверить, что данные не покидают регион (бэкапы, хранилище, логи — в регионе).
 
-## Открытые вопросы
-- Managed-auth vs своё OIDC (и совместимость провайдера с обоими регионами).
-- Нужен ли вообще RU-сегмент на старте, или сначала EU, а RU — по мере необходимости.
-- Нативная обёртка (Capacitor) для нормальных push на iOS — влияет на выбор push-канала.
+## Решения по запуску
+- **Auth — свой OIDC**, провайдеры по региону (см. `02`); managed-auth не берём.
+- **Старт — EU** (проще и дешевле поднять). RU-сегмент поднимаем по мере спроса, клонируя конфигурацию (см. «Порядок внедрения»).
+- **Push на старте — Web Push**; нативная обёртка (Capacitor) для полноценного iOS-push — поздняя веха, заводим при необходимости (см. `01`, фаза 4).
