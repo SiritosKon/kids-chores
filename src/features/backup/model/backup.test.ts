@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/api/db';
-import { bootstrap } from '@/app/model/bootstrap';
 import { childrenCatalogue } from '@/entities/child';
 import { tasksCatalogue } from '@/entities/task';
 import { rewardsCatalogue } from '@/entities/reward';
 import { getSettings } from '@/entities/settings';
 import { saveDayMarks, getAllCompletions } from '@/entities/completion';
+import { seedFamily, FAMILY_REWARDS } from '../../../../tests/fixtures/family';
 import { exportAll, importAll } from './backup';
 
 beforeEach(async () => {
@@ -14,7 +14,7 @@ beforeEach(async () => {
   }
   await db.delete();
   await db.open();
-  await bootstrap();
+  await seedFamily();
 });
 
 describe('export and import', () => {
@@ -24,7 +24,7 @@ describe('export and import', () => {
     expect(backup.version).toBe(3);
     expect(backup.children).toHaveLength(2);
     expect(backup.tasks).toHaveLength(3);
-    expect(backup.rewards).toHaveLength(8);
+    expect(backup.rewards).toHaveLength(FAMILY_REWARDS.length);
     expect(backup.settings?.bonus).toEqual({ enabled: true, points: 1 });
   });
 
@@ -37,7 +37,6 @@ describe('export and import', () => {
 
     await db.delete();
     await db.open();
-    await bootstrap();
     await importAll(backup);
 
     const children = await childrenCatalogue.read();
@@ -64,7 +63,7 @@ describe('export and import', () => {
     expect(await getAllCompletions()).toHaveLength(1);
     expect(await childrenCatalogue.read()).toHaveLength(2);
     expect(await tasksCatalogue.read()).toHaveLength(3);
-    expect(await rewardsCatalogue.read()).toHaveLength(8);
+    expect(await rewardsCatalogue.read()).toHaveLength(FAMILY_REWARDS.length);
     expect(await getSettings()).toBeDefined();
   });
 });

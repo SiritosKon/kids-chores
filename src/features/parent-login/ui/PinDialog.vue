@@ -73,7 +73,7 @@ const submit = (): void => {
   if (!complete.value) {
     return;
   }
-  if (pin.value === settingsStore.settings.parentPin) {
+  if (pin.value === settingsStore.settings?.parentPin) {
     parentSession.unlock();
     $q.notify({ type: 'positive', message: 'Родительский режим включён' });
     emit('update:modelValue', false);

@@ -19,7 +19,7 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
 
   const children = computed(() => childrenStore.active);
   const tasks = computed(() => tasksStore.active);
-  const bonus = computed(() => settingsStore.settings.bonus);
+  const bonus = computed(() => settingsStore.bonus);
 
   const grantedAwards = ref<StreakAward[]>([]);
   const saved = ref<MarksByChild>({});

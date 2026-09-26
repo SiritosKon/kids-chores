@@ -92,7 +92,7 @@ const state = computed(() =>
 
 const current = computed(() => state.value?.current ?? 0);
 const best = computed(() => state.value?.best ?? 0);
-const milestones = computed(() => settingsStore.settings.streak.milestones);
+const milestones = computed(() => settingsStore.streak.milestones);
 const progress = computed(() => streakProgress(current.value, milestones.value));
 
 const daysLabel = computed(() => pluralize(current.value, DAYS));

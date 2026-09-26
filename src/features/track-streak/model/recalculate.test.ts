@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/api/db';
-import { bootstrap } from '@/app/model/bootstrap';
 import { tasksCatalogue, STREAK_TASK_ID } from '@/entities/task';
 import { saveDayMarks, getAllCompletions } from '@/entities/completion';
 import { getAllSpends } from '@/entities/spend';
 import { getStreaks } from '@/entities/streak';
 import { getSettings, saveSettings, type StreakMilestone } from '@/entities/settings';
+import { seedFamily } from '../../../../tests/fixtures/family';
 import { recalculateStreaks } from './recalculate';
 
 const closeDay = async (childId: string, day: string) => {
@@ -42,7 +42,7 @@ beforeEach(async () => {
   }
   await db.delete();
   await db.open();
-  await bootstrap();
+  await seedFamily();
 });
 
 describe('recalculateStreaks', () => {

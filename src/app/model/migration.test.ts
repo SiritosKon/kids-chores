@@ -2,7 +2,6 @@ import Dexie from 'dexie';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/api/db';
 import { getAllCompletions } from '@/entities/completion';
-import { childrenCatalogue } from '@/entities/child';
 import { tasksCatalogue, reservedTaskName } from '@/entities/task';
 import { getSettings } from '@/entities/settings';
 import { bootstrap } from './bootstrap';
@@ -51,28 +50,13 @@ beforeEach(async () => {
 });
 
 describe('schema upgrade from 3 to 4 on a device with history', () => {
-  it('keeps history readable once the catalogues are seeded', async () => {
+  it('keeps every history row', async () => {
     await openLegacyDatabase();
 
     await db.open();
     await bootstrap();
 
-    const completions = await getAllCompletions();
-    const children = await childrenCatalogue.read();
-    const tasks = await tasksCatalogue.read();
-
-    const nameOf = (taskId: string) =>
-      reservedTaskName(taskId) ?? tasks.find((task) => task.id === taskId)?.name ?? taskId;
-
-    expect(completions).toHaveLength(LEGACY_COMPLETIONS.length);
-    expect(
-      [...new Set(completions.map((row) => row.taskId))].filter((id) => nameOf(id) === id)
-    ).toEqual([]);
-    expect(
-      [...new Set(completions.map((row) => row.childId))].filter(
-        (id) => !children.some((child) => child.id === id)
-      )
-    ).toEqual([]);
+    expect(await getAllCompletions()).toHaveLength(LEGACY_COMPLETIONS.length);
   });
 
   it('keeps the reserved bonus readable although it is not in the catalogue', async () => {
@@ -100,14 +84,12 @@ describe('schema upgrade from 3 to 4 on a device with history', () => {
     );
   });
 
-  it('creates the settings the old device never had', async () => {
+  it('does not invent settings the old device never had', async () => {
     await openLegacyDatabase();
 
     await db.open();
     await bootstrap();
 
-    const settings = await getSettings();
-    expect(settings?.bonus).toEqual({ enabled: true, points: 1 });
-    expect(settings?.parentPin).toMatch(/^\d{6}$/);
+    expect(await getSettings()).toBeUndefined();
   });
 });
