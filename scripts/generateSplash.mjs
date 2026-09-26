@@ -1,29 +1,44 @@
 import { deflateSync, inflateSync, crc32 } from 'node:zlib';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const publicDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'public');
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..');
+const publicDir = join(rootDir, 'public');
+const INDEX_HTML = join(rootDir, 'index.html');
 const SOURCE_ICON = join(publicDir, 'pwa-512.png');
 const BACKDROP = [0, 0, 0];
 const ICON_SHARE = 0.28;
 const CORNER_SHARE = 0.23;
 
-const SPLASH_SIZES = [
-  [750, 1334],
-  [828, 1792],
-  [1125, 2436],
-  [1170, 2532],
-  [1179, 2556],
-  [1242, 2688],
-  [1284, 2778],
-  [1290, 2796],
-  [1536, 2048],
-  [1620, 2160],
-  [1668, 2224],
-  [1668, 2388],
-  [2048, 2732],
+const BASE_PATH = '/kids-chores/';
+
+const DEVICES = [
+  [375, 667, 2],
+  [414, 896, 2],
+  [375, 812, 3],
+  [390, 844, 3],
+  [393, 852, 3],
+  [402, 874, 3],
+  [414, 896, 3],
+  [428, 926, 3],
+  [430, 932, 3],
+  [440, 956, 3],
+  [744, 1133, 2],
+  [768, 1024, 2],
+  [810, 1080, 2],
+  [820, 1180, 2],
+  [834, 1112, 2],
+  [834, 1194, 2],
+  [834, 1210, 2],
+  [1024, 1366, 2],
+  [1032, 1376, 2],
 ];
+
+const SCREENS = DEVICES.flatMap(([width, height, ratio]) => [
+  { width, height, ratio, orientation: 'portrait', pixels: [width * ratio, height * ratio] },
+  { width, height, ratio, orientation: 'landscape', pixels: [height * ratio, width * ratio] },
+]);
 
 const chunk = (type, data) => {
   const length = Buffer.alloc(4);
@@ -190,11 +205,29 @@ const compose = (icon, width, height) => {
   return encodePng(width, height, canvas);
 };
 
-const icon = decodePng(readFileSync(SOURCE_ICON));
-mkdirSync(join(publicDir, 'splash'), { recursive: true });
+const fileName = ({ pixels: [width, height] }) => `${width}x${height}.png`;
 
-for (const [width, height] of SPLASH_SIZES) {
-  writeFileSync(join(publicDir, 'splash', `${width}x${height}.png`), compose(icon, width, height));
+const linkTag = (screen) =>
+  `    <link rel="apple-touch-startup-image" href="${BASE_PATH}splash/${fileName(screen)}" media="(device-width: ${screen.width}px) and (device-height: ${screen.height}px) and (-webkit-device-pixel-ratio: ${screen.ratio}) and (orientation: ${screen.orientation})" />`;
+
+const writeLinks = () => {
+  const lines = readFileSync(INDEX_HTML, 'utf8').split('\n');
+  const kept = lines.filter((line) => !line.includes('rel="apple-touch-startup-image"'));
+  const titleAt = kept.findIndex((line) => line.includes('<title>'));
+  kept.splice(titleAt, 0, ...SCREENS.map(linkTag));
+  writeFileSync(INDEX_HTML, kept.join('\n'));
+};
+
+const icon = decodePng(readFileSync(SOURCE_ICON));
+const splashDir = join(publicDir, 'splash');
+rmSync(splashDir, { recursive: true, force: true });
+mkdirSync(splashDir, { recursive: true });
+
+for (const screen of SCREENS) {
+  const [width, height] = screen.pixels;
+  writeFileSync(join(splashDir, fileName(screen)), compose(icon, width, height));
 }
 
-console.log(`${SPLASH_SIZES.length} splash screens drawn from ${SOURCE_ICON}`);
+writeLinks();
+
+console.log(`${SCREENS.length} splash screens drawn from ${SOURCE_ICON}`);
