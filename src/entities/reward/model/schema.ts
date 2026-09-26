@@ -16,5 +16,6 @@ export const rewardSchema = z.object({
   active: z.boolean(),
   createdAt: timestamp,
   updatedAt: timestamp,
+  archivedAt: timestamp.optional(),
 });
 

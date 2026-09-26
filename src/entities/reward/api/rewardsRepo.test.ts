@@ -1,0 +1,41 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+import { db } from '@/shared/api/db';
+import { rewardsCatalogue, createReward, updateReward, archiveReward } from './rewardsRepo';
+
+const DRAFT = {
+  name: 'Мультик',
+  icon: 'movie',
+  points: 6,
+  purchasable: true,
+  visibility: 'shop' as const,
+};
+
+beforeEach(async () => {
+  if (db.isOpen()) {
+    db.close();
+  }
+  await db.delete();
+  await db.open();
+});
+
+describe('rewards repository', () => {
+  it('keeps a custom colour when the reward is edited', async () => {
+    const reward = await createReward(DRAFT);
+    await rewardsCatalogue.update(reward.id, { color: '#FF9F0A' });
+
+    await updateReward(reward.id, { ...DRAFT, points: 8, visibility: 'streak' });
+
+    const stored = await rewardsCatalogue.get(reward.id);
+    expect(stored).toMatchObject({ points: 8, visibility: 'streak', color: '#FF9F0A' });
+  });
+
+  it('archives a reward instead of deleting the row', async () => {
+    const reward = await createReward(DRAFT);
+
+    await archiveReward(reward.id);
+
+    const stored = await rewardsCatalogue.get(reward.id);
+    expect(stored?.active).toBe(false);
+    expect(stored?.archivedAt).toBeTypeOf('number');
+  });
+});
