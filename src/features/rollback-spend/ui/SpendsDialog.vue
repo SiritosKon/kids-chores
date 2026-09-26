@@ -8,19 +8,22 @@
       </q-card-section>
       <q-separator />
       <q-card-section class="q-pa-none">
-        <q-list v-if="spends.length" separator>
-          <q-item v-for="spend in spends" :key="spend.id">
-            <q-item-section>
-              <q-item-label>{{ rewardName(spend.rewardId) }}</q-item-label>
-              <q-item-label caption>
-                {{ childName(spend.childId) }} · −{{ spend.cost }} б. · {{ formatTimestampShort(spend.createdAt) }}
-              </q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-btn flat dense no-caps color="primary" icon="undo" label="Вернуть" @click="rollback(spend)" />
-            </q-item-section>
-          </q-item>
-        </q-list>
+        <DayGroupedList v-if="groups.length" :groups="groups" :key-of="keyOf">
+          <template #summary="{ group }">
+            <span class="text-grey-5">−{{ dayTotal(group.items) }} б.</span>
+          </template>
+          <template #default="{ item: spend }">
+            <q-item>
+              <q-item-section>
+                <q-item-label>{{ rewardName(spend.rewardId) }}</q-item-label>
+                <q-item-label caption>{{ childName(spend.childId) }} · −{{ spend.cost }} б.</q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-btn flat dense no-caps color="primary" icon="undo" label="Вернуть" @click="rollback(spend)" />
+              </q-item-section>
+            </q-item>
+          </template>
+        </DayGroupedList>
         <div v-else class="q-pa-md text-grey-5">Списаний пока нет.</div>
       </q-card-section>
     </q-card>
@@ -28,10 +31,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { useQuasar } from 'quasar';
 import type { Subscription } from 'dexie';
-import { formatTimestampShort } from '@/shared/lib/date';
+import { dayKeyOf } from '@/shared/lib/date';
+import { groupByDay } from '@/shared/lib/groupByDay';
+import DayGroupedList from '@/shared/ui/DayGroupedList.vue';
 import { deleteSpend, watchSpends, type Spend } from '@/entities/spend';
 import { useRewardsStore } from '@/entities/reward';
 import { useChildrenStore } from '@/entities/child';
@@ -46,6 +51,12 @@ const rewardName = (rewardId: string): string => rewardsStore.nameOf(rewardId);
 const childName = (childId: string): string => childrenStore.nameOf(childId);
 const spends = ref<Spend[]>([]);
 let subscription: Subscription | null = null;
+
+const groups = computed(() => groupByDay(spends.value, (spend) => dayKeyOf(spend.createdAt)));
+
+const keyOf = (spend: Spend): string => spend.id;
+
+const dayTotal = (items: readonly Spend[]): number => items.reduce((sum, spend) => sum + spend.cost, 0);
 
 const start = (): void => {
   subscription ??= watchSpends((rows) => {

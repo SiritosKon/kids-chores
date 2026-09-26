@@ -8,20 +8,24 @@
       </q-card-section>
       <q-separator />
       <q-card-section class="q-pa-none">
-        <q-virtual-scroll v-if="ledger.length" :items="ledger" style="max-height: 55vh" v-slot="{ item }">
-          <q-item :key="item.id">
-            <q-item-section>
-              <q-item-label>{{ item.label }}</q-item-label>
-              <q-item-label caption>{{ item.dayLabel }}</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <span v-if="item.amount === 0" class="text-orange">приз</span>
-              <span v-else :class="item.amount > 0 ? 'text-positive' : 'text-negative'">
-                {{ item.amount > 0 ? '+' : '' }}{{ item.amount }} б.
-              </span>
-            </q-item-section>
-          </q-item>
-        </q-virtual-scroll>
+        <DayGroupedList v-if="groups.length" :groups="groups" :key-of="keyOf">
+          <template #summary="{ group }">
+            <span class="text-grey-5">{{ daySummary(group.items) }}</span>
+          </template>
+          <template #default="{ item }">
+            <q-item>
+              <q-item-section>
+                <q-item-label>{{ item.label }}</q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <span v-if="item.amount === 0" class="text-orange">приз</span>
+                <span v-else :class="item.amount > 0 ? 'text-positive' : 'text-negative'">
+                  {{ signed(item.amount) }} б.
+                </span>
+              </q-item-section>
+            </q-item>
+          </template>
+        </DayGroupedList>
         <div v-else class="q-pa-md text-grey-5">Пока пусто.</div>
       </q-card-section>
       <q-separator />
@@ -36,7 +40,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { formatDayKeyNumeric, formatTimestampNumeric } from '@/shared/lib/date';
+import { dayKeyOf } from '@/shared/lib/date';
+import { groupByDay } from '@/shared/lib/groupByDay';
+import DayGroupedList from '@/shared/ui/DayGroupedList.vue';
 import { getChildLedger } from '@/entities/wallet';
 import { useTasksStore } from '@/entities/task';
 import { useRewardsStore } from '@/entities/reward';
@@ -47,7 +53,7 @@ interface LedgerItem {
   label: string;
   amount: number;
   ts: number;
-  dayLabel: string;
+  day: string;
 }
 
 const props = withDefaults(
@@ -69,6 +75,18 @@ const childName = computed(() => (props.childId ? childrenStore.nameOf(props.chi
 
 const total = computed(() => ledger.value.reduce((sum, item) => sum + item.amount, 0));
 
+const groups = computed(() => groupByDay(ledger.value, (item) => item.day));
+
+const keyOf = (item: LedgerItem): string => item.id;
+
+const signed = (amount: number): string => (amount > 0 ? `+${amount}` : String(amount));
+
+const daySummary = (items: readonly LedgerItem[]): string => {
+  const earned = items.filter((item) => item.amount > 0).reduce((sum, item) => sum + item.amount, 0);
+  const spent = items.filter((item) => item.amount < 0).reduce((sum, item) => sum + item.amount, 0);
+  return [earned > 0 ? signed(earned) : '', spent < 0 ? signed(spent) : ''].filter(Boolean).join(' / ');
+};
+
 const load = async (): Promise<void> => {
   if (!props.childId) {
     ledger.value = [];
@@ -81,14 +99,14 @@ const load = async (): Promise<void> => {
       label: tasksStore.nameOf(row.taskId),
       amount: row.points,
       ts: row.createdAt,
-      dayLabel: formatDayKeyNumeric(row.date),
+      day: row.date,
     })),
     ...spends.map((spend) => ({
       id: spend.id,
       label: rewardsStore.nameOf(spend.rewardId),
       amount: -spend.cost,
       ts: spend.createdAt,
-      dayLabel: formatTimestampNumeric(spend.createdAt),
+      day: dayKeyOf(spend.createdAt),
     })),
   ];
   items.sort((first, second) => second.ts - first.ts);
