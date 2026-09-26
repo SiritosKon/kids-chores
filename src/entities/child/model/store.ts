@@ -13,7 +13,7 @@ export const useChildrenStore = defineStore('children', () => {
   });
   onScopeDispose(() => subscription.unsubscribe());
 
-  const active = computed(() => items.value.filter((child) => child.active));
+  const active = computed(() => items.value.filter((child) => child.active && child.archivedAt === undefined));
 
   const byId = (childId: string): Child | undefined =>
     items.value.find((child) => child.id === childId);

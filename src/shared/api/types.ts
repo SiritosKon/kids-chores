@@ -4,4 +4,5 @@ export interface CatalogueRow {
   active: boolean;
   createdAt: number;
   updatedAt: number;
+  archivedAt?: number;
 }
