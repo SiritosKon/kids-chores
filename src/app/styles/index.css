@@ -151,7 +151,36 @@ body.body--dark {
 .driver-active .q-dialog *,
 .driver-active .q-menu,
 .driver-active .q-menu *,
-.driver-active .q-notifications,
-.driver-active .q-notifications * {
+.driver-active .q-notification,
+.driver-active .q-notification * {
   pointer-events: auto;
+}
+
+.q-dialog .q-card > .q-card__actions {
+  padding: 12px 16px 20px;
+}
+
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.form-stack > .q-toggle,
+.form-stack .q-option-group .q-radio {
+  margin-left: -10px;
+}
+
+body.setup-tour--over-dialogs .driver-overlay {
+  z-index: 6500 !important;
+}
+
+body.setup-tour--over-dialogs .driver-popover.setup-tour {
+  z-index: 6501;
 }

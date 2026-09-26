@@ -278,4 +278,17 @@ describe('recalculateStreaks', () => {
 
     expect(await recalculateStreaks('2026-09-23')).toHaveLength(1);
   });
+
+  it('congratulates once per prize when past days are filled in backwards', async () => {
+    const days = september(14).reverse();
+    let congratulations = 0;
+
+    for (const day of days) {
+      await closeDay('timofey', day);
+      congratulations += (await recalculateStreaks('2026-09-23')).length;
+    }
+
+    expect(congratulations).toBe(2);
+    expect(await streakRewards()).toHaveLength(2);
+  });
 });

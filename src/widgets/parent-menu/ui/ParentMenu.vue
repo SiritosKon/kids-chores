@@ -11,7 +11,7 @@
           </template>
           <template v-else>
             <q-item-label header>Родительский режим</q-item-label>
-            <q-item clickable v-close-popup data-tour="settings" @click="showSettings = true">
+            <q-item clickable v-close-popup data-tour="settings" @click="settingsDialog.open()">
               <q-item-section avatar><q-icon name="settings" /></q-item-section>
               <q-item-section>Настройки</q-item-section>
             </q-item>
@@ -46,7 +46,18 @@
     <input ref="fileInput" type="file" accept="application/json" style="display: none" @change="onFile" />
     <PinDialog v-model="showLogin" />
     <SpendsDialog v-model="showSpends" />
-    <SettingsDialog v-model="showSettings" @changed="recalculateStreaks" />
+    <SettingsDialog
+      v-model="settingsOpen"
+      @changed="recalculateStreaks"
+      @create-reward="createStreakReward"
+    />
+    <RewardEditDialog
+      v-model="showRewardEditor"
+      visibility="streak"
+      returnable
+      @created="backToSettings"
+      @back="backToSettings()"
+    />
   </div>
 </template>
 
@@ -56,9 +67,11 @@ import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
+import type { Reward } from '@/entities/reward';
 import { PinDialog } from '@/features/parent-login';
 import { SpendsDialog } from '@/features/rollback-spend';
-import { SettingsDialog } from '@/features/edit-settings';
+import { SettingsDialog, useSettingsDialogStore } from '@/features/edit-settings';
+import { RewardEditDialog } from '@/features/edit-reward';
 import { useWhatsNewStore } from '@/features/whats-new';
 import { exportAll, importAll, downloadJson } from '@/features/backup';
 import { recalculateStreaks } from '@/features/track-streak';
@@ -73,7 +86,18 @@ const openWhatsNew = useWhatsNewStore().open;
 
 const showLogin = ref(false);
 const showSpends = ref(false);
-const showSettings = ref(false);
+const settingsDialog = useSettingsDialogStore();
+const { isOpen: settingsOpen } = storeToRefs(settingsDialog);
+const showRewardEditor = ref(false);
+
+const createStreakReward = (): void => {
+  settingsDialog.close();
+  showRewardEditor.value = true;
+};
+
+const backToSettings = (reward?: Reward): void => {
+  settingsDialog.reopen(reward?.id ?? null);
+};
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const exportData = async (): Promise<void> => {

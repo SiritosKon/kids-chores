@@ -74,10 +74,18 @@ export const recalculateStreaks = async (
       updatedAt: now,
     });
 
-    for (const hit of summary.hits) {
+    const uncelebrated: Record<string, number> = Object.fromEntries(
+      Object.entries(hitCounts).map(([milestoneId, count]) => [
+        milestoneId,
+        Math.max(0, count - (celebratedBefore[milestoneId] ?? 0)),
+      ])
+    );
+
+    for (const hit of [...summary.hits].reverse()) {
       const id = awardId(child.id, hit.milestoneId, hit.day);
-      const isNewHit = (hitCounts[hit.milestoneId] ?? 0) > (celebratedBefore[hit.milestoneId] ?? 0);
-      if (isNewHit && !alreadyGranted.has(id)) {
+      const left = uncelebrated[hit.milestoneId] ?? 0;
+      if (left > 0 && !alreadyGranted.has(id)) {
+        uncelebrated[hit.milestoneId] = left - 1;
         freshAwards.push({
           id,
           childId: child.id,

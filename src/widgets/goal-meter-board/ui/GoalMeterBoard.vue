@@ -1,5 +1,5 @@
 <template>
-  <div v-if="childrenStore.active.length > 0 || parentActive" class="goal-meter-board">
+  <div v-if="childrenStore.active.length > 0 || parentActive" class="goal-meter-board ios-card">
     <GoalMeter
       v-for="entry in meterEntries"
       :key="entry.childId"
@@ -9,10 +9,12 @@
       @open-streak="openStreak(entry.childId)"
       @edit="openEditor(entry.childId)"
     />
-    <button v-if="parentActive" type="button" class="add-tile" data-tour="add-child" @click="openEditor(null)">
-      <q-icon name="add" size="22px" />
-      Добавить ребёнка
-    </button>
+    <div v-if="parentActive" class="goal-meter-board__add">
+      <button type="button" class="add-tile" data-tour="add-child" @click="openEditor(null)">
+        <q-icon name="add" size="22px" />
+        Добавить ребёнка
+      </button>
+    </div>
     <WalletHistoryDialog v-model="historyOpen" :child-id="historyChildId" />
     <StreakDialog v-model="streakOpen" :child-id="streakChildId" />
     <ChildEditDialog v-model="editorOpen" :child="editedChild" />
@@ -82,6 +84,13 @@ const openEditor = (childId: string | null): void => {
 .goal-meter-board {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+}
+
+.goal-meter-board > :not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.goal-meter-board__add {
+  padding: 12px 16px;
 }
 </style>

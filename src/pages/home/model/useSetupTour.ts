@@ -3,19 +3,26 @@ import { useQuasar } from 'quasar';
 import { driver, type Driver } from 'driver.js';
 import { useChildrenStore } from '@/entities/child';
 import { useTasksStore } from '@/entities/task';
+import { useRewardsStore } from '@/entities/reward';
 import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { TOUR_STEPS } from './constants';
+import { useSettingsDialogStore } from '@/features/edit-settings';
+import { TOUR_DIALOG_DELAY_MS, TOUR_OVER_DIALOGS_CLASS, TOUR_STEPS } from './constants';
 import type { TourRequirement } from './types';
+
+const wait = (ms: number): Promise<void> => new Promise((resolve) => window.setTimeout(resolve, ms));
 
 export const useSetupTour = () => {
   const $q = useQuasar();
   const childrenStore = useChildrenStore();
   const tasksStore = useTasksStore();
+  const rewardsStore = useRewardsStore();
   const settingsStore = useSettingsStore();
   const parentSession = useParentSessionStore();
+  const settingsDialog = useSettingsDialogStore();
 
   let tour: Driver | null = null;
+  let moving = false;
 
   const isMet = (requirement: TourRequirement | undefined): boolean => {
     if (requirement === 'child') {
@@ -33,29 +40,65 @@ export const useSetupTour = () => {
 
   const stop = (): void => {
     document.removeEventListener('scroll', refresh, true);
+    document.body.classList.remove(TOUR_OVER_DIALOGS_CLASS);
     tour?.destroy();
     tour = null;
   };
 
   const finish = async (): Promise<void> => {
     stop();
+    settingsDialog.close();
     await settingsStore.update({ tourPending: false });
   };
 
-  const next = (): void => {
-    if (!tour) {
+  const isSkipped = (index: number): boolean =>
+    TOUR_STEPS[index]?.needsStreak === true && !settingsDialog.streakDraftEnabled;
+
+  const goTo = async (requested: number): Promise<void> => {
+    if (!tour || moving) {
       return;
     }
-    const step = TOUR_STEPS[tour.getActiveIndex() ?? 0];
+    const direction = requested >= activeIndex() ? 1 : -1;
+    let index = requested;
+    while (isSkipped(index)) {
+      index += direction;
+    }
+    const target = TOUR_STEPS[index];
+    if (!target) {
+      await finish();
+      return;
+    }
+    moving = true;
+    const wantsSettings = target.inSettings === true;
+    if (wantsSettings !== settingsDialog.isOpen) {
+      if (wantsSettings) {
+        settingsDialog.open();
+      } else if (direction > 0) {
+        settingsDialog.requestSave();
+        await wait(TOUR_DIALOG_DELAY_MS / 2);
+        settingsDialog.close();
+      } else {
+        settingsDialog.close();
+      }
+      await wait(TOUR_DIALOG_DELAY_MS);
+    }
+    tour?.moveTo(index);
+    moving = false;
+  };
+
+  const activeIndex = (): number => tour?.getActiveIndex() ?? 0;
+
+  const next = (): void => {
+    const step = TOUR_STEPS[activeIndex()];
     if (step && !isMet(step.requirement)) {
       $q.notify({ type: 'warning', message: step.requirementHint ?? '' });
       return;
     }
-    if (tour.isLastStep()) {
-      void finish();
-    } else {
-      tour.moveNext();
-    }
+    void goTo(activeIndex() + 1);
+  };
+
+  const previous = (): void => {
+    void goTo(activeIndex() - 1);
   };
 
   const askToSkip = (): void => {
@@ -72,6 +115,9 @@ export const useSetupTour = () => {
       steps: TOUR_STEPS.map((step) => ({
         element: step.element,
         popover: { title: step.title, description: step.description, side: step.side },
+        onHighlightStarted: () => {
+          document.body.classList.toggle(TOUR_OVER_DIALOGS_CLASS, step.inSettings === true);
+        },
       })),
       showProgress: true,
       progressText: '{{current}} из {{total}}',
@@ -83,6 +129,7 @@ export const useSetupTour = () => {
       allowKeyboardControl: false,
       overlayClickBehavior: () => undefined,
       onNextClick: next,
+      onPrevClick: previous,
       onDestroyStarted: askToSkip,
     });
     document.addEventListener('scroll', refresh, true);
@@ -107,10 +154,26 @@ export const useSetupTour = () => {
   );
 
   watch(
-    () => [childrenStore.active.length, tasksStore.active.length],
+    () => [childrenStore.active.length, tasksStore.active.length, rewardsStore.active.length],
     async () => {
       await nextTick();
       refresh();
+      const step = TOUR_STEPS[activeIndex()];
+      if (tour && step?.requirement && isMet(step.requirement)) {
+        await wait(TOUR_DIALOG_DELAY_MS);
+        await goTo(activeIndex() + 1);
+      }
+    }
+  );
+
+  watch(
+    () => settingsDialog.streakDraftEnabled,
+    async (enabled) => {
+      const step = TOUR_STEPS[activeIndex()];
+      if (tour && enabled && step?.unlocksStreak) {
+        await wait(TOUR_DIALOG_DELAY_MS);
+        await goTo(activeIndex() + 1);
+      }
     }
   );
 

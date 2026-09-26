@@ -8,8 +8,8 @@
       </q-card-section>
       <q-separator />
 
-      <q-card-section class="column q-gutter-md">
-        <div class="row items-center no-wrap q-gutter-md">
+      <q-card-section class="form-stack">
+        <div class="form-row">
           <div class="reward-preview" :style="{ background: previewColor }">
             <q-icon :name="icon" size="26px" color="white" />
           </div>
@@ -25,10 +25,8 @@
           :hint="reward ? 'Прошлые покупки не изменятся' : undefined"
         />
 
-        <q-toggle v-model="purchasable" label="Можно купить за баллы" color="primary" />
-
         <div>
-          <div class="text-caption text-grey-5">Где видна</div>
+          <div class="text-caption text-grey-5">Где награда</div>
           <q-option-group v-model="visibility" :options="visibilityOptions" color="primary" />
         </div>
 
@@ -42,7 +40,8 @@
       <q-card-actions>
         <q-btn v-if="reward" flat no-caps color="negative" icon="delete" label="Удалить" @click="remove" />
         <q-space />
-        <q-btn flat no-caps label="Отмена" v-close-popup />
+        <q-btn v-if="returnable" flat no-caps icon="arrow_back" label="Назад" @click="goBack" />
+        <q-btn v-else flat no-caps label="Отмена" v-close-popup />
         <q-btn unelevated no-caps color="primary" label="Сохранить" :disable="!canSave" @click="save" />
       </q-card-actions>
     </q-card>
@@ -65,18 +64,26 @@ import {
   type RewardVisibility,
 } from '@/entities/reward';
 
-const props = withDefaults(defineProps<{ modelValue?: boolean; reward?: Reward | null }>(), {
-  modelValue: false,
-  reward: null,
-});
-const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
+const props = withDefaults(
+  defineProps<{
+    modelValue?: boolean;
+    reward?: Reward | null;
+    visibility?: RewardVisibility;
+    returnable?: boolean;
+  }>(),
+  { modelValue: false, reward: null, visibility: 'shop', returnable: false }
+);
+const emit = defineEmits<{
+  'update:modelValue': [open: boolean];
+  created: [reward: Reward];
+  back: [];
+}>();
 
 const $q = useQuasar();
 
 const name = ref('');
 const points = ref(5);
 const icon = ref<string>(ICON_CHOICES[0]);
-const purchasable = ref(true);
 const visibility = ref<RewardVisibility>('shop');
 
 const visibilityOptions = rewardVisibilitySchema.options.map((value) => ({
@@ -96,12 +103,16 @@ const reset = (): void => {
   name.value = props.reward?.name ?? '';
   points.value = props.reward?.points ?? 5;
   icon.value = props.reward?.icon ?? 'card_giftcard';
-  purchasable.value = props.reward?.purchasable ?? true;
-  visibility.value = props.reward?.visibility ?? 'shop';
+  visibility.value = props.reward?.visibility ?? props.visibility;
 };
 
 const close = (): void => {
   emit('update:modelValue', false);
+};
+
+const goBack = (): void => {
+  close();
+  emit('back');
 };
 
 const save = async (): Promise<void> => {
@@ -109,13 +120,12 @@ const save = async (): Promise<void> => {
     name: name.value.trim(),
     points: points.value,
     icon: icon.value,
-    purchasable: purchasable.value,
     visibility: visibility.value,
   };
   if (props.reward) {
     await updateReward(props.reward.id, draft);
   } else {
-    await createReward(draft);
+    emit('created', await createReward(draft));
   }
   close();
 };

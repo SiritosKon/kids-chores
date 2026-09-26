@@ -9,8 +9,10 @@
       </p>
     </div>
 
-    <div class="text-center text-subtitle1 q-mb-lg">{{ PIN_SETUP_TITLES[step] }}</div>
-    <PinInput :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="error" @complete="onPin" />
+    <div class="onboarding__pin">
+      <div class="text-center text-subtitle1 q-mb-lg">{{ PIN_SETUP_TITLES[step] }}</div>
+      <PinInput :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="error" @complete="onPin" />
+    </div>
   </q-page>
 </template>
 
@@ -64,6 +66,11 @@ const onPin = async (value: string): Promise<void> => {
   max-width: 440px;
   text-align: center;
   margin: 24px 0 32px;
+}
+
+.onboarding__pin {
+  width: 100%;
+  max-width: 440px;
 }
 
 .onboarding__emoji {

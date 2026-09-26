@@ -8,8 +8,8 @@
       </q-card-section>
       <q-separator />
 
-      <q-card-section class="column q-gutter-md">
-        <div class="row items-center no-wrap q-gutter-md">
+      <q-card-section class="form-stack">
+        <div class="form-row">
           <div class="task-preview" :style="{ background: color }">
             <q-icon :name="icon" size="26px" color="white" />
           </div>

@@ -9,6 +9,10 @@ export const createCatalogue = <Row extends CatalogueRow>(
   const rows = table<Row>(name);
   const read = async (): Promise<Row[]> => parse(await rows.orderBy('order').toArray());
 
+  const write = async (items: readonly Row[]): Promise<void> => {
+    await rows.bulkPut(parse(items));
+  };
+
   const get = async (id: string): Promise<Row | undefined> => {
     const row = await rows.get(id);
     return row ? parse([row])[0] : undefined;
@@ -17,7 +21,7 @@ export const createCatalogue = <Row extends CatalogueRow>(
   const update = async (id: string, patch: Partial<Omit<Row, 'id'>>): Promise<void> => {
     const row = await get(id);
     if (row) {
-      await rows.put({ ...row, ...patch, updatedAt: Date.now() });
+      await write([{ ...row, ...patch, updatedAt: Date.now() }]);
     }
   };
 
@@ -25,7 +29,7 @@ export const createCatalogue = <Row extends CatalogueRow>(
     const row = await get(id);
     if (row) {
       const now = Date.now();
-      await rows.put({ ...row, ...patch, active: false, archivedAt: now, updatedAt: now });
+      await write([{ ...row, ...patch, active: false, archivedAt: now, updatedAt: now }]);
     }
   };
 
@@ -40,12 +44,8 @@ export const createCatalogue = <Row extends CatalogueRow>(
       liveQuery(read).subscribe({ next: onNext }),
     count: (): Promise<number> => rows.count(),
     existingIds: async (): Promise<Set<string>> => new Set(await rows.toCollection().primaryKeys()),
-    put: async (row: Row): Promise<void> => {
-      await rows.put(row);
-    },
-    putMany: async (items: Row[]): Promise<void> => {
-      await rows.bulkPut(items);
-    },
+    put: (row: Row): Promise<void> => write([row]),
+    putMany: (items: Row[]): Promise<void> => write(items),
   };
 };
 

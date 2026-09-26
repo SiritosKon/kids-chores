@@ -9,4 +9,7 @@ export interface TourStep {
   side: Side;
   requirement?: TourRequirement;
   requirementHint?: string;
+  inSettings?: boolean;
+  unlocksStreak?: boolean;
+  needsStreak?: boolean;
 }

@@ -10,7 +10,7 @@
 
     <TasksBoard :selected-date="selectedDate" />
 
-    <div class="ios-card q-mt-lg q-mb-lg" data-tour="rewards">
+    <div class="ios-card q-mt-lg q-mb-lg">
       <RewardsPanel />
     </div>
   </q-page>

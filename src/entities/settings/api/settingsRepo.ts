@@ -1,6 +1,6 @@
 import { liveQuery, type Subscription } from 'dexie';
 import { table } from '@/shared/api/db';
-import { storedSettingsSchema } from '../model/schema';
+import { settingsSchema, storedSettingsSchema } from '../model/schema';
 import { SETTINGS_ID, INITIAL_BONUS, NO_STREAK } from '../model/constants';
 import type { Settings } from '../model/types';
 
@@ -12,7 +12,7 @@ export const getSettings = async (): Promise<Settings | undefined> => {
 };
 
 export const saveSettings = async (settings: Settings): Promise<void> => {
-  await settingsTable.put(settings);
+  await settingsTable.put(settingsSchema.parse(settings));
 };
 
 export const watchSettings = (onNext: (settings: Settings | undefined) => void): Subscription =>

@@ -10,24 +10,30 @@
       <q-separator />
 
       <template v-if="view === 'main'">
-        <q-card-section class="column q-gutter-sm" data-tour="settings-streak">
+        <q-card-section class="form-stack">
           <div class="text-subtitle1 text-weight-bold">🔥 Серия</div>
-          <q-toggle v-model="streakEnabled" label="Награждать за дни подряд" color="primary" />
-          <template v-if="streakEnabled">
+          <q-toggle
+            v-model="streakEnabled"
+            label="Награждать за дни подряд"
+            color="primary"
+            data-tour="settings-streak-toggle"
+          />
+          <div v-if="streakEnabled" class="form-stack" data-tour="settings-streak">
             <q-input
               v-model.number="streakDays"
               type="number"
               inputmode="numeric"
               label="Сколько дней подряд"
-              :min="1"
+              :min="STREAK_MIN_DAYS"
             />
             <q-select
-              v-model="streakRewardId"
+              :model-value="streakRewardId"
               :options="rewardOptions"
               label="Награда за серию"
               emit-value
               map-options
               clearable
+              @update:model-value="pickReward"
             />
             <q-input
               v-model.number="streakPoints"
@@ -40,13 +46,13 @@
             <div v-if="!streakHasPrize" class="text-negative text-caption">
               Укажите награду или баллы за серию
             </div>
-          </template>
+          </div>
         </q-card-section>
         <q-separator />
 
-        <q-card-section class="column q-gutter-sm">
+        <q-card-section class="form-stack" data-tour="settings-bonus">
           <div class="text-subtitle1 text-weight-bold">⭐ Бонус за все задачи дня</div>
-          <q-toggle v-model="bonusEnabled" label="Начислять бонус" color="primary" />
+          <q-toggle v-model="bonusEnabled" label="Начислять бонус, когда отмечены все задачи дня" color="primary" />
           <q-input
             v-if="bonusEnabled"
             v-model.number="bonusPoints"
@@ -80,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { todayKey } from '@/shared/lib/date';
 import PinInput from '@/shared/ui/PinInput.vue';
@@ -91,15 +97,17 @@ import {
   replaceMilestone,
   PARENT_PIN_LENGTH,
 } from '@/entities/settings';
-import { PIN_STEP_TITLES } from '../model/constants';
+import { NEW_REWARD_OPTION, PIN_STEP_TITLES, STREAK_MIN_DAYS } from '../model/constants';
+import { useSettingsDialogStore } from '../model/store';
 import type { PinStep, SettingsView } from '../model/types';
 
 withDefaults(defineProps<{ modelValue?: boolean }>(), { modelValue: false });
-const emit = defineEmits<{ 'update:modelValue': [open: boolean]; changed: [] }>();
+const emit = defineEmits<{ 'update:modelValue': [open: boolean]; changed: []; 'create-reward': [] }>();
 
 const $q = useQuasar();
 const settingsStore = useSettingsStore();
 const rewardsStore = useRewardsStore();
+const dialogStore = useSettingsDialogStore();
 
 const view = ref<SettingsView>('main');
 const streakEnabled = ref(false);
@@ -114,9 +122,21 @@ const pin = ref('');
 const nextPin = ref('');
 const pinError = ref(false);
 
-const rewardOptions = computed(() =>
-  rewardsStore.active.map((reward) => ({ value: reward.id, label: `${reward.name} · ${reward.points} б.` }))
-);
+const rewardOptions = computed(() => [
+  ...rewardsStore.active.map((reward) => ({
+    value: reward.id,
+    label: `${reward.name} · ${reward.points} б.`,
+  })),
+  { value: NEW_REWARD_OPTION, label: '＋ Новая награда' },
+]);
+
+const pickReward = (value: string | null): void => {
+  if (value === NEW_REWARD_OPTION) {
+    emit('create-reward');
+    return;
+  }
+  streakRewardId.value = value;
+};
 
 const isCount = (value: number, min: number): boolean => Number.isInteger(value) && value >= min;
 
@@ -125,21 +145,41 @@ const streakHasPrize = computed(() => streakRewardId.value !== null || streakPoi
 const canSave = computed(
   () =>
     (!streakEnabled.value ||
-      (isCount(streakDays.value, 1) && isCount(streakPoints.value, 0) && streakHasPrize.value)) &&
+      (isCount(streakDays.value, STREAK_MIN_DAYS) && isCount(streakPoints.value, 0) && streakHasPrize.value)) &&
     (!bonusEnabled.value || isCount(bonusPoints.value, 1))
 );
 
 const reset = (): void => {
-  const settings = settingsStore.settings;
-  const milestone = currentMilestone(settingsStore.streak.milestones);
   view.value = 'main';
-  streakEnabled.value = settingsStore.streak.enabled;
-  streakDays.value = milestone?.days ?? 7;
-  streakPoints.value = milestone?.points ?? 0;
-  streakRewardId.value = milestone?.rewardId ?? null;
-  bonusEnabled.value = settingsStore.bonus.enabled;
-  bonusPoints.value = settings?.bonus.points || 1;
+  if (!dialogStore.resume) {
+    const milestone = currentMilestone(settingsStore.streak.milestones);
+    streakEnabled.value = settingsStore.streak.enabled;
+    streakDays.value = milestone?.days ?? 7;
+    streakPoints.value = milestone?.points ?? 0;
+    streakRewardId.value = milestone?.rewardId ?? null;
+    bonusEnabled.value = settingsStore.bonus.enabled;
+    bonusPoints.value = settingsStore.settings?.bonus.points || 1;
+  }
+  if (dialogStore.pickedRewardId) {
+    streakEnabled.value = true;
+    streakRewardId.value = dialogStore.pickedRewardId;
+  }
 };
+
+watch(streakEnabled, (enabled) => {
+  dialogStore.streakDraftEnabled = enabled;
+});
+
+watch(
+  () => dialogStore.saveRequests,
+  async () => {
+    if (canSave.value) {
+      await save();
+    } else {
+      $q.notify({ type: 'warning', message: 'Серия не сохранена: укажите награду или баллы' });
+    }
+  }
+);
 
 const save = async (): Promise<void> => {
   const milestones = streakEnabled.value

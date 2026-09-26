@@ -14,6 +14,7 @@ export const COLOR_PALETTE = [
 ] as const;
 
 export const ICON_CHOICES = [
+  'task_alt',
   'school',
   'menu_book',
   'edit',
@@ -74,5 +75,3 @@ export const ICON_CHOICES = [
   'redeem',
   'rocket_launch',
 ] as const;
-
-export const PIN_KEYPAD_DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'] as const;

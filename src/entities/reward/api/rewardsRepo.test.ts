@@ -6,7 +6,6 @@ const DRAFT = {
   name: 'Мультик',
   icon: 'movie',
   points: 6,
-  purchasable: true,
   visibility: 'shop' as const,
 };
 
@@ -26,7 +25,13 @@ describe('rewards repository', () => {
     await updateReward(reward.id, { ...DRAFT, points: 8, visibility: 'streak' });
 
     const stored = await rewardsCatalogue.get(reward.id);
-    expect(stored).toMatchObject({ points: 8, visibility: 'streak', color: '#FF9F0A' });
+    expect(stored).toMatchObject({ points: 8, visibility: 'streak', color: '#FF9F0A', purchasable: false });
+  });
+
+  it('sells a reward only when it sits in the shop', async () => {
+    const reward = await createReward(DRAFT);
+
+    expect(reward.purchasable).toBe(true);
   });
 
   it('archives a reward instead of deleting the row', async () => {

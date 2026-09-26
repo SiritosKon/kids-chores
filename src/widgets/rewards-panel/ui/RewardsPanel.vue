@@ -1,5 +1,5 @@
 <template>
-  <q-expansion-item icon="emoji_events" label="Награды" header-class="text-weight-medium">
+  <q-expansion-item v-model="expanded" icon="emoji_events" label="Награды" header-class="text-weight-medium">
     <div v-if="!ready" class="q-pa-md">
       <q-skeleton type="text" width="60%" />
     </div>
@@ -23,7 +23,6 @@
             <template v-if="parentActive && reward.visibility !== 'shop'">
               · {{ REWARD_VISIBILITY_LABELS[reward.visibility] }}
             </template>
-            <template v-if="parentActive && !reward.purchasable"> · не продаётся</template>
           </q-item-label>
         </q-item-section>
         <q-item-section v-if="reward.purchasable" side @click.stop>
@@ -75,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useChildrenStore, childPhotoUrl, type Child } from '@/entities/child';
 import {
@@ -106,6 +105,18 @@ const canAfford = (child: Child, reward: Reward): boolean =>
 
 const anyCanAfford = (reward: Reward): boolean =>
   children.value.some((child) => canAfford(child, reward));
+
+const expanded = ref(false);
+
+watch(
+  () => ready.value && rewardsStore.active.length === 0,
+  (empty) => {
+    if (empty) {
+      expanded.value = true;
+    }
+  },
+  { immediate: true }
+);
 
 const editorOpen = ref(false);
 const editedReward = ref<Reward | null>(null);

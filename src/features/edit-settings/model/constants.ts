@@ -5,3 +5,7 @@ export const PIN_STEP_TITLES: Readonly<Record<PinStep, string>> = {
   next: 'Придумайте новый PIN',
   repeat: 'Повторите новый PIN',
 };
+
+export const STREAK_MIN_DAYS = 2;
+
+export const NEW_REWARD_OPTION = '__new-reward__';

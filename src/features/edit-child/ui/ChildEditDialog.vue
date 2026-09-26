@@ -8,24 +8,19 @@
       </q-card-section>
       <q-separator />
 
-      <q-card-section class="column q-gutter-md">
-        <div class="row items-center q-gutter-md">
+      <q-card-section class="form-stack">
+        <div class="form-row">
           <q-avatar size="72px" color="grey-9">
             <img v-if="photoUrl" :src="photoUrl" :alt="name" />
             <MonsterTruck v-else :color="carColor" :size="52" />
           </q-avatar>
-          <div class="column q-gutter-xs">
+          <div class="column items-start">
             <q-btn flat dense no-caps color="primary" icon="photo_camera" label="Загрузить фото" @click="pickPhoto" />
             <q-btn v-if="photo" flat dense no-caps color="grey-5" icon="hide_image" label="Убрать фото" @click="photo = ''" />
           </div>
         </div>
 
         <q-input v-model="name" label="Имя" autofocus maxlength="30" />
-
-        <div>
-          <div class="text-caption text-grey-5 q-mb-sm">Цвет машинки</div>
-          <ColorPicker v-model="carColor" />
-        </div>
       </q-card-section>
 
       <q-separator />
@@ -43,7 +38,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
-import ColorPicker from '@/shared/ui/ColorPicker.vue';
 import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
 import { COLOR_PALETTE } from '@/shared/ui/constants';
 import {
@@ -73,9 +67,13 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const photoUrl = computed(() => childPhotoUrl(photo.value));
 const canSave = computed(() => name.value.trim().length > 0);
 
+const randomOf = (colors: readonly string[]): string =>
+  colors[Math.floor(Math.random() * colors.length)] ?? COLOR_PALETTE[0];
+
 const freeColor = (): string => {
   const taken = new Set(childrenStore.active.map((row) => row.carColor));
-  return COLOR_PALETTE.find((color) => !taken.has(color)) ?? COLOR_PALETTE[0];
+  const free = COLOR_PALETTE.filter((color) => !taken.has(color));
+  return randomOf(free.length > 0 ? free : COLOR_PALETTE);
 };
 
 const reset = (): void => {

@@ -7,7 +7,6 @@
         <q-btn flat round dense icon="close" v-close-popup aria-label="Закрыть" />
       </q-card-section>
       <q-card-section class="q-pt-sm q-pb-lg">
-        <div class="text-center text-grey-5 q-mb-lg">Введите PIN-код</div>
         <PinInput v-if="modelValue" v-model="pin" :length="PARENT_PIN_LENGTH" :error="error" @complete="submit" />
       </q-card-section>
     </q-card>
