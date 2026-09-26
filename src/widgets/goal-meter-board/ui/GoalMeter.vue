@@ -9,7 +9,7 @@
       <div class="goal-meter__head">
         <span class="goal-meter__name">{{ entry.name }}</span>
         <span
-          v-if="entry.streak > 0"
+          v-if="isStreakShown(entry.streak)"
           v-ripple
           class="goal-meter__streak"
           role="button"
@@ -41,6 +41,7 @@
 import { computed } from 'vue';
 import { pluralize } from '@/shared/lib/plural';
 import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
+import { isStreakShown } from '@/entities/streak';
 import type { MeterEntry } from '../model/meterEntry';
 
 const props = defineProps<{ entry: MeterEntry }>();
