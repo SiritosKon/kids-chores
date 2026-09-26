@@ -1,7 +1,7 @@
 import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { childrenCatalogue } from '../api/childrenRepo';
-import type { Child } from './schema';
+import type { Child } from './types';
 
 export const useChildrenStore = defineStore('children', () => {
   const items = ref<Child[]>([]);

@@ -1,5 +1,5 @@
 import { withCatalogueDefaults } from '@/shared/api/catalogue';
-import { EARLIEST_DAY_KEY } from '@/shared/lib/date';
+import { EARLIEST_DAY_KEY } from '@/shared/lib/constants';
 import { childrenCatalogue, type Child } from '@/entities/child';
 import { tasksCatalogue, type Task } from '@/entities/task';
 import { rewardsCatalogue, type Reward } from '@/entities/reward';

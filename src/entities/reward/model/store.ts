@@ -1,7 +1,7 @@
 import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { rewardsCatalogue } from '../api/rewardsRepo';
-import type { Reward } from './schema';
+import type { Reward } from './types';
 
 export const useRewardsStore = defineStore('rewards', () => {
   const items = ref<Reward[]>([]);

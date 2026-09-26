@@ -1,9 +1,6 @@
 import { date } from 'quasar';
 import { z } from 'zod';
-
-export const DAY_KEY_FORMAT = 'YYYY-MM-DD';
-
-export const EARLIEST_DAY_KEY = '0000-01-01';
+import { DAY_KEY_FORMAT } from './constants';
 
 export const dayKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 

@@ -1,3 +1,5 @@
 export { exportAll, importAll } from './model/backup';
-export { backupSchema, BACKUP_VERSION, type Backup } from './model/schema';
+export { backupSchema } from './model/schema';
+export { BACKUP_VERSION } from './model/constants';
+export type { Backup } from './model/types';
 export { downloadJson } from './lib/download';

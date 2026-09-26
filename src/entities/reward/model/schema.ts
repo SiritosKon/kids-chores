@@ -18,5 +18,3 @@ export const rewardSchema = z.object({
   updatedAt: timestamp,
 });
 
-export type RewardVisibility = z.infer<typeof rewardVisibilitySchema>;
-export type Reward = z.infer<typeof rewardSchema>;

@@ -1,5 +1,7 @@
 import { z } from 'zod';
-import { dayKeySchema, EARLIEST_DAY_KEY } from '@/shared/lib/date';
+import { dayKeySchema } from '@/shared/lib/date';
+import { EARLIEST_DAY_KEY } from '@/shared/lib/constants';
+import type { Task } from './types';
 
 const timestamp = z.number().int().nonnegative();
 
@@ -20,9 +22,6 @@ export const taskSchema = z.object({
   createdAt: timestamp,
   updatedAt: timestamp,
 });
-
-export type TaskPeriod = z.infer<typeof taskPeriodSchema>;
-export type Task = z.infer<typeof taskSchema>;
 
 export const storedTaskSchema = taskSchema
   .extend({ activePeriods: z.array(taskPeriodSchema).optional() })

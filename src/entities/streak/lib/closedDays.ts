@@ -1,7 +1,4 @@
-export interface DayMark {
-  date: string;
-  taskId: string;
-}
+import type { DayMark } from './types';
 
 export const closedDaysFrom = (
   marks: readonly DayMark[],

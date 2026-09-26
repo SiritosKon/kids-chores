@@ -1,3 +1,5 @@
-export { useWalletStore, type Balances } from './model/store';
-export { getChildLedger, type ChildLedger } from './api/walletRepo';
+export { useWalletStore } from './model/store';
+export type { Balances } from './model/types';
+export { getChildLedger } from './api/walletRepo';
+export type { ChildLedger } from './api/types';
 export { piggyMax } from './lib/piggy';

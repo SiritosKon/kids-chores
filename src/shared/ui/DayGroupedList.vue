@@ -16,7 +16,7 @@
 
 <script setup lang="ts" generic="Item">
 import { formatDayHeader, todayKey } from '@/shared/lib/date';
-import type { DayGroup } from '@/shared/lib/groupByDay';
+import type { DayGroup } from '@/shared/lib/types';
 
 withDefaults(
   defineProps<{

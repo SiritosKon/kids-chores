@@ -1,12 +1,9 @@
 import { table } from '@/shared/api/db';
-import { versionLogEntrySchema, type VersionLogEntry } from '../model/schema';
+import { versionLogEntrySchema } from '../model/schema';
+import type { VersionLogEntry } from '../model/types';
+import type { VersionVisit } from './types';
 
 export const versionLogTable = table<VersionLogEntry>('versionLog');
-
-export interface VersionVisit {
-  isNew: boolean;
-  hadHistory: boolean;
-}
 
 export const getVersionLog = async (): Promise<VersionLogEntry[]> => {
   return versionLogEntrySchema.array().parse(await versionLogTable.orderBy('firstSeenAt').toArray());

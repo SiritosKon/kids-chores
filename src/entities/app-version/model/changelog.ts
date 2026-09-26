@@ -1,8 +1,4 @@
-export interface ChangelogEntry {
-  version: string;
-  date: string;
-  notes: string[];
-}
+import type { ChangelogEntry } from './types';
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {

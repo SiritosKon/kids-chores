@@ -9,4 +9,3 @@ export const streakStateSchema = z.object({
   updatedAt: z.number().int().nonnegative(),
 });
 
-export type StreakState = z.infer<typeof streakStateSchema>;

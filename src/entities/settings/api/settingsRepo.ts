@@ -1,6 +1,8 @@
 import { liveQuery, type Subscription } from 'dexie';
 import { table } from '@/shared/api/db';
-import { storedSettingsSchema, SETTINGS_ID, type Settings } from '../model/schema';
+import { storedSettingsSchema } from '../model/schema';
+import { SETTINGS_ID } from '../model/constants';
+import type { Settings } from '../model/types';
 
 export const settingsTable = table<Settings>('settings');
 

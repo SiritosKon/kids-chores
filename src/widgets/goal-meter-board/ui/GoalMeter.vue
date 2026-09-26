@@ -42,7 +42,7 @@ import { computed } from 'vue';
 import { pluralize } from '@/shared/lib/plural';
 import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
 import { isStreakShown } from '@/entities/streak';
-import type { MeterEntry } from '../model/meterEntry';
+import type { MeterEntry } from '../model/types';
 
 const props = defineProps<{ entry: MeterEntry }>();
 const emit = defineEmits<{ 'open-history': []; 'open-streak': [] }>();

@@ -2,7 +2,7 @@ import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { tasksCatalogue } from '../api/tasksRepo';
 import { reservedTaskName } from '../lib/reserved';
-import type { Task } from './schema';
+import type { Task } from './types';
 
 export const useTasksStore = defineStore('tasks', () => {
   const items = ref<Task[]>([]);

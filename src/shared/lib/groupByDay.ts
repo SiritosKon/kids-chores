@@ -1,7 +1,4 @@
-export interface DayGroup<Item> {
-  day: string;
-  items: Item[];
-}
+import type { DayGroup } from './types';
 
 export const groupByDay = <Item>(
   items: readonly Item[],

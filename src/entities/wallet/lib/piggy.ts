@@ -1,4 +1,4 @@
-const PIGGY_STEP = 50;
+import { PIGGY_STEP } from './constants';
 
 export const piggyMax = (balance: number): number => {
   if (balance <= PIGGY_STEP) {

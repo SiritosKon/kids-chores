@@ -83,9 +83,10 @@
 <script setup lang="ts">
 import { computed, toRef } from 'vue';
 import { useChildrenStore } from '@/entities/child';
-import { useTasksStore, reservedTaskName, BONUS_TASK_ID } from '@/entities/task';
+import { useTasksStore } from '@/entities/task';
 import { useSettingsStore } from '@/entities/settings';
 import { StreakAwardDialog } from '@/features/celebrate-streak';
+import { BONUS_ROW, CHECK_COLORS } from './constants';
 import { useDayMarks } from '../model/useDayMarks';
 
 const props = defineProps<{ selectedDate: string }>();
@@ -95,14 +96,6 @@ const tasksStore = useTasksStore();
 const settingsStore = useSettingsStore();
 
 const ready = computed(() => childrenStore.loaded && tasksStore.loaded && settingsStore.loaded);
-
-const BONUS_ROW = {
-  name: reservedTaskName(BONUS_TASK_ID) ?? 'Бонус',
-  icon: 'star',
-  color: '#FF9F0A',
-};
-
-const CHECK_COLORS = ['blue', 'red'];
 
 const {
   children,

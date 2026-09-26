@@ -1,7 +1,7 @@
 import { ref, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { watchStreaks } from '../api/streaksRepo';
-import type { StreakState } from './schema';
+import type { StreakState } from './types';
 
 export const useStreakStore = defineStore('streak', () => {
   const items = ref<StreakState[]>([]);

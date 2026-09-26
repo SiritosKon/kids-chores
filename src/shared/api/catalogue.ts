@@ -1,13 +1,6 @@
 import { liveQuery, type Subscription } from 'dexie';
 import { table } from './db';
-
-export interface CatalogueRow {
-  id: string;
-  order: number;
-  active: boolean;
-  createdAt: number;
-  updatedAt: number;
-}
+import type { CatalogueRow } from './types';
 
 export const createCatalogue = <Row extends CatalogueRow>(
   name: string,

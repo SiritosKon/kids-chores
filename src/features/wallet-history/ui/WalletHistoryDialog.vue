@@ -47,14 +47,7 @@ import { getChildLedger } from '@/entities/wallet';
 import { useTasksStore } from '@/entities/task';
 import { useRewardsStore } from '@/entities/reward';
 import { useChildrenStore } from '@/entities/child';
-
-interface LedgerItem {
-  id: string;
-  label: string;
-  amount: number;
-  ts: number;
-  day: string;
-}
+import type { LedgerItem } from './types';
 
 const props = withDefaults(
   defineProps<{

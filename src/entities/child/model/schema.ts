@@ -14,4 +14,3 @@ export const childSchema = z.object({
   updatedAt: timestamp,
 });
 
-export type Child = z.infer<typeof childSchema>;

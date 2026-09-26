@@ -1,4 +1,6 @@
-export { childSchema, type Child } from './model/schema';
+export { childSchema } from './model/schema';
+export type { Child } from './model/types';
 export { useChildrenStore } from './model/store';
 export { childrenCatalogue } from './api/childrenRepo';
-export { childPhotoUrl, CHILD_PHOTO_PRESET_IDS } from './config/photoPresets';
+export { childPhotoUrl } from './lib/photo';
+export { CHILD_PHOTO_PRESET_IDS } from './config/constants';

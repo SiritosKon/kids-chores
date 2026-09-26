@@ -1,13 +1,10 @@
 import { table, transaction } from '@/shared/api/db';
 import { weekDayKeys } from '@/shared/lib/week';
-import { storedCompletionSchema, type Completion } from '../model/schema';
+import { storedCompletionSchema } from '../model/schema';
+import type { Completion } from '../model/types';
+import type { TaskMark } from './types';
 
 export const completionsTable = table<Completion>('completions');
-
-export interface TaskMark {
-  taskId: string;
-  points: number;
-}
 
 export const getDayCompletions = async (childId: string, dateKey: string): Promise<Completion[]> => {
   const rows = await completionsTable.where('[childId+date]').equals([childId, dateKey]).toArray();

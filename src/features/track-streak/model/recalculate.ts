@@ -12,21 +12,12 @@ import {
   closedDaysFrom,
   type StreakState,
 } from '@/entities/streak';
+import type { StreakAward } from './types';
 
 const awardId = (childId: string, milestoneId: string, day: string): string =>
   `streak:${childId}:${milestoneId}:${day}`;
 
 const dayTimestamp = (day: string): number => new Date(`${day}T12:00:00`).getTime();
-
-export interface StreakAward {
-  id: string;
-  childId: string;
-  milestoneId: string;
-  days: number;
-  day: string;
-  points?: number;
-  rewardId?: string;
-}
 
 export const recalculateStreaks = async (
   today: string = todayKey()

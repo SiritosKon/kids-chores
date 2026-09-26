@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { dayKeySchema } from '@/shared/lib/date';
+import type { Completion } from './types';
 
 const timestamp = z.number().int().nonnegative();
 
@@ -12,8 +13,6 @@ export const completionSchema = z.object({
   createdAt: timestamp,
   updatedAt: timestamp,
 });
-
-export type Completion = z.infer<typeof completionSchema>;
 
 export const storedCompletionSchema = completionSchema
   .extend({

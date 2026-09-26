@@ -1,10 +1,8 @@
 import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { getSettings, saveSettings, watchSettings } from '../api/settingsRepo';
-import type { BonusSettings, Settings, StreakSettings } from './schema';
-
-const NO_BONUS: BonusSettings = { enabled: false, points: 0 };
-const NO_STREAK: StreakSettings = { enabled: false, milestones: [] };
+import { NO_BONUS, NO_STREAK } from './constants';
+import type { Settings } from './types';
 
 export const useSettingsStore = defineStore('settings', () => {
   const settings = ref<Settings | null>(null);

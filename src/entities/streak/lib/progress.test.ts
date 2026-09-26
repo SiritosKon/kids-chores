@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { streakProgress } from './progress';
-import type { StreakMilestoneInput } from './compute';
+import type { StreakMilestoneInput } from './types';
 
 const MILESTONES: StreakMilestoneInput[] = [
   { id: 'three-days', days: 3, rewardId: 'icecream-shop' },

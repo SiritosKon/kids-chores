@@ -14,13 +14,13 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { WalletHistoryDialog } from '@/features/wallet-history';
-import { StreakDialog } from '@/features/streak-details';
 import { useChildrenStore, childPhotoUrl } from '@/entities/child';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
 import { useStreakStore } from '@/entities/streak';
+import { WalletHistoryDialog } from '@/features/wallet-history';
+import { StreakDialog } from '@/features/streak-details';
 import GoalMeter from './GoalMeter.vue';
-import type { MeterEntry } from '../model/meterEntry';
+import type { MeterEntry } from '../model/types';
 
 const wallet = useWalletStore();
 const childrenStore = useChildrenStore();

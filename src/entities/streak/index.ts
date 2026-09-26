@@ -1,14 +1,16 @@
-export { streakStateSchema, type StreakState } from './model/schema';
+export { streakStateSchema } from './model/schema';
+export type { StreakState } from './model/types';
 export { streaksTable, getStreaks, saveStreaks } from './api/streaksRepo';
 export { useStreakStore } from './model/store';
-export { streakProgress, type StreakProgress } from './lib/progress';
-export { isStreakShown, STREAK_BADGE_MIN_DAYS } from './lib/badge';
-export { closedDaysFrom, type DayMark } from './lib/closedDays';
-export {
-  summariseStreak,
-  isMilestoneActiveOn,
-  isMilestoneOpen,
-  type StreakSummary,
-  type StreakHit,
-  type StreakMilestoneInput,
-} from './lib/compute';
+export { streakProgress } from './lib/progress';
+export { isStreakShown } from './lib/badge';
+export { STREAK_BADGE_MIN_DAYS } from './lib/constants';
+export { closedDaysFrom } from './lib/closedDays';
+export { summariseStreak, isMilestoneActiveOn, isMilestoneOpen } from './lib/compute';
+export type {
+  DayMark,
+  StreakHit,
+  StreakMilestoneInput,
+  StreakProgress,
+  StreakSummary,
+} from './lib/types';

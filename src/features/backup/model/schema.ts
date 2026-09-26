@@ -6,8 +6,6 @@ import { storedTaskSchema } from '@/entities/task';
 import { rewardSchema } from '@/entities/reward';
 import { storedSettingsSchema } from '@/entities/settings';
 
-export const BACKUP_VERSION = 4;
-
 export const backupSchema = z.object({
   version: z.number().int().optional(),
   exportedAt: z.string().optional(),
@@ -18,8 +16,6 @@ export const backupSchema = z.object({
   rewards: z.array(rewardSchema).optional(),
   settings: storedSettingsSchema.optional(),
 });
-
-export type Backup = z.infer<typeof backupSchema>;
 
 export const describeIssues = (error: z.ZodError): string =>
   error.issues

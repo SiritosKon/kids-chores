@@ -1,6 +1,5 @@
 import confetti from 'canvas-confetti';
-
-type Burst = (colors: string[]) => void;
+import type { Burst } from './types';
 
 const prefersReducedMotion = (): boolean => {
   try {
@@ -79,7 +78,7 @@ const emojiBurst = (symbols: string[]): Burst => {
   };
 };
 
-const PRESETS: Burst[] = [schoolPride, cannon, fireworks, stars, emojiBurst(['⭐', '🎉', '🏆'])];
+const bursts: Burst[] = [schoolPride, cannon, fireworks, stars, emojiBurst(['⭐', '🎉', '🏆'])];
 
 const palette = (color: string): string[] => [color, '#FDD835', '#ffffff'];
 
@@ -87,7 +86,7 @@ export const celebrate = (color = '#FF9F0A'): void => {
   if (prefersReducedMotion()) {
     return;
   }
-  const preset = PRESETS[Math.floor(Math.random() * PRESETS.length)] ?? cannon;
+  const preset = bursts[Math.floor(Math.random() * bursts.length)] ?? cannon;
   preset(palette(color));
 };
 

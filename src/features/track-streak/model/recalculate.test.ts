@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/api/db';
-import { EARLIEST_DAY_KEY } from '@/shared/lib/date';
+import { EARLIEST_DAY_KEY } from '@/shared/lib/constants';
 import { tasksCatalogue, STREAK_TASK_ID } from '@/entities/task';
 import { saveDayMarks, getAllCompletions } from '@/entities/completion';
 import { getAllSpends } from '@/entities/spend';

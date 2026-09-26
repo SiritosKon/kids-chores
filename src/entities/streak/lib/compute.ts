@@ -1,28 +1,5 @@
 import { shiftDayKey } from '@/shared/lib/date';
-
-export interface StreakMilestoneInput {
-  id: string;
-  days: number;
-  points?: number;
-  rewardId?: string;
-  from?: string;
-  to?: string;
-}
-
-export interface StreakHit {
-  milestoneId: string;
-  days: number;
-  day: string;
-  points?: number;
-  rewardId?: string;
-}
-
-export interface StreakSummary {
-  current: number;
-  best: number;
-  lastClosedDate: string | null;
-  hits: StreakHit[];
-}
+import type { StreakHit, StreakMilestoneInput, StreakSummary } from './types';
 
 export const isMilestoneActiveOn = (milestone: StreakMilestoneInput, day: string): boolean =>
   (milestone.from === undefined || milestone.from <= day) &&

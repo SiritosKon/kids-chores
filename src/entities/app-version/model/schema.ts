@@ -5,4 +5,3 @@ export const versionLogEntrySchema = z.object({
   firstSeenAt: z.number().int().nonnegative(),
 });
 
-export type VersionLogEntry = z.infer<typeof versionLogEntrySchema>;

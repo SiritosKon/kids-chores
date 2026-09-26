@@ -1,4 +1,4 @@
-import type { Task, TaskPeriod } from '../model/schema';
+import type { Task, TaskPeriod } from '../model/types';
 
 const covers = (period: TaskPeriod, day: string): boolean =>
   period.from <= day && (period.to === undefined || day < period.to);

@@ -1,12 +1,8 @@
-import { completionsTable, type Completion } from '@/entities/completion/@x/wallet';
-import { spendsTable, type Spend } from '@/entities/spend/@x/wallet';
+import { completionsTable } from '@/entities/completion/@x/wallet';
+import { spendsTable } from '@/entities/spend/@x/wallet';
 import { storedCompletionSchema } from '@/entities/completion';
 import { storedSpendSchema } from '@/entities/spend';
-
-export interface ChildLedger {
-  completions: Completion[];
-  spends: Spend[];
-}
+import type { ChildLedger } from './types';
 
 export const getChildLedger = async (childId: string): Promise<ChildLedger> => {
   const [completions, spends] = await Promise.all([

@@ -1,14 +1,5 @@
-export {
-  settingsSchema,
-  storedSettingsSchema,
-  parentPinSchema,
-  isValidPin,
-  SETTINGS_ID,
-  PARENT_PIN_LENGTH,
-  type Settings,
-  type BonusSettings,
-  type StreakSettings,
-  type StreakMilestone,
-} from './model/schema';
+export { settingsSchema, storedSettingsSchema, parentPinSchema, isValidPin } from './model/schema';
+export { SETTINGS_ID, PARENT_PIN_LENGTH } from './model/constants';
+export type { Settings, BonusSettings, StreakSettings, StreakMilestone } from './model/types';
 export { useSettingsStore } from './model/store';
 export { getSettings, saveSettings, settingsTable } from './api/settingsRepo';

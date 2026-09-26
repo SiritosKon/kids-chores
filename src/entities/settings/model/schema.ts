@@ -1,10 +1,7 @@
 import { z } from 'zod';
 import { dayKeySchema } from '@/shared/lib/date';
-
-export const SETTINGS_ID = 'app';
-export const PARENT_PIN_LENGTH = 6;
-
-const PIN_PATTERN = /^\d{6}$/;
+import { SETTINGS_ID, PIN_PATTERN, LEGACY_BONUS, LEGACY_STREAK } from './constants';
+import type { Settings } from './types';
 
 export const parentPinSchema = z.string().regex(PIN_PATTERN);
 
@@ -36,22 +33,13 @@ export const settingsSchema = z.object({
   streak: streakSettingsSchema,
 });
 
-export type BonusSettings = z.infer<typeof bonusSettingsSchema>;
-export type StreakMilestone = z.infer<typeof streakMilestoneSchema>;
-export type StreakSettings = z.infer<typeof streakSettingsSchema>;
-export type Settings = z.infer<typeof settingsSchema>;
-
-const DEFAULT_BONUS: BonusSettings = { enabled: true, points: 1 };
-
-const DEFAULT_STREAK: StreakSettings = { enabled: false, milestones: [] };
-
 export const storedSettingsSchema = z
   .object({
     id: z.literal(SETTINGS_ID),
     parentPin: z.string().optional(),
     parentPassword: z.string().optional(),
-    bonus: bonusSettingsSchema.default(DEFAULT_BONUS),
-    streak: streakSettingsSchema.default(DEFAULT_STREAK),
+    bonus: bonusSettingsSchema.default(LEGACY_BONUS),
+    streak: streakSettingsSchema.default(LEGACY_STREAK),
   })
   .transform((row): Settings => {
     const stored = row.parentPin ?? row.parentPassword ?? '';

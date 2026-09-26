@@ -1,14 +1,5 @@
-import { isMilestoneOpen, type StreakMilestoneInput } from './compute';
-
-export interface StreakProgress {
-  milestoneId: string;
-  days: number;
-  points?: number;
-  rewardId?: string;
-  achieved: number;
-  remaining: number;
-  ratio: number;
-}
+import { isMilestoneOpen } from './compute';
+import type { StreakMilestoneInput, StreakProgress } from './types';
 
 export const streakProgress = (
   current: number,

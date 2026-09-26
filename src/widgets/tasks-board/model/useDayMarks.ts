@@ -7,8 +7,7 @@ import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { getDayCompletions, saveDayMarks, type TaskMark } from '@/entities/completion';
 import { recalculateStreaks, type StreakAward } from '@/features/track-streak';
-
-type MarksByChild = Record<string, Set<string>>;
+import type { MarksByChild } from './types';
 
 export const useDayMarks = (selectedDate: Ref<string>) => {
   const $q = useQuasar();
