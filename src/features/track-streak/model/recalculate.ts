@@ -1,12 +1,13 @@
 import { transaction } from '@/shared/api/db';
 import { todayKey } from '@/shared/lib/date';
 import { childrenCatalogue } from '@/entities/child';
-import { tasksCatalogue, STREAK_TASK_ID } from '@/entities/task';
+import { tasksCatalogue, tasksRequiredOn, STREAK_TASK_ID } from '@/entities/task';
 import { completionsTable, getAllCompletions, type Completion } from '@/entities/completion';
 import { spendsTable, getAllSpends, type Spend } from '@/entities/spend';
 import { getSettings } from '@/entities/settings';
 import {
   streaksTable,
+  getStreaks,
   summariseStreak,
   closedDaysFrom,
   type StreakState,
@@ -35,47 +36,67 @@ export const recalculateStreaks = async (
     return [];
   }
 
-  const [children, tasks, completions, spends] = await Promise.all([
+  const [children, tasks, completions, spends, previousStates] = await Promise.all([
     childrenCatalogue.read(),
     tasksCatalogue.read(),
     getAllCompletions(),
     getAllSpends(),
+    getStreaks(),
   ]);
 
-  const requiredIds = tasks.filter((task) => task.active).map((task) => task.id);
+  const requiredOn = (day: string): string[] => tasksRequiredOn(tasks, day).map((task) => task.id);
+  const alreadyGranted = new Set([
+    ...completions.filter((row) => row.taskId === STREAK_TASK_ID).map((row) => row.id),
+    ...spends.filter((row) => row.source === 'streak').map((row) => row.id),
+  ]);
   const states: StreakState[] = [];
   const expectedCompletions = new Map<string, Completion>();
   const expectedSpends = new Map<string, Spend>();
-  const expectedAwards = new Map<string, StreakAward>();
+  const freshAwards: StreakAward[] = [];
   const now = Date.now();
 
   for (const child of children) {
     const closedDays = closedDaysFrom(
       completions.filter((row) => row.childId === child.id),
-      requiredIds
+      requiredOn
     );
 
     const summary = summariseStreak(closedDays, settings.streak.milestones, today);
+
+    const hitCounts: Record<string, number> = {};
+    for (const hit of summary.hits) {
+      hitCounts[hit.milestoneId] = (hitCounts[hit.milestoneId] ?? 0) + 1;
+    }
+    const celebratedBefore =
+      previousStates.find((state) => state.childId === child.id)?.celebrated ?? {};
+    const celebrated = { ...celebratedBefore };
+    for (const [milestoneId, count] of Object.entries(hitCounts)) {
+      celebrated[milestoneId] = Math.max(celebrated[milestoneId] ?? 0, count);
+    }
 
     states.push({
       childId: child.id,
       current: summary.current,
       best: summary.best,
       lastClosedDate: summary.lastClosedDate,
+      celebrated,
       updatedAt: now,
     });
 
     for (const hit of summary.hits) {
       const id = awardId(child.id, hit.milestoneId, hit.day);
-      expectedAwards.set(id, {
-        id,
-        childId: child.id,
-        milestoneId: hit.milestoneId,
-        days: hit.days,
-        day: hit.day,
-        ...(hit.points === undefined ? {} : { points: hit.points }),
-        ...(hit.rewardId === undefined ? {} : { rewardId: hit.rewardId }),
-      });
+      const isNewHit = (hitCounts[hit.milestoneId] ?? 0) > (celebratedBefore[hit.milestoneId] ?? 0);
+      if (isNewHit && !alreadyGranted.has(id)) {
+        freshAwards.push({
+          id,
+          childId: child.id,
+          milestoneId: hit.milestoneId,
+          days: hit.days,
+          day: hit.day,
+          ...(hit.points === undefined ? {} : { points: hit.points }),
+          ...(hit.rewardId === undefined ? {} : { rewardId: hit.rewardId }),
+        });
+      }
       if (hit.points !== undefined && hit.points > 0) {
         expectedCompletions.set(id, {
           id,
@@ -100,11 +121,6 @@ export const recalculateStreaks = async (
     }
   }
 
-  const alreadyGranted = new Set([
-    ...completions.filter((row) => row.taskId === STREAK_TASK_ID).map((row) => row.id),
-    ...spends.filter((row) => row.source === 'streak').map((row) => row.id),
-  ]);
-
   const staleCompletions = completions
     .filter((row) => row.taskId === STREAK_TASK_ID && !expectedCompletions.has(row.id))
     .map((row) => row.id);
@@ -128,5 +144,5 @@ export const recalculateStreaks = async (
     await streaksTable.bulkPut(states);
   });
 
-  return [...expectedAwards.values()].filter((award) => !alreadyGranted.has(award.id));
+  return freshAwards;
 };

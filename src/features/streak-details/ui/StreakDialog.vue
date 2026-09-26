@@ -66,7 +66,7 @@ import { pluralize } from '@/shared/lib/plural';
 import { useChildrenStore } from '@/entities/child';
 import { useRewardsStore, rewardColor } from '@/entities/reward';
 import { useSettingsStore, type StreakMilestone } from '@/entities/settings';
-import { useStreakStore, streakProgress } from '@/entities/streak';
+import { useStreakStore, streakProgress, isMilestoneOpen } from '@/entities/streak';
 
 const props = withDefaults(
   defineProps<{
@@ -92,7 +92,7 @@ const state = computed(() =>
 
 const current = computed(() => state.value?.current ?? 0);
 const best = computed(() => state.value?.best ?? 0);
-const milestones = computed(() => settingsStore.streak.milestones);
+const milestones = computed(() => settingsStore.streak.milestones.filter(isMilestoneOpen));
 const progress = computed(() => streakProgress(current.value, milestones.value));
 
 const daysLabel = computed(() => pluralize(current.value, DAYS));

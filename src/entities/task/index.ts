@@ -1,4 +1,11 @@
-export { taskSchema, type Task } from './model/schema';
+export {
+  taskSchema,
+  storedTaskSchema,
+  taskPeriodSchema,
+  type Task,
+  type TaskPeriod,
+} from './model/schema';
+export { isTaskRequiredOn, tasksRequiredOn } from './lib/schedule';
 export { useTasksStore } from './model/store';
 export { tasksCatalogue } from './api/tasksRepo';
 export {

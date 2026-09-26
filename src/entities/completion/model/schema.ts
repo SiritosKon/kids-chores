@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { dayKeySchema } from '@/shared/lib/date';
 
 const timestamp = z.number().int().nonnegative();
 
@@ -6,7 +7,7 @@ export const completionSchema = z.object({
   id: z.string().min(1),
   childId: z.string().min(1),
   taskId: z.string().min(1),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  date: dayKeySchema,
   points: z.number().int(),
   createdAt: timestamp,
   updatedAt: timestamp,

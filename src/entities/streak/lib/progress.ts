@@ -1,4 +1,4 @@
-import type { StreakMilestoneInput } from './compute';
+import { isMilestoneOpen, type StreakMilestoneInput } from './compute';
 
 export interface StreakProgress {
   milestoneId: string;
@@ -14,7 +14,7 @@ export const streakProgress = (
   current: number,
   milestones: readonly StreakMilestoneInput[]
 ): StreakProgress | null => {
-  const candidates = milestones.map((milestone) => {
+  const candidates = milestones.filter(isMilestoneOpen).map((milestone) => {
     const achieved = current % milestone.days;
     return {
       milestoneId: milestone.id,

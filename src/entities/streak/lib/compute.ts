@@ -5,6 +5,8 @@ export interface StreakMilestoneInput {
   days: number;
   points?: number;
   rewardId?: string;
+  from?: string;
+  to?: string;
 }
 
 export interface StreakHit {
@@ -22,6 +24,13 @@ export interface StreakSummary {
   hits: StreakHit[];
 }
 
+export const isMilestoneActiveOn = (milestone: StreakMilestoneInput, day: string): boolean =>
+  (milestone.from === undefined || milestone.from <= day) &&
+  (milestone.to === undefined || day < milestone.to);
+
+export const isMilestoneOpen = (milestone: StreakMilestoneInput): boolean =>
+  milestone.to === undefined;
+
 export const summariseStreak = (
   closedDays: readonly string[],
   milestones: readonly StreakMilestoneInput[],
@@ -38,7 +47,7 @@ export const summariseStreak = (
     previous = day;
     best = Math.max(best, run);
 
-    for (const milestone of milestones) {
+    for (const milestone of milestones.filter((candidate) => isMilestoneActiveOn(candidate, day))) {
       if (run % milestone.days === 0) {
         hits.push({
           milestoneId: milestone.id,

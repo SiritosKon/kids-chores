@@ -6,6 +6,8 @@ export { isStreakShown, STREAK_BADGE_MIN_DAYS } from './lib/badge';
 export { closedDaysFrom, type DayMark } from './lib/closedDays';
 export {
   summariseStreak,
+  isMilestoneActiveOn,
+  isMilestoneOpen,
   type StreakSummary,
   type StreakHit,
   type StreakMilestoneInput,

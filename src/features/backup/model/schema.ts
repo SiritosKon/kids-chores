@@ -2,11 +2,11 @@ import { z } from 'zod';
 import { storedCompletionSchema } from '@/entities/completion';
 import { storedSpendSchema } from '@/entities/spend';
 import { childSchema } from '@/entities/child';
-import { taskSchema } from '@/entities/task';
+import { storedTaskSchema } from '@/entities/task';
 import { rewardSchema } from '@/entities/reward';
 import { storedSettingsSchema } from '@/entities/settings';
 
-export const BACKUP_VERSION = 3;
+export const BACKUP_VERSION = 4;
 
 export const backupSchema = z.object({
   version: z.number().int().optional(),
@@ -14,7 +14,7 @@ export const backupSchema = z.object({
   completions: z.array(storedCompletionSchema),
   spends: z.array(storedSpendSchema).optional(),
   children: z.array(childSchema).optional(),
-  tasks: z.array(taskSchema).optional(),
+  tasks: z.array(storedTaskSchema).optional(),
   rewards: z.array(rewardSchema).optional(),
   settings: storedSettingsSchema.optional(),
 });

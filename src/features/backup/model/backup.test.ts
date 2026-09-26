@@ -21,7 +21,7 @@ describe('export and import', () => {
   it('exports catalogues and settings, not history alone', async () => {
     const backup = await exportAll();
 
-    expect(backup.version).toBe(3);
+    expect(backup.version).toBe(4);
     expect(backup.children).toHaveLength(2);
     expect(backup.tasks).toHaveLength(3);
     expect(backup.rewards).toHaveLength(FAMILY_REWARDS.length);

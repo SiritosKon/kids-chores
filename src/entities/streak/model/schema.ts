@@ -5,6 +5,7 @@ export const streakStateSchema = z.object({
   current: z.number().int().nonnegative(),
   best: z.number().int().nonnegative(),
   lastClosedDate: z.string().nullable(),
+  celebrated: z.record(z.string(), z.number().int().nonnegative()).default({}),
   updatedAt: z.number().int().nonnegative(),
 });
 

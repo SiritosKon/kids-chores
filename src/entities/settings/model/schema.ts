@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { dayKeySchema } from '@/shared/lib/date';
 
 export const SETTINGS_ID = 'app';
 export const PARENT_PIN_LENGTH = 6;
@@ -19,6 +20,8 @@ export const streakMilestoneSchema = z.object({
   days: z.number().int().positive(),
   points: z.number().int().nonnegative().optional(),
   rewardId: z.string().min(1).optional(),
+  from: dayKeySchema.optional(),
+  to: dayKeySchema.optional(),
 });
 
 export const streakSettingsSchema = z.object({

@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/api/db';
+import { EARLIEST_DAY_KEY } from '@/shared/lib/date';
 import { tasksCatalogue, STREAK_TASK_ID } from '@/entities/task';
 import { saveDayMarks, getAllCompletions } from '@/entities/completion';
 import { getAllSpends } from '@/entities/spend';
 import { getStreaks } from '@/entities/streak';
 import { getSettings, saveSettings, type StreakMilestone } from '@/entities/settings';
-import { seedFamily } from '../../../../tests/fixtures/family';
+import { seedFamily, FAMILY_TASKS } from '../../../../tests/fixtures/family';
 import { recalculateStreaks } from './recalculate';
 
 const closeDay = async (childId: string, day: string) => {
@@ -206,5 +207,75 @@ describe('recalculateStreaks', () => {
     await recalculateStreaks('2026-09-16');
 
     expect(await streakRewards()).toHaveLength(0);
+  });
+
+  it('keeps a finished streak when a task is added later', async () => {
+    await closeDays('timofey', september(7));
+    await recalculateStreaks('2026-09-16');
+
+    await tasksCatalogue.put({ ...FAMILY_TASKS[0]!, id: 'sport', activePeriods: [{ from: '2026-09-17' }] });
+    await recalculateStreaks('2026-09-17');
+
+    expect(await streakRewards()).toHaveLength(1);
+    const streaks = await getStreaks();
+    expect(streaks.find((row) => row.childId === 'timofey')?.current).toBe(7);
+  });
+
+  it('keeps a finished streak when a task is switched off later', async () => {
+    await closeDays('timofey', september(7));
+    await recalculateStreaks('2026-09-16');
+    const reading = FAMILY_TASKS.find((task) => task.id === 'reading')!;
+
+    await tasksCatalogue.put({
+      ...reading,
+      active: false,
+      activePeriods: [{ from: EARLIEST_DAY_KEY, to: '2026-09-17' }],
+    });
+    await saveDayMarks('timofey', '2026-09-12', [
+      { taskId: 'study', points: 1 },
+      { taskId: 'order', points: 1 },
+    ]);
+    await recalculateStreaks('2026-09-17');
+
+    expect(await streakRewards()).toHaveLength(0);
+    const streaks = await getStreaks();
+    expect(streaks.find((row) => row.childId === 'timofey')?.current).toBe(4);
+  });
+
+  it('keeps prizes of a milestone that was replaced', async () => {
+    await closeDays('timofey', september(7));
+    await recalculateStreaks('2026-09-16');
+
+    await setMilestones([
+      { id: 'week', days: 7, rewardId: 'bubble-tea', to: '2026-09-17' },
+      { id: 'week-2', days: 7, points: 3, from: '2026-09-17' },
+    ]);
+    await closeDays('timofey', september(7, 17));
+    await recalculateStreaks('2026-09-23');
+
+    const rewards = await streakRewards();
+    expect(rewards.map((row) => row.rewardId)).toEqual(['bubble-tea']);
+    expect((await streakPointAwards()).map((row) => row.date)).toEqual(['2026-09-23']);
+  });
+
+  it('does not congratulate twice when an edit moves the prize day', async () => {
+    await closeDays('timofey', september(8));
+    expect(await recalculateStreaks('2026-09-17')).toHaveLength(1);
+
+    await saveDayMarks('timofey', '2026-09-10', []);
+    expect(await recalculateStreaks('2026-09-17')).toHaveLength(0);
+    expect(await streakRewards()).toHaveLength(1);
+
+    await closeDay('timofey', '2026-09-10');
+    expect(await recalculateStreaks('2026-09-17')).toHaveLength(0);
+  });
+
+  it('congratulates again once a new prize is really earned', async () => {
+    await closeDays('timofey', september(7));
+    expect(await recalculateStreaks('2026-09-16')).toHaveLength(1);
+
+    await closeDays('timofey', september(7, 17));
+
+    expect(await recalculateStreaks('2026-09-23')).toHaveLength(1);
   });
 });
