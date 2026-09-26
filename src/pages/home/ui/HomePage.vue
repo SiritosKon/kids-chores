@@ -10,7 +10,7 @@
 
     <TasksBoard :selected-date="selectedDate" />
 
-    <div class="ios-card q-mt-lg q-mb-lg">
+    <div class="ios-card q-mt-lg q-mb-lg" data-tour="rewards">
       <RewardsPanel />
     </div>
   </q-page>
@@ -22,6 +22,9 @@ import { GoalMeterBoard } from '@/widgets/goal-meter-board';
 import { TasksBoard } from '@/widgets/tasks-board';
 import { RewardsPanel } from '@/widgets/rewards-panel';
 import { DateSelector, useSelectedDateStore } from '@/features/select-date';
+import { useSetupTour } from '../model/useSetupTour';
 
 const { selectedDate } = storeToRefs(useSelectedDateStore());
+
+useSetupTour();
 </script>

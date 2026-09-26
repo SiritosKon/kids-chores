@@ -31,15 +31,17 @@ export const settingsSchema = z.object({
   parentPin: parentPinSchema.nullable(),
   bonus: bonusSettingsSchema,
   streak: streakSettingsSchema,
+  tourPending: z.boolean(),
 });
 
 export const storedSettingsSchema = z
   .object({
     id: z.literal(SETTINGS_ID),
-    parentPin: z.string().optional(),
+    parentPin: z.string().nullable().optional(),
     parentPassword: z.string().optional(),
     bonus: bonusSettingsSchema.default(LEGACY_BONUS),
     streak: streakSettingsSchema.default(LEGACY_STREAK),
+    tourPending: z.boolean().default(false),
   })
   .transform((row): Settings => {
     const stored = row.parentPin ?? row.parentPassword ?? '';
@@ -48,5 +50,6 @@ export const storedSettingsSchema = z
       parentPin: isValidPin(stored) ? stored : null,
       bonus: row.bonus,
       streak: row.streak,
+      tourPending: row.tourPending,
     };
   });

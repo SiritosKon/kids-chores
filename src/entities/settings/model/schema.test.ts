@@ -29,6 +29,13 @@ describe('storedSettingsSchema', () => {
       'id',
       'parentPin',
       'streak',
+      'tourPending',
     ]);
+  });
+
+  it('treats a row written before the tour existed as already introduced', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111' });
+
+    expect(settings.tourPending).toBe(false);
   });
 });

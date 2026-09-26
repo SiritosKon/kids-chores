@@ -13,3 +13,5 @@ export const LEGACY_STREAK: StreakSettings = { enabled: false, milestones: [] };
 export const NO_BONUS: BonusSettings = { enabled: false, points: 0 };
 
 export const NO_STREAK: StreakSettings = { enabled: false, milestones: [] };
+
+export const INITIAL_BONUS: BonusSettings = { enabled: false, points: 1 };

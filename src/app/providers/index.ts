@@ -4,6 +4,7 @@ import { Quasar, Notify, Dialog } from 'quasar';
 import langRu from 'quasar/lang/ru';
 
 import '@quasar/extras/material-icons/material-icons.css';
+import 'driver.js/dist/driver.css';
 import 'quasar/src/css/index.sass';
 import '../styles/index.css';
 

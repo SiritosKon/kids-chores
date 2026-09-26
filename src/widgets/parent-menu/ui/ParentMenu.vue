@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-btn flat round dense icon="more_vert" aria-label="Меню">
+    <q-btn flat round dense icon="more_vert" aria-label="Меню" data-tour="parent-menu">
       <q-menu anchor="bottom right" self="top right">
         <q-list style="min-width: 220px">
           <template v-if="!active">
@@ -27,8 +27,8 @@
               <q-item-section avatar><q-icon name="history" /></q-item-section>
               <q-item-section>История списаний</q-item-section>
             </q-item>
-            <q-separator />
-            <q-item clickable v-close-popup @click="logout">
+            <q-separator v-if="!tourPending" />
+            <q-item v-if="!tourPending" clickable v-close-popup @click="logout">
               <q-item-section avatar><q-icon name="logout" /></q-item-section>
               <q-item-section>Выйти из режима</q-item-section>
             </q-item>
@@ -51,10 +51,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
 import { useParentSessionStore } from '@/entities/parent-session';
+import { useSettingsStore } from '@/entities/settings';
 import { PinDialog } from '@/features/parent-login';
 import { SpendsDialog } from '@/features/rollback-spend';
 import { SettingsDialog } from '@/features/edit-settings';
@@ -65,6 +66,8 @@ import { recalculateStreaks } from '@/features/track-streak';
 const $q = useQuasar();
 const parentSession = useParentSessionStore();
 const { active } = storeToRefs(parentSession);
+const settingsStore = useSettingsStore();
+const tourPending = computed(() => settingsStore.settings?.tourPending === true);
 const logout = parentSession.logout;
 const openWhatsNew = useWhatsNewStore().open;
 

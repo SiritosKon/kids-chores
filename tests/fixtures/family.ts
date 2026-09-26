@@ -37,6 +37,7 @@ export const FAMILY_SETTINGS: Settings = {
   parentPin: '123456',
   bonus: { enabled: true, points: 1 },
   streak: { enabled: true, milestones: [{ id: 'week', days: 7, rewardId: 'bubble-tea' }] },
+  tourPending: false,
 };
 
 export const seedFamily = async (): Promise<void> => {
