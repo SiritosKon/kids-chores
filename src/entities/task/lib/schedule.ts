@@ -10,3 +10,25 @@ export const tasksRequiredOn = <Row extends Pick<Task, 'activePeriods'>>(
   tasks: readonly Row[],
   day: string
 ): Row[] => tasks.filter((task) => isTaskRequiredOn(task, day));
+
+export const openPeriod = (periods: readonly TaskPeriod[], day: string): TaskPeriod[] => {
+  const last = periods.at(-1);
+  if (last && last.to === undefined) {
+    return [...periods];
+  }
+  if (last && last.to === day) {
+    return [...periods.slice(0, -1), { from: last.from }];
+  }
+  return [...periods, { from: day }];
+};
+
+export const closePeriod = (periods: readonly TaskPeriod[], day: string): TaskPeriod[] => {
+  const last = periods.at(-1);
+  if (!last || last.to !== undefined) {
+    return [...periods];
+  }
+  if (last.from >= day) {
+    return periods.slice(0, -1);
+  }
+  return [...periods.slice(0, -1), { from: last.from, to: day }];
+};

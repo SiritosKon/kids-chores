@@ -21,6 +21,7 @@ export const taskSchema = z.object({
   activePeriods: z.array(taskPeriodSchema),
   createdAt: timestamp,
   updatedAt: timestamp,
+  archivedAt: timestamp.optional(),
 });
 
 export const storedTaskSchema = taskSchema
