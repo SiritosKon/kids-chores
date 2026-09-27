@@ -7,10 +7,10 @@
 | Слой | Что лежит | Слайсы |
 |---|---|---|
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
-| `pages` | Экраны целиком | `home` |
+| `pages` | Экраны целиком | `home`, `onboarding` |
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `parent-menu` |
-| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup` |
-| `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `app-version`, `parent-session` |
+| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `install-app` |
+| `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session` |
 | `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `assets` |
 
 Сегменты внутри слайса: `ui` — вёрстка, `model` — состояние и логика, `api` — доступ к данным,
