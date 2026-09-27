@@ -1,17 +1,7 @@
-export {
-  settingsSchema,
-  storedSettingsSchema,
-  parentPinSchema,
-  isValidPin,
-  SETTINGS_ID,
-  SETTINGS_SEED_VERSION,
-  PARENT_PIN_LENGTH,
-  DEFAULT_PARENT_PIN,
-  type Settings,
-  type BonusSettings,
-  type StreakSettings,
-  type StreakMilestone,
-} from './model/schema';
-export { DEFAULT_SETTINGS } from './model/defaults';
+export { settingsSchema, storedSettingsSchema, parentPinSchema, isValidPin } from './model/schema';
+export { SETTINGS_ID, PARENT_PIN_LENGTH } from './model/constants';
+export type { Settings, BonusSettings, StreakSettings, StreakMilestone } from './model/types';
 export { useSettingsStore } from './model/store';
-export { getSettings, saveSettings, settingsTable } from './api/settingsRepo';
+export { getSettings, saveSettings, setupParentPin, settingsTable } from './api/settingsRepo';
+export { currentMilestone, replaceMilestone } from './lib/milestones';
+export type { MilestoneRule } from './lib/types';

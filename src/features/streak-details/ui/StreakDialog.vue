@@ -46,7 +46,7 @@
             <q-item-section>
               <q-item-label>{{ rewardLabel(milestone) }}</q-item-label>
               <q-item-label caption>
-                каждые {{ milestone.days }} {{ pluralize(milestone.days, DAYS) }}
+                каждые {{ milestone.days }} {{ pluralize(milestone.days, DAY_WORD_FORMS) }}
               </q-item-label>
             </q-item-section>
           </q-item>
@@ -62,11 +62,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { DAY_WORD_FORMS } from '@/shared/lib/constants';
 import { pluralize } from '@/shared/lib/plural';
 import { useChildrenStore } from '@/entities/child';
 import { useRewardsStore, rewardColor } from '@/entities/reward';
 import { useSettingsStore, type StreakMilestone } from '@/entities/settings';
-import { useStreakStore, streakProgress } from '@/entities/streak';
+import { useStreakStore, streakProgress, isMilestoneOpen } from '@/entities/streak';
 
 const props = withDefaults(
   defineProps<{
@@ -76,8 +77,6 @@ const props = withDefaults(
   { modelValue: false, childId: null }
 );
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
-
-const DAYS = ['день', 'дня', 'дней'] as const;
 
 const childrenStore = useChildrenStore();
 const rewardsStore = useRewardsStore();
@@ -92,11 +91,11 @@ const state = computed(() =>
 
 const current = computed(() => state.value?.current ?? 0);
 const best = computed(() => state.value?.best ?? 0);
-const milestones = computed(() => settingsStore.settings.streak.milestones);
+const milestones = computed(() => settingsStore.streak.milestones.filter(isMilestoneOpen));
 const progress = computed(() => streakProgress(current.value, milestones.value));
 
-const daysLabel = computed(() => pluralize(current.value, DAYS));
-const remainingLabel = computed(() => pluralize(progress.value?.remaining ?? 0, DAYS));
+const daysLabel = computed(() => pluralize(current.value, DAY_WORD_FORMS));
+const remainingLabel = computed(() => pluralize(progress.value?.remaining ?? 0, DAY_WORD_FORMS));
 
 const rewardIcon = (rewardId: string | undefined): string =>
   (rewardId ? rewardsStore.byId(rewardId)?.icon : undefined) ?? 'star';

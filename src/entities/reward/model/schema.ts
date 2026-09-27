@@ -16,7 +16,6 @@ export const rewardSchema = z.object({
   active: z.boolean(),
   createdAt: timestamp,
   updatedAt: timestamp,
+  archivedAt: timestamp.optional(),
 });
 
-export type RewardVisibility = z.infer<typeof rewardVisibilitySchema>;
-export type Reward = z.infer<typeof rewardSchema>;

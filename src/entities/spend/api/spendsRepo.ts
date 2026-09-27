@@ -1,6 +1,7 @@
 import { liveQuery, type Subscription } from 'dexie';
 import { table } from '@/shared/api/db';
-import { storedSpendSchema, type Spend } from '../model/schema';
+import { storedSpendSchema } from '../model/schema';
+import type { Spend } from '../model/types';
 
 export const spendsTable = table<Spend>('spends');
 

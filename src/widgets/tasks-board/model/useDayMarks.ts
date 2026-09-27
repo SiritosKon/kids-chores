@@ -2,13 +2,12 @@ import { ref, computed, watch, onMounted, type Ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { celebrate, celebrateStreak } from '@/shared/lib/confetti';
 import { useChildrenStore, type Child } from '@/entities/child';
-import { useTasksStore, BONUS_TASK_ID } from '@/entities/task';
+import { useTasksStore, tasksRequiredOn, BONUS_TASK_ID } from '@/entities/task';
 import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { getDayCompletions, saveDayMarks, type TaskMark } from '@/entities/completion';
 import { recalculateStreaks, type StreakAward } from '@/features/track-streak';
-
-type MarksByChild = Record<string, Set<string>>;
+import type { MarksByChild } from './types';
 
 export const useDayMarks = (selectedDate: Ref<string>) => {
   const $q = useQuasar();
@@ -18,8 +17,8 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   const parentSession = useParentSessionStore();
 
   const children = computed(() => childrenStore.active);
-  const tasks = computed(() => tasksStore.active);
-  const bonus = computed(() => settingsStore.settings.bonus);
+  const tasks = computed(() => tasksRequiredOn(tasksStore.items, selectedDate.value));
+  const bonus = computed(() => settingsStore.bonus);
 
   const grantedAwards = ref<StreakAward[]>([]);
   const saved = ref<MarksByChild>({});

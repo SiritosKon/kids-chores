@@ -1,3 +1,5 @@
-export { CHANGELOG, type ChangelogEntry } from './model/changelog';
-export { versionLogEntrySchema, type VersionLogEntry } from './model/schema';
-export { getVersionLog, recordVersion, type VersionVisit } from './api/versionRepo';
+export { CHANGELOG } from './model/changelog';
+export { versionLogEntrySchema } from './model/schema';
+export type { ChangelogEntry, VersionLogEntry } from './model/types';
+export { getVersionLog, recordVersion } from './api/versionRepo';
+export type { VersionVisit } from './api/types';

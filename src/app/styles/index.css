@@ -65,3 +65,122 @@ body.body--dark {
 .q-dialog .q-card.dialog--narrow {
   width: min(320px, 88vw);
 }
+
+.q-dialog .q-card.dialog--form {
+  width: min(460px, 92vw);
+}
+
+.add-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1.5px dashed rgba(255, 159, 10, 0.5);
+  border-radius: 16px;
+  color: #ff9f0a;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  width: 100%;
+  font-size: 15px;
+}
+
+.driver-overlay {
+  z-index: 5000 !important;
+}
+
+.driver-popover.setup-tour {
+  z-index: 5001;
+  background: #2c2c2e;
+  color: #ffffff;
+  border-radius: 14px;
+  font-family: inherit;
+}
+
+.driver-popover.setup-tour .driver-popover-title {
+  font-size: 17px;
+}
+
+.driver-popover.setup-tour .driver-popover-description {
+  color: #d1d1d6;
+}
+
+.driver-popover.setup-tour .driver-popover-progress-text {
+  color: #8e8e93;
+}
+
+.driver-popover.setup-tour .driver-popover-footer-btn {
+  background: #ff9f0a;
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-shadow: none;
+}
+
+.driver-popover.setup-tour .driver-popover-prev-btn {
+  background: transparent;
+  color: #ffffff;
+}
+
+.driver-popover.setup-tour .driver-popover-close-btn {
+  color: #8e8e93;
+}
+
+.driver-popover.setup-tour .driver-popover-arrow-side-left {
+  border-left-color: #2c2c2e;
+}
+
+.driver-popover.setup-tour .driver-popover-arrow-side-right {
+  border-right-color: #2c2c2e;
+}
+
+.driver-popover.setup-tour .driver-popover-arrow-side-top {
+  border-top-color: #2c2c2e;
+}
+
+.driver-popover.setup-tour .driver-popover-arrow-side-bottom {
+  border-bottom-color: #2c2c2e;
+}
+
+.driver-active .q-dialog,
+.driver-active .q-dialog *,
+.driver-active .q-menu,
+.driver-active .q-menu *,
+.driver-active .q-notification,
+.driver-active .q-notification * {
+  pointer-events: auto;
+}
+
+.q-dialog .q-card > .q-card__actions {
+  padding: 12px 16px 20px;
+}
+
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.form-stack > .q-toggle,
+.form-stack .q-option-group .q-radio {
+  margin-left: -10px;
+}
+
+body.setup-tour--over-dialogs .driver-overlay {
+  z-index: 6500 !important;
+}
+
+body.setup-tour--over-dialogs .driver-popover.setup-tour {
+  z-index: 6501;
+}

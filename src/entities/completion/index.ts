@@ -1,9 +1,10 @@
-export { completionSchema, storedCompletionSchema, type Completion } from './model/schema';
+export { completionSchema, storedCompletionSchema } from './model/schema';
+export type { Completion } from './model/types';
 export {
   completionsTable,
   getDayCompletions,
   saveDayMarks,
   resetWeek,
   getAllCompletions,
-  type TaskMark,
 } from './api/completionsRepo';
+export type { TaskMark } from './api/types';

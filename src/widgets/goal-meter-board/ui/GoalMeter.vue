@@ -1,15 +1,24 @@
 <template>
   <div class="goal-meter">
-    <q-avatar size="52px" color="grey-9" class="goal-meter__avatar-slot">
+    <q-avatar
+      size="52px"
+      color="grey-9"
+      class="goal-meter__avatar-slot"
+      :class="{ 'goal-meter__editable': editable }"
+      @click="edit"
+    >
       <img v-if="entry.photo" :src="entry.photo" :alt="entry.name" />
       <MonsterTruck v-else :color="entry.carColor" :size="38" />
     </q-avatar>
 
     <div class="goal-meter__body">
       <div class="goal-meter__head">
-        <span class="goal-meter__name">{{ entry.name }}</span>
+        <span class="goal-meter__name" :class="{ 'goal-meter__editable': editable }" @click="edit">
+          {{ entry.name }}
+          <q-icon v-if="editable" name="edit" size="16px" color="grey-5" class="q-ml-xs" />
+        </span>
         <span
-          v-if="entry.streak > 0"
+          v-if="isStreakShown(entry.streak)"
           v-ripple
           class="goal-meter__streak"
           role="button"
@@ -41,10 +50,19 @@
 import { computed } from 'vue';
 import { pluralize } from '@/shared/lib/plural';
 import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
-import type { MeterEntry } from '../model/meterEntry';
+import { isStreakShown } from '@/entities/streak';
+import type { MeterEntry } from '../model/types';
 
-const props = defineProps<{ entry: MeterEntry }>();
-const emit = defineEmits<{ 'open-history': []; 'open-streak': [] }>();
+const props = withDefaults(defineProps<{ entry: MeterEntry; editable?: boolean }>(), {
+  editable: false,
+});
+const emit = defineEmits<{ 'open-history': []; 'open-streak': []; edit: [] }>();
+
+const edit = (): void => {
+  if (props.editable) {
+    emit('edit');
+  }
+};
 
 const streakLabel = computed(() => pluralize(props.entry.streak, ['день', 'дня', 'дней']));
 
@@ -58,12 +76,14 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
   align-items: center;
   gap: 16px;
   padding: 16px;
-  border-radius: 16px;
-  background: #1c1c1e;
 }
 
 .goal-meter__avatar-slot {
   flex: 0 0 auto;
+}
+
+.goal-meter__editable {
+  cursor: pointer;
 }
 
 .goal-meter__body {

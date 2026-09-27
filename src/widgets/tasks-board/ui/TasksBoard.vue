@@ -6,11 +6,11 @@
       <q-skeleton type="text" width="55%" />
     </div>
 
-    <div v-else-if="children.length === 0" class="ios-card board-stub text-grey-5">
+    <div v-else-if="children.length === 0 && !parentActive" class="ios-card board-stub text-grey-5">
       Детей пока нет. Добавьте ребёнка в родительском режиме.
     </div>
 
-    <div v-else-if="regularTasks.length === 0" class="ios-card board-stub text-grey-5">
+    <div v-else-if="regularTasks.length === 0 && !parentActive" class="ios-card board-stub text-grey-5">
       Задач пока нет. Добавьте задачи в родительском режиме.
     </div>
 
@@ -32,8 +32,11 @@
         <div class="task-tile" :style="{ background: task.color }">
           <q-icon :name="task.icon" size="20px" color="white" />
         </div>
-        <div class="task-info">
-          <div>{{ task.name }}</div>
+        <div class="task-info" :class="{ 'task-info--editable': parentActive }" @click="openEditor(task)">
+          <div>
+            {{ task.name }}
+            <q-icon v-if="parentActive" name="edit" size="14px" color="grey-5" class="q-ml-xs" />
+          </div>
           <div class="task-points">{{ task.points }} б.</div>
         </div>
         <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
@@ -48,7 +51,7 @@
         </div>
       </div>
 
-      <div v-if="bonus.enabled" class="task-row bonus-row">
+      <div v-if="bonus.enabled && regularTasks.length > 0" class="task-row bonus-row">
         <div class="task-tile" :style="{ background: BONUS_ROW.color }">
           <q-icon :name="BONUS_ROW.icon" size="20px" color="white" />
         </div>
@@ -66,6 +69,30 @@
           />
         </div>
       </div>
+      <div
+        v-for="task in switchedOffTasks"
+        :key="task.id"
+        class="task-row task-row--off"
+        @click="openEditor(task)"
+      >
+        <div class="task-tile" :style="{ background: task.color }">
+          <q-icon :name="task.icon" size="20px" color="white" />
+        </div>
+        <div class="task-info task-info--editable">
+          <div>
+            {{ task.name }}
+            <q-icon name="edit" size="14px" color="grey-5" class="q-ml-xs" />
+          </div>
+          <div class="task-points">выключена</div>
+        </div>
+      </div>
+
+      <div v-if="parentActive" class="task-row">
+        <button type="button" class="add-tile" data-tour="add-task" @click="openEditor(null)">
+          <q-icon name="add" size="22px" />
+          Добавить задачу
+        </button>
+      </div>
     </div>
 
     <div v-if="ready && children.length > 0 && regularTasks.length > 0" class="row justify-end q-mt-md">
@@ -77,15 +104,21 @@
       :awards="grantedAwards"
       @update:model-value="clearAwards"
     />
+    <TaskEditDialog v-model="editorOpen" :task="editedTask" @changed="onTasksChanged" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, toRef } from 'vue';
+import { ref, computed, toRef } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useChildrenStore } from '@/entities/child';
-import { useTasksStore, reservedTaskName, BONUS_TASK_ID } from '@/entities/task';
+import { useTasksStore, type Task } from '@/entities/task';
 import { useSettingsStore } from '@/entities/settings';
+import { useParentSessionStore } from '@/entities/parent-session';
 import { StreakAwardDialog } from '@/features/celebrate-streak';
+import { TaskEditDialog } from '@/features/edit-task';
+import { recalculateStreaks } from '@/features/track-streak';
+import { BONUS_ROW, CHECK_COLORS } from './constants';
 import { useDayMarks } from '../model/useDayMarks';
 
 const props = defineProps<{ selectedDate: string }>();
@@ -95,14 +128,6 @@ const tasksStore = useTasksStore();
 const settingsStore = useSettingsStore();
 
 const ready = computed(() => childrenStore.loaded && tasksStore.loaded && settingsStore.loaded);
-
-const BONUS_ROW = {
-  name: reservedTaskName(BONUS_TASK_ID) ?? 'Бонус',
-  icon: 'star',
-  color: '#FF9F0A',
-};
-
-const CHECK_COLORS = ['blue', 'red'];
 
 const {
   children,
@@ -119,6 +144,27 @@ const {
 } = useDayMarks(toRef(props, 'selectedDate'));
 
 const checkColor = (index: number): string => CHECK_COLORS[index] ?? 'primary';
+
+const { active: parentActive } = storeToRefs(useParentSessionStore());
+
+const switchedOffTasks = computed(() =>
+  parentActive.value ? tasksStore.kept.filter((task) => !task.active) : []
+);
+
+const editorOpen = ref(false);
+const editedTask = ref<Task | null>(null);
+
+const openEditor = (task: Task | null): void => {
+  if (!parentActive.value) {
+    return;
+  }
+  editedTask.value = task;
+  editorOpen.value = true;
+};
+
+const onTasksChanged = async (): Promise<void> => {
+  await recalculateStreaks();
+};
 </script>
 
 <style scoped>
@@ -167,6 +213,14 @@ const checkColor = (index: number): string => CHECK_COLORS[index] ?? 'primary';
 .task-info {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.task-info--editable {
+  cursor: pointer;
+}
+
+.task-row--off {
+  opacity: 0.5;
 }
 
 .task-points {

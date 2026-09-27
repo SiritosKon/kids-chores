@@ -1,6 +1,7 @@
 import { liveQuery, type Subscription } from 'dexie';
 import { table } from '@/shared/api/db';
-import { streakStateSchema, type StreakState } from '../model/schema';
+import { streakStateSchema } from '../model/schema';
+import type { StreakState } from '../model/types';
 
 export const streaksTable = table<StreakState>('streaks');
 

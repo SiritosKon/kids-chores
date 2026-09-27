@@ -3,8 +3,7 @@ import { liveQuery } from 'dexie';
 import { defineStore } from 'pinia';
 import { completionsTable } from '@/entities/completion/@x/wallet';
 import { spendsTable } from '@/entities/spend/@x/wallet';
-
-export type Balances = Readonly<Record<string, number>>;
+import type { Balances } from './types';
 
 export const useWalletStore = defineStore('wallet', () => {
   const balances = ref<Balances>({});

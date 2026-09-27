@@ -1,7 +1,7 @@
 import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { childrenCatalogue } from '../api/childrenRepo';
-import type { Child } from './schema';
+import type { Child } from './types';
 
 export const useChildrenStore = defineStore('children', () => {
   const items = ref<Child[]>([]);
@@ -13,7 +13,7 @@ export const useChildrenStore = defineStore('children', () => {
   });
   onScopeDispose(() => subscription.unsubscribe());
 
-  const active = computed(() => items.value.filter((child) => child.active));
+  const active = computed(() => items.value.filter((child) => child.active && child.archivedAt === undefined));
 
   const byId = (childId: string): Child | undefined =>
     items.value.find((child) => child.id === childId);

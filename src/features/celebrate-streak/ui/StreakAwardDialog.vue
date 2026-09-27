@@ -20,7 +20,7 @@
               <q-item-label>{{ awardTitle(award) }}</q-item-label>
               <q-item-label caption>
                 {{ childrenStore.nameOf(award.childId) }} ·
-                {{ award.days }} {{ pluralize(award.days, DAYS) }} подряд
+                {{ award.days }} {{ pluralize(award.days, DAY_WORD_FORMS) }} подряд
               </q-item-label>
             </q-item-section>
           </q-item>
@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { DAY_WORD_FORMS } from '@/shared/lib/constants';
 import { pluralize } from '@/shared/lib/plural';
 import { useChildrenStore } from '@/entities/child';
 import { useRewardsStore, rewardColor } from '@/entities/reward';
@@ -57,8 +58,6 @@ const props = withDefaults(
   { modelValue: false, awards: () => [] }
 );
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
-
-const DAYS = ['день', 'дня', 'дней'] as const;
 
 const childrenStore = useChildrenStore();
 const rewardsStore = useRewardsStore();

@@ -1,10 +1,7 @@
-export {
-  rewardSchema,
-  rewardVisibilitySchema,
-  type Reward,
-  type RewardVisibility,
-} from './model/schema';
-export { DEFAULT_REWARDS } from './model/defaults';
+export { rewardSchema, rewardVisibilitySchema } from './model/schema';
+export type { Reward, RewardVisibility } from './model/types';
 export { useRewardsStore } from './model/store';
-export { rewardsCatalogue } from './api/rewardsRepo';
+export { rewardsCatalogue, createReward, updateReward, archiveReward } from './api/rewardsRepo';
+export type { RewardDraft } from './api/types';
 export { rewardTierColor, rewardColor } from './lib/tier';
+export { REWARD_VISIBILITY_LABELS } from './lib/constants';

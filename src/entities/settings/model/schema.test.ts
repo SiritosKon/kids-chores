@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { storedSettingsSchema, DEFAULT_PARENT_PIN } from './schema';
+import { storedSettingsSchema } from './schema';
 
 describe('storedSettingsSchema', () => {
-  it('replaces a legacy password that is not a six-digit pin', () => {
+  it('leaves the pin unset when a legacy password is not six digits', () => {
     const settings = storedSettingsSchema.parse({ id: 'app', parentPassword: '54694945' });
 
-    expect(settings.parentPin).toBe(DEFAULT_PARENT_PIN);
+    expect(settings.parentPin).toBeNull();
   });
 
   it('carries over a legacy password that already looks like a pin', () => {
@@ -18,9 +18,7 @@ describe('storedSettingsSchema', () => {
     const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111' });
 
     expect(settings.bonus).toEqual({ enabled: true, points: 1 });
-    expect(settings.streak.milestones).toEqual([
-      { id: 'week', days: 7, rewardId: 'bubble-tea' },
-    ]);
+    expect(settings.streak).toEqual({ enabled: false, milestones: [] });
   });
 
   it('drops the legacy field from the parsed settings', () => {
@@ -30,8 +28,14 @@ describe('storedSettingsSchema', () => {
       'bonus',
       'id',
       'parentPin',
-      'seedVersion',
       'streak',
+      'tourPending',
     ]);
+  });
+
+  it('treats a row written before the tour existed as already introduced', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111' });
+
+    expect(settings.tourPending).toBe(false);
   });
 });

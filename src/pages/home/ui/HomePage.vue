@@ -22,6 +22,9 @@ import { GoalMeterBoard } from '@/widgets/goal-meter-board';
 import { TasksBoard } from '@/widgets/tasks-board';
 import { RewardsPanel } from '@/widgets/rewards-panel';
 import { DateSelector, useSelectedDateStore } from '@/features/select-date';
+import { useSetupTour } from '../model/useSetupTour';
 
 const { selectedDate } = storeToRefs(useSelectedDateStore());
+
+useSetupTour();
 </script>

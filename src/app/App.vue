@@ -11,8 +11,14 @@
               </div>
             </div>
             <div class="row items-center no-wrap q-gutter-sm">
-              <q-badge v-if="parentActive" color="orange" text-color="black" label="Родительский контроль" />
-              <ParentMenu />
+              <q-badge
+                v-if="parentActive"
+                color="orange"
+                text-color="black"
+                label="Родительский контроль"
+                data-tour="parent-badge"
+              />
+              <ParentMenu v-if="!needsSetup" />
             </div>
           </q-toolbar>
         </q-header>
@@ -21,7 +27,8 @@
           <q-banner v-if="!persistence" class="bg-warning text-black">
             Хранилище недоступно — отметки не сохранятся между сессиями.
           </q-banner>
-          <HomePage />
+          <OnboardingPage v-if="needsSetup" />
+          <HomePage v-else-if="settingsStore.loaded" />
         </q-page-container>
       </q-layout>
     </div>
@@ -37,10 +44,12 @@ import { formatDayKeyLong } from '@/shared/lib/date';
 import { isPersistenceAvailable } from '@/shared/api/db';
 import { recordVersion } from '@/entities/app-version';
 import { useParentSessionStore } from '@/entities/parent-session';
+import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
 import { useWhatsNewStore, WhatsNewDialog } from '@/features/whats-new';
 import { ParentMenu } from '@/widgets/parent-menu';
 import { HomePage } from '@/pages/home';
+import { OnboardingPage } from '@/pages/onboarding';
 
 const $q = useQuasar();
 const persistence = isPersistenceAvailable();
@@ -49,6 +58,9 @@ const { active: parentActive } = storeToRefs(useParentSessionStore());
 const whatsNew = useWhatsNewStore();
 const { isOpen: whatsNewOpen } = storeToRefs(whatsNew);
 const appVersion = __APP_VERSION__;
+const settingsStore = useSettingsStore();
+
+const needsSetup = computed(() => settingsStore.loaded && !settingsStore.settings?.parentPin);
 
 const dateLabel = computed(() => formatDayKeyLong(selectedDate.value));
 

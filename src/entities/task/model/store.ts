@@ -2,7 +2,7 @@ import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { tasksCatalogue } from '../api/tasksRepo';
 import { reservedTaskName } from '../lib/reserved';
-import type { Task } from './schema';
+import type { Task } from './types';
 
 export const useTasksStore = defineStore('tasks', () => {
   const items = ref<Task[]>([]);
@@ -16,9 +16,11 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const active = computed(() => items.value.filter((task) => task.active));
 
+  const kept = computed(() => items.value.filter((task) => task.archivedAt === undefined));
+
   const byId = (taskId: string): Task | undefined => items.value.find((task) => task.id === taskId);
 
   const nameOf = (taskId: string): string => reservedTaskName(taskId) ?? byId(taskId)?.name ?? taskId;
 
-  return { items, active, loaded, byId, nameOf };
+  return { items, active, kept, loaded, byId, nameOf };
 });

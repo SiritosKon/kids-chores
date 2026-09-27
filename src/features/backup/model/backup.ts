@@ -4,17 +4,10 @@ import { spendsTable, getAllSpends } from '@/entities/spend';
 import { childrenCatalogue } from '@/entities/child';
 import { tasksCatalogue } from '@/entities/task';
 import { rewardsCatalogue } from '@/entities/reward';
-import { settingsTable, getSettings, saveSettings } from '@/entities/settings';
-import { backupSchema, describeIssues, BACKUP_VERSION, type Backup } from './schema';
-
-const TABLES = [
-  completionsTable,
-  spendsTable,
-  childrenCatalogue.table,
-  tasksCatalogue.table,
-  rewardsCatalogue.table,
-  settingsTable,
-];
+import { getSettings, saveSettings } from '@/entities/settings';
+import { backupSchema, describeIssues } from './schema';
+import { BACKUP_VERSION, BACKUP_TABLES } from './constants';
+import type { Backup } from './types';
 
 export const exportAll = async (): Promise<Backup> => {
   const [completions, spends, children, tasks, rewards, settings] = await Promise.all([
@@ -45,7 +38,7 @@ export const importAll = async (data: unknown): Promise<void> => {
   }
   const { completions, spends = [], children, tasks, rewards, settings } = parsed.data;
 
-  await transaction(TABLES, async () => {
+  await transaction(BACKUP_TABLES, async () => {
     await completionsTable.clear();
     await completionsTable.bulkAdd(completions);
 

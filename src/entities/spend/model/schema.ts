@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Spend } from './types';
 
 const timestamp = z.number().int().nonnegative();
 
@@ -12,9 +13,6 @@ export const spendSchema = z.object({
   createdAt: timestamp,
   source: spendSourceSchema,
 });
-
-export type SpendSource = z.infer<typeof spendSourceSchema>;
-export type Spend = z.infer<typeof spendSchema>;
 
 export const storedSpendSchema = spendSchema
   .extend({ createdAt: timestamp.optional(), source: spendSourceSchema.optional() })

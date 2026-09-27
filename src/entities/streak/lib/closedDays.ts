@@ -1,16 +1,9 @@
-export interface DayMark {
-  date: string;
-  taskId: string;
-}
+import type { DayMark } from './types';
 
 export const closedDaysFrom = (
   marks: readonly DayMark[],
-  requiredTaskIds: readonly string[]
+  requiredOn: (day: string) => readonly string[]
 ): string[] => {
-  if (requiredTaskIds.length === 0) {
-    return [];
-  }
-
   const byDay = new Map<string, Set<string>>();
   for (const mark of marks) {
     const day = byDay.get(mark.date) ?? new Set<string>();
@@ -19,7 +12,10 @@ export const closedDaysFrom = (
   }
 
   return [...byDay.entries()]
-    .filter(([, done]) => requiredTaskIds.every((taskId) => done.has(taskId)))
+    .filter(([day, done]) => {
+      const required = requiredOn(day);
+      return required.length > 0 && required.every((taskId) => done.has(taskId));
+    })
     .map(([day]) => day)
     .sort();
 };

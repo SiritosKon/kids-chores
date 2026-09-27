@@ -1,6 +1,8 @@
 import { date } from 'quasar';
+import { z } from 'zod';
+import { DAY_KEY_FORMAT } from './constants';
 
-export const DAY_KEY_FORMAT = 'YYYY-MM-DD';
+export const dayKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 export const todayKey = (): string => {
   return date.formatDate(Date.now(), DAY_KEY_FORMAT);
@@ -32,6 +34,18 @@ export const formatTimestampNumeric = (timestamp: number): string => {
 
 export const formatTimestampShort = (timestamp: number): string => {
   return new Date(timestamp).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+};
+
+export const dayKeyOf = (timestamp: number): string => date.formatDate(timestamp, DAY_KEY_FORMAT);
+
+export const formatDayHeader = (dayKey: string, today: string = todayKey()): string => {
+  const sameYear = dayKey.slice(0, 4) === today.slice(0, 4);
+  return toDate(dayKey).toLocaleDateString('ru-RU', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    ...(sameYear ? {} : { year: 'numeric' }),
+  });
 };
 
 const toDate = (dayKey: string): Date => {
