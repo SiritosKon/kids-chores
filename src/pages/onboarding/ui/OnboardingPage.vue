@@ -7,6 +7,17 @@
         Дети отмечают дела, копят баллы и обменивают их на награды. Настраивает всё родитель в
         родительском режиме — он закрыт PIN-кодом из шести цифр.
       </p>
+      <div class="onboarding__alpha">
+        <q-icon name="science" size="20px" class="onboarding__alpha-icon" />
+        <div>
+          <div class="text-weight-bold">Это альфа-версия</div>
+          <div>
+            Приложение работает только локально: все данные хранятся на этом устройстве и никуда не
+            отправляются. Периодически делайте «Экспорт данных» в родительском режиме, чтобы не потерять
+            информацию.
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="onboarding__pin">
@@ -71,6 +82,25 @@ const onPin = async (value: string): Promise<void> => {
 .onboarding__pin {
   width: 100%;
   max-width: 440px;
+}
+
+.onboarding__alpha {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 159, 10, 0.12);
+  color: #ffd9a0;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.onboarding__alpha-icon {
+  flex: 0 0 auto;
+  color: #ff9f0a;
+  margin-top: 1px;
 }
 
 .onboarding__emoji {

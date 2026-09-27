@@ -39,6 +39,10 @@
             <q-item-section avatar><q-icon name="auto_awesome" /></q-item-section>
             <q-item-section>Что нового</q-item-section>
           </q-item>
+          <q-item v-if="installable" clickable v-close-popup @click="showInstallGuide = true">
+            <q-item-section avatar><q-icon name="add_to_home_screen" /></q-item-section>
+            <q-item-section>Как добавить на экран</q-item-section>
+          </q-item>
         </q-list>
       </q-menu>
     </q-btn>
@@ -46,6 +50,7 @@
     <input ref="fileInput" type="file" accept="application/json" style="display: none" @change="onFile" />
     <PinDialog v-model="showLogin" />
     <SpendsDialog v-model="showSpends" />
+    <InstallGuideDialog v-model="showInstallGuide" />
     <SettingsDialog
       v-model="settingsOpen"
       @changed="recalculateStreaks"
@@ -72,6 +77,7 @@ import { PinDialog } from '@/features/parent-login';
 import { SpendsDialog } from '@/features/rollback-spend';
 import { SettingsDialog, useSettingsDialogStore } from '@/features/edit-settings';
 import { RewardEditDialog } from '@/features/edit-reward';
+import { InstallGuideDialog, canAddToHomeScreen } from '@/features/install-app';
 import { useWhatsNewStore } from '@/features/whats-new';
 import { exportAll, importAll, downloadJson } from '@/features/backup';
 import { recalculateStreaks } from '@/features/track-streak';
@@ -89,6 +95,8 @@ const showSpends = ref(false);
 const settingsDialog = useSettingsDialogStore();
 const { isOpen: settingsOpen } = storeToRefs(settingsDialog);
 const showRewardEditor = ref(false);
+const showInstallGuide = ref(false);
+const installable = canAddToHomeScreen();
 
 const createStreakReward = (): void => {
   settingsDialog.close();

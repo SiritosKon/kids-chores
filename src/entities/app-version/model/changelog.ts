@@ -2,6 +2,14 @@ import type { ChangelogEntry } from './types';
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '0.3.0',
+    date: '2026-09-27',
+    notes: [
+      'Инструкция «Как добавить на экран» для iPhone и iPad в меню',
+      'На стартовом экране — предупреждение, что данные хранятся только на устройстве',
+    ],
+  },
+  {
     version: '0.2.8',
     date: '2026-09-27',
     notes: [
