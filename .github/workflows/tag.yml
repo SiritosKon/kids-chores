@@ -14,6 +14,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - id: version
         run: |
           version="$(node -p "require('./package.json').version")"
@@ -23,7 +26,12 @@ jobs:
               exit 1
               ;;
           esac
+          printf 'number=%s\n' "$version" >> "$GITHUB_OUTPUT"
           printf 'value=v%s\n' "$version" >> "$GITHUB_OUTPUT"
+          case "$version" in
+            *.0) printf 'release=true\n' >> "$GITHUB_OUTPUT" ;;
+            *) printf 'release=false\n' >> "$GITHUB_OUTPUT" ;;
+          esac
       - name: Create tag when the version is new
         env:
           TAG: ${{ steps.version.outputs.value }}
@@ -36,3 +44,16 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git tag -a "$TAG" -m "$TAG"
           git push origin "$TAG"
+      - name: Publish a release for a minor or major version
+        if: steps.version.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.value }}
+          VERSION: ${{ steps.version.outputs.number }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, nothing to do"
+            exit 0
+          fi
+          node scripts/releaseNotes.mjs "$VERSION" > release-notes.md
+          gh release create "$TAG" --title "$TAG" --notes-file release-notes.md --verify-tag
