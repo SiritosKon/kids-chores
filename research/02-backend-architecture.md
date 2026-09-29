@@ -218,17 +218,19 @@ RU и EU — два отдельных сайта (`03`): RU — на росси
 
 | Вариант | Плюсы | Минусы |
 |---|---|---|
-| Self-hosted IdP в каждом контуре (Keycloak, Zitadel, Authentik, Ory, Logto) | Готовые сессии, MFA, админка | Ещё один stateful-сервис × 2 контура; хранит профиль пользователя — против раздела 6.2; Яндекс всё равно донастраивать |
-| Better Auth в монолите | Сессии в своей БД, VK из коробки, generic OAuth под Яндекс | Модель пользователя рассчитана на email; интеграция с NestJS — комьюнити-пакет [ba-nest] |
-| **Свой тонкий слой** | Храним ровно то, что решили в 6.2; два-три провайдера — немного кода | Сессии, защита от перебора, ротация — своими руками |
+| Облачный сервис входа (Auth0, Clerk, Supabase Auth) | Ничего не пишем | Нет в обоих регионах, хранит профиль пользователя у себя |
+| Свой сервер входа в каждом контуре (Keycloak, Zitadel, Authentik, Ory, Logto) | Готовые сессии, MFA, админка | Ещё один сервис с базой в каждом контуре, хранит профиль пользователя |
+| Библиотека Better Auth | Готовые сессии, провайдер VK есть | Рассчитана на пользователя с email; с NestJS — через сторонний пакет [ba-nest] |
+| **Свой модуль входа** | Храним ровно то, что решили в 6.2 | Сессии и защиту от перебора пишем сами |
 
-Managed-SaaS (Auth0, Clerk, Supabase Auth) не подходит: ни один не развёрнут в обоих регионах, и
-все хранят профиль у себя. Lucia устарела (март 2025) [lucia].
+**Решение: свой модуль входа (Identity) внутри `api`.**
 
-**Решение (предварительно): свой тонкий слой в модуле Identity.** OAuth-клиенты — готовая
-библиотека (`openid-client` для Google, адаптер для Яндекса и VK; проверить `arctic`, где оба
-провайдера есть в списке — не проверено), остальное своё: `auth_accounts` с хешем, сессии в Redis,
-rate-limit. Это небольшой объём кода именно потому, что нет паролей, email и OTP.
+- Обмен кода на токен у Google — библиотека `openid-client`. У Яндекса и VK протокол нестандартный
+  (раздел 6.1), для них пишем по небольшому адаптеру.
+- Сами пишем: таблицу `auth_accounts` с хешем идентификатора, сессии в Redis, ограничение
+  попыток входа.
+- Кода немного: нет паролей, email и одноразовых кодов — только «вернулся от провайдера → нашли
+  или создали аккаунт → выдали сессию».
 
 ### 6.4. Сессии
 
@@ -616,8 +618,6 @@ C4Container
 - [yandex-id] https://yandex.com/dev/id/doc/en/codes/code-url
 - [vkid] https://github.com/VKCOM/vkid-web-sdk
 - [ba-nest] https://better-auth.com/docs/integrations/nestjs
-- [lucia] https://github.com/lucia-auth/lucia
-- [authjs-ba] https://better-auth.com/blog/authjs-joins-better-auth
 - [netguru-pwa] https://www.netguru.com/blog/how-to-share-session-cookie-or-state-between-pwa-in-standalone-mode-and-safari-on-ios
 - [dexie-cloud] https://dexie.org/cloud/pricing
 - ElectricSQL 1.0: https://electric-sql.com/blog/2025/03/17/electricsql-1.0-released
