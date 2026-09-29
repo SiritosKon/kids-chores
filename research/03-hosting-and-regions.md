@@ -2,7 +2,7 @@
 
 Ресерч перед ADR: где и как размещать бэкенд из `02`, как разнести его на два изолированных
 контура и во что это обходится. По каждому пункту: ограничения → варианты → решение → риски.
-Цены — на сентябрь 2026, ориентировочные; что не удалось проверить, помечено.
+Цены — на сентябрь 2026, ориентировочные; что не удалось проверить, помечено «не проверено».
 
 **Статус:** ресерч, версия 2 (сентябрь 2026). Это не юридическая консультация.
 
@@ -10,7 +10,7 @@
 
 - **RU — 152-ФЗ, ч. 5 ст. 18.** С 01.07.2025 (23-ФЗ) запрещены запись, систематизация, накопление,
   хранение, уточнение и извлечение персональных данных граждан РФ с использованием баз данных за
-  пределами РФ [lidings-23fz]. Схема «пишем за рубеж, копируем в РФ» больше не работает. База, фото,
+  пределами РФ. Схема «пишем за рубеж, копируем в РФ» больше не работает. База, фото,
   бэкапы, логи с ПДн, почта — только на серверах в РФ.
 - **EU — GDPR.** Данные жителей ЕС обрабатываются по GDPR. Требования локализации нет, но передача
   в третьи страны — по правилам гл. V, а данные детей — повышенного внимания (см. `04`).
@@ -23,7 +23,7 @@
 
 | Раздельно в каждом контуре | Общее |
 |---|---|
-| БД, Redis, объектное хранилище, бэкапы | Исходный код и Docker-образы (без данных и секретов) |
+| БД, Valkey, объектное хранилище, бэкапы | Исходный код и Docker-образы (без данных и секретов) |
 | Домен, TLS, DNS | Пайплайн CI (сборка один раз) |
 | Секреты, ключи сессий, VAPID, OAuth-клиенты | Схема БД и миграции |
 | Провайдеры входа (`02`, раздел 6) | Контракт API |
@@ -32,15 +32,15 @@
 
 Кросс-региональной репликации нет. Данные из контура не выходят — ни в бэкапах, ни в логах, ни в
 сторонних сервисах (Sentry, аналитика, почта — в том же контуре). Любой зарубежный сервис с ПДн в
-RU-контуре — это трансграничная передача с отдельным уведомлением РКН (ст. 12 152-ФЗ) [kontur-rkn].
+RU-контуре — это трансграничная передача с отдельным уведомлением РКН (ст. 12 152-ФЗ).
 
 ## 3. Что размещаем в каждом контуре
 
 1. **Фронтенд** — статика PWA + CDN.
 2. **Бэкенд** — `api` (+ `outbox-relay`) и отдельный сервис `notifications` (`02`, раздел 3).
 3. **PostgreSQL** — managed, с PITR.
-4. **Redis-совместимое хранилище** — managed, с персистентностью AOF (Streams не должны теряться
-   при перезапуске).
+4. **Valkey** — контейнер на той же VM, с сохранением на диск (AOF), чтобы Streams переживали
+   перезапуск. Managed не нужен (`02`, раздел 5.1).
 5. **Объектное хранилище** — S3-совместимое, приватное (фото, выгрузки; см. `04`).
 6. **Домен, TLS, DNS.**
 7. **Логи и ошибки** — сбор логов провайдера + GlitchTip.
@@ -53,47 +53,49 @@ RU-контуре — это трансграничная передача с о
 | Вариант | Плюсы | Минусы |
 |---|---|---|
 | **VM + Docker Compose** (`api`, `outbox-relay`, `notifications`) | Дёшево, предсказуемо, одинаково у всех провайдеров; потребители событий работают постоянно | Обновления ОС и Docker — на нас |
-| Serverless-контейнеры | Нет VM, автоскейл | `notifications` (BullMQ и `XREADGROUP`) должен жить постоянно; у Yandex Serverless Containers таймаут 10 минут по умолчанию [yc-sc-limits], у Scaleway постоянно работающий контейнер стоит ~€15/мес |
+| Serverless-контейнеры | Нет VM, автоскейл | `notifications` (BullMQ и `XREADGROUP`) должен жить постоянно; у Yandex Serverless Containers таймаут 10 минут по умолчанию, у Scaleway постоянно работающий контейнер стоит ~€15/мес |
 | Managed Kubernetes | Стандарт | Избыточно для двух процессов |
 
-**Решение:** одна VM на контур с Docker Compose, БД и Redis — managed. Масштаб — вертикально, а
-при необходимости вторая VM за балансировщиком (API stateless, сессии в Redis).
+**Решение:** одна VM на контур с Docker Compose (`api`, `outbox-relay`, `notifications`, Valkey), Postgres — managed. Масштаб — вертикально, а
+при необходимости вторая VM за балансировщиком (API stateless, сессии в Valkey).
 
 ## 5. RU-контур: провайдеры
 
-| Провайдер | Postgres | Redis-совместимое | S3 / CDN | Прочее | ~₽/мес |
-|---|---|---|---|---|---|
-| **Yandex Cloud** | Managed PG, PITR (ежедневный бэкап + WAL, 7 дней по умолчанию) [yc-pg-backup] | **Только Valkey** (7.2, 8.0, 8.1), AOF `everysec` по умолчанию [yc-valkey] | Object Storage, Cloud CDN | Cloud Logging, Lockbox, Container Registry, Workload Identity Federation для GitHub Actions | 8–11 тыс. (оценка) |
-| VK Cloud | DBaaS PG, 1 vCPU / 2 ГБ ~1 600 ₽ без диска | **Redis** | S3 Hotbox, CDN | — | 5–7 тыс. [vk-price] |
-| Selectel | Managed PG, PITR через WAL | Redis 6, Valkey обещают | S3, CDN | Registry | 6–9 тыс. (не проверено) |
-| Timeweb Cloud | PG от 790 ₽ | Redis и Valkey (от 670 ₽) | S3 | VPS от ~300 ₽ | 2–3,5 тыс. (PITR и AOF не проверены) |
+Valkey во всех вариантах — контейнер на нашей VM (`02`, раздел 5.1), поэтому managed Redis в цену
+не входит.
+
+| Провайдер | Postgres | S3 / CDN | Прочее | ~₽/мес |
+|---|---|---|---|---|
+| **Yandex Cloud** | Managed PG, PITR (ежедневный бэкап + WAL, 7 дней по умолчанию) | Object Storage, Cloud CDN | Cloud Logging, Lockbox, Container Registry, Workload Identity Federation для GitHub Actions | 5–8 тыс. (оценка) |
+| VK Cloud | DBaaS PG, 1 vCPU / 2 ГБ ~1 600 ₽ без диска | S3 Hotbox, CDN | — | 4–6 тыс. (оценка) |
+| Selectel | Managed PG, PITR через WAL | S3, CDN | Registry | 5–8 тыс. (не проверено) |
+| Timeweb Cloud | PG от 790 ₽ | S3 | VPS от ~300 ₽ | 1,5–3 тыс. (PITR не проверен) |
 
 Цены Yandex Cloud — оценка по USD-примерам документации, с 01.05.2026 действуют новые цены.
 
 **Решение (предварительно): Yandex Cloud.** Самая зрелая платформа из списка, всё нужное — в одном
-месте: Managed PG с PITR, Managed Valkey с AOF, Lockbox для секретов, вход GitHub Actions без
-ключей через Workload Identity Federation. Redis-совместимое хранилище здесь — **Valkey**
-(см. правила совместимости в `02`, раздел 5). Бюджетная альтернатива — Timeweb Cloud: дешевле в
-3–4 раза, но PITR и AOF надо проверить до выбора.
+месте: Managed PG с PITR, Lockbox для секретов, вход GitHub Actions без ключей через Workload
+Identity Federation. Если понадобится managed-брокер — у Yandex это Managed Valkey, код не меняется.
+Бюджетная альтернатива — Timeweb Cloud: дешевле в 2–3 раза, но PITR надо проверить до выбора.
 
 Оплата: Yandex Cloud принимает нерезидентов — только в USD, активация через менеджера до 3 рабочих
-дней, из части стран регистрация закрыта [yc-nonresident].
+дней, из части стран регистрация закрыта.
 
 ## 6. EU-контур: провайдеры
 
-Критерии: провайдер из ЕС (без CLOUD Act), managed PG с PITR, Redis-совместимое хранилище,
-готовность работать с владельцем проекта (см. раздел 11).
+Критерии: провайдер из ЕС (без CLOUD Act), managed PG с PITR, готовность работать с владельцем
+проекта (см. раздел 11). Valkey — как и в RU, контейнер на VM.
 
-| Провайдер | Postgres | Redis-совместимое | Замечания | ~€/мес |
-|---|---|---|---|---|
-| **OVHcloud** (FR) | Managed PG | **Valkey** [ovh-valkey] | Цены не проверены | 15–40 (не проверено) |
-| **Scaleway** (FR) | Managed PG, DB-DEV-S ~€11,3 | **Redis**, от ~€34,6 | PITR под вопросом (feature request) [scw-pitr] | 60–75 |
-| Hetzner (DE) | Managed PG нет; сторонний Ubicloud на Hetzner — от $19 | Самим на VM | **С 31.01.2024 расторг договоры с клиентами с российским адресом** [hetzner-ru] | 15–35 |
-| Render (US) | Postgres от $6 | Key Value (Valkey) ~$10 | EU-регион, DPF/SCC | 30–40 $ |
-| Fly.io (US) | Managed PG от $38 | Upstash (Fixed-план от $10 для BullMQ) | EU-регионы | ~55 $ |
+| Провайдер | Postgres | Замечания | ~€/мес |
+|---|---|---|---|
+| **OVHcloud** (FR) | Managed PG | Цены не проверены; managed Valkey есть на будущее | 10–30 (не проверено) |
+| **Scaleway** (FR) | Managed PG, DB-DEV-S ~€11,3 | PITR под вопросом (открыт запрос на фичу) | 25–40 |
+| Hetzner (DE) | Managed PG нет; сторонний Ubicloud на Hetzner — от $19 | **С 31.01.2024 расторг договоры с клиентами с российским адресом** | 15–35 |
+| Render (US) | Postgres от $6 | EU-регион, DPF/SCC | 20–30 $ |
+| Fly.io (US) | Managed PG от $38 | EU-регионы | ~45 $ |
 
 **US-провайдеры в EU-регионах легальны:** EU-US Data Privacy Framework устоял в General Court
-(Latombe, сентябрь 2025), но апелляция в CJEU (C-703/25 P) не рассмотрена [iapp-latombe]. Safe Harbor
+(Latombe, сентябрь 2025), но апелляция в CJEU (C-703/25 P) не рассмотрена. Safe Harbor
 и Privacy Shield CJEU отменял — риск переезда остаётся, плюс CLOUD Act. Для детских данных
 предпочитаем провайдера из ЕС.
 
@@ -107,8 +109,8 @@ RU-контуре — это трансграничная передача с о
   (например, набор провайдеров входа), и то это решается конфигом.
 - **RU-контур — статика из российского облака:** Yandex Object Storage + Cloud CDN (или Selectel /
   VK CDN). GitHub Pages не подходит: доступность GitHub из РФ в 2026 деградирует, в мае доля сбоев
-  доходила до 10–16%, 14.07.2026 был массовый сбой [cnews-github]. Cloudflare российские провайдеры
-  режут с июня 2025 [habr-cf]. Кроме того, IP посетителя может считаться ПДн (не проверено).
+  доходила до 10–16%, 14.07.2026 был массовый сбой. Cloudflare российские провайдеры
+  режут с июня 2025. Кроме того, IP посетителя может считаться ПДн (не проверено).
 - **EU-контур** — Cloudflare Pages, GitHub Pages или статика у того же провайдера.
 - Service worker и IndexedDB привязаны к origin — переезд с `siritoskon.github.io` на свой домен
   описан в `02`, раздел 7.3.
@@ -117,9 +119,9 @@ RU-контуре — это трансграничная передача с о
 
 | Зона | Требования | Для нас |
 |---|---|---|
-| `.ru` / `.рф` | Иностранцы могут регистрировать. **С 01.09.2026** (569-ФЗ) администратор проходит идентификацию через Госуслуги; нерезиденту нужны СНИЛС и российский номер или «доверенный администратор». Переходный режим — до 18.01.2027 (источники расходятся) [habr-ru-domains] | RU-контур |
-| `.eu` | Только граждане ЕС/ЕЭЗ (где бы ни жили), жители ЕС/ЕЭЗ и организации там [eurid] | Недоступен гражданину РФ, живущему в РФ |
-| `.app` | Реестр Google, вся зона в HSTS preload — только HTTPS [porkbun-app] | EU-контур; для PWA HTTPS и так обязателен |
+| `.ru` / `.рф` | Иностранцы могут регистрировать. **С 01.09.2026** (569-ФЗ) администратор проходит идентификацию через Госуслуги; нерезиденту нужны СНИЛС и российский номер или «доверенный администратор». Переходный режим — до 18.01.2027 (источники расходятся) | RU-контур |
+| `.eu` | Только граждане ЕС/ЕЭЗ (где бы ни жили), жители ЕС/ЕЭЗ и организации там | Недоступен гражданину РФ, живущему в РФ |
+| `.app` | Реестр Google, вся зона в HSTS preload — только HTTPS | EU-контур; для PWA HTTPS и так обязателен |
 | `.com` | Без требований к резидентству | EU-контур, альтернатива |
 
 **Схема:** один бренд, два домена: `<бренд>.ru` — RU, `<бренд>.app` (или `.com`) — EU. Внутри —
@@ -137,7 +139,7 @@ RU-контуре — это трансграничная передача с о
 Пограничные случаи:
 
 - **Житель РФ в EU-контуре.** Если EU-контур сочтут направленным на РФ, это нарушение ч. 5 ст. 18
-  152-ФЗ. Признаки направленности — русский язык, домен `.ru`, оплата в рублях [rb-localization].
+  152-ФЗ. Признаки направленности — русский язык, домен `.ru`, оплата в рублях.
   **Интерфейс сейчас только на русском** — сильный признак. Смягчение: английский интерфейс в
   EU-контуре (связано с бэклогом «Локализация»), в условиях — «не для резидентов РФ». Достаточно ли
   этого — не проверено.
@@ -152,12 +154,12 @@ RU-контуре — это трансграничная передача с о
 
 | RU | EU |
 |---|---|
-| Уведомление РКН об обработке ПДн (ст. 22) [rkn-notify] | Представитель в ЕС (Art. 27), если владелец не учреждён в ЕС [gdpr-27] |
-| Согласие — **отдельным документом**, не пунктом оферты (с 01.09.2025) [garant-consent] | Короткая DPIA: дети + систематическое отслеживание поведения [edpb-dpia] |
+| Уведомление РКН об обработке ПДн (ст. 22) | Представитель в ЕС (Art. 27), если владелец не учреждён в ЕС |
+| Согласие — **отдельным документом**, не пунктом оферты (с 01.09.2025) | Короткая DPIA: дети + систематическое отслеживание поведения |
 | Согласие за ребёнка даёт родитель | Возраст согласия (Art. 8): 13–16 по странам — аккаунт у родителя, ребёнок — субъект данных |
 | Никаких зарубежных сервисов с ПДн без уведомления о трансграничной передаче | Провайдеры с DPA; для US — DPF/SCC |
 
-Штрафы в РФ выросли с 30.05.2025 (420-ФЗ): за неподачу уведомления — 100–300 тыс. ₽ [cons-420].
+Штрафы в РФ выросли с 30.05.2025 (420-ФЗ): за неподачу уведомления — 100–300 тыс. ₽.
 
 ## 11. Владелец и оплата
 
@@ -168,7 +170,7 @@ RU-контуре — это трансграничная передача с о
   пользователей из РФ), `.eu` недоступен (если живёт в РФ), Hetzner не обслуживает клиентов с
   российским адресом. Российские карты за рубежом не работают (не проверено свежим источником).
   Санкции ЕС (ст. 5n Рег. 833/2014) касаются юрлиц в РФ, но провайдеры часто отказывают сами
-  [ec-sanctions].
+ .
 - **Реалистичные схемы:** самозанятость или ИП в РФ для RU-контура + нанятый представитель по
   Art. 27 для EU; либо EU-юрлицо, если владелец живёт в ЕС.
 - Политику OVHcloud и Scaleway к клиентам из РФ — проверить до выбора.
@@ -176,11 +178,11 @@ RU-контуре — это трансграничная передача с о
 ## 12. IaC и CI/CD
 
 - **OpenTofu** (MPL 2.0, CNCF) вместо Terraform (BSL 1.1). Провайдеры для Yandex — через зеркало
-  `terraform-mirror.yandexcloud.net`: реестр HashiCorp закрыт для российских IP [yc-tf-mirror].
+  `terraform-mirror.yandexcloud.net`: реестр HashiCorp закрыт для российских IP.
 - **Сборка один раз, деплой по контурам.** GitHub Actions собирает образы и фронт; деплой — отдельные
   job'ы с GitHub environment на каждый контур (свои секреты, ручное подтверждение для прода).
 - **Без долгоживущих ключей:** Yandex Cloud поддерживает Workload Identity Federation с issuer
-  `token.actions.githubusercontent.com` [yc-wif]. Для EU — по возможностям провайдера.
+  `token.actions.githubusercontent.com`. Для EU — по возможностям провайдера.
 - **Registry и секреты — в своём контуре:** Yandex Container Registry + Lockbox; в EU — registry и
   secret manager провайдера (или GHCR для образов — в них нет данных).
 - Миграции БД — отдельным шагом деплоя перед перезапуском `api`, `outbox-relay` и `notifications`.
@@ -190,7 +192,7 @@ RU-контуре — это трансграничная передача с о
 
 ## 13. Окружения
 
-- **Локально** — Docker Compose: Postgres, Redis, MinIO (S3), `api`, `outbox-relay`, `notifications`.
+- **Локально** — Docker Compose: Postgres, Valkey, MinIO (S3), `api`, `outbox-relay`, `notifications`.
 - **Staging — один**, в более дешёвом месте: VM с тем же Compose (Timeweb ~2 тыс. ₽ или аналог в
   EU). Staging в каждом контуре удваивает счёт за managed-БД.
 - IaC каждого провайдера проверяем эфемерным окружением: OpenTofu поднимает, прогоняет смоук-тесты,
@@ -200,23 +202,22 @@ RU-контуре — это трансграничная передача с о
 
 | Контур | Минимум | Предварительный выбор |
 |---|---|---|
-| RU | 2–3,5 тыс. ₽ (Timeweb) | 8–11 тыс. ₽ (Yandex Cloud) |
-| EU | 15–35 € (Hetzner + свои сервисы) | 15–75 € (OVHcloud / Scaleway), 30–40 $ (Render) |
+| RU | 1,5–3 тыс. ₽ (Timeweb) | 5–8 тыс. ₽ (Yandex Cloud) |
+| EU | 15–35 € (Hetzner + свои сервисы) | 10–40 € (OVHcloud / Scaleway), 20–30 $ (Render) |
 | Staging | ~2 тыс. ₽ | — |
 | Домены | `.ru` 200–1 000 ₽/год, `.app` / `.com` 10–20 €/год | — |
 | Представитель по Art. 27 | сотни € в год (не проверено) | — |
 
-Основная статья — managed-БД и managed-Redis; вычисления копеечные.
+Основная статья — managed Postgres. Valkey бесплатный — работает в контейнере на той же VM.
 
 ## 15. Порядок внедрения
 
-1. Решить вопрос владельца (раздел 11) — от него зависит EU-контур.
-2. Поднять **первый контур** — тот, где живут первые семьи. Сейчас приложением пользуется одна
+1. Поднять **первый контур** — тот, где живут первые семьи. Сейчас приложением пользуется одна
    семья с русским интерфейсом, так что естественный первый — RU. Всё через OpenTofu: VM, PG,
-   Redis, S3, DNS, CI.
-3. Перенести данные вручную (`02`, раздел 7.3), обкатать.
-4. Второй контур — клоном IaC с другим провайдером, когда появится спрос и английский интерфейс.
-5. Проверить изоляцию: бэкапы, логи, ошибки, почта — в своём контуре.
+   S3, DNS, CI.
+2. Перенести данные вручную (`02`, раздел 7.3), обкатать.
+3. Второй контур — клоном IaC с другим провайдером, когда появится спрос и английский интерфейс.
+4. Проверить изоляцию: бэкапы, логи, ошибки, почта — в своём контуре.
 
 ## 16. Риски
 
@@ -229,56 +230,8 @@ RU-контуре — это трансграничная передача с о
 | Утечка ПДн через сторонний сервис | Все сервисы с ПДн — внутри контура |
 | Новые требования к доменам `.ru` | Идентификация администратора через Госуслуги до регистрации |
 
-## 17. Открытые вопросы
-
-1. Кто владелец каждого контура и где он резидент? (То же, что вопрос №1 в `02`.)
-2. Какой контур первый — RU?
-3. RU: Yandex Cloud или Timeweb (после проверки PITR и AOF)?
-4. EU: OVHcloud, Scaleway или Render — после проверки политики к владельцу.
-5. Представитель по Art. 27 — когда запускаем EU.
-
-## 18. Планы на будущее
+## 17. Планы на будущее
 
 - Нативная обёртка (Capacitor) для надёжного push на iOS — если Web Push окажется недостаточным.
 - Отдельный staging в каждом контуре — когда вырастет нагрузка или команда.
 - Вторая VM и балансировщик — по нагрузке.
-
-## Источники
-
-- [lidings-23fz] https://www.lidings.com/ru/media/legalupdates/localization_pd_update/
-- [kontur-rkn] https://www.kontur-extern.ru/info/37797-uvedomit_roskomnadzor_o_transgranichnoy_peredache_dannyh
-- [rkn-notify] https://pd.rkn.gov.ru/operators-registry/notification/form/
-- [garant-consent] https://www.garant.ru/article/1862510/
-- [cons-420] https://www.consultant.ru/legalnews/28492/
-- [rb-localization] https://rb.ru/columns/localization-of-data/
-- [gdpr-27] https://gdpr-info.eu/art-27-gdpr/
-- [edpb-dpia] https://keepabl.com/news/edpb-guidance-dpias-9-criteria/
-- [iapp-latombe] https://iapp.org/news/a/european-general-court-dismisses-latombe-challenge-upholds-eu-us-data-privacy-framework
-- [hetzner-ru] https://lowendbox.com/blog/hetzner-tells-russian-customers-to-get-lost/
-- [ec-sanctions] https://finance.ec.europa.eu/system/files/2023-07/faqs-sanctions-russia-services-provision_en.pdf
-- [yc-nonresident] https://yandex.cloud/ru/docs/billing/qa/non-resident
-- [yc-sc-limits] https://github.com/yandex-cloud/docs/blob/master/en/serverless-containers/concepts/limits.md
-- [yc-pg-backup] https://yandex.cloud/en/docs/managed-postgresql/concepts/backup
-- [yc-valkey] https://yandex.cloud/en/docs/managed-valkey/
-- [yc-tf-mirror] https://yandex.cloud/en/docs/troubleshooting/terraform/known-issues/failed-to-quety-available-provider-packages
-- [yc-wif] https://yandex.cloud/en/docs/iam/concepts/workload-identity
-- [vk-price] https://cloud.vk.ru/pricelist/
-- Selectel PostgreSQL: https://selectel.ru/services/cloud/managed-databases/postgresql/
-- Timeweb PostgreSQL: https://timeweb.cloud/services/postgresql
-- [ovh-valkey] https://us.ovhcloud.com/public-cloud/valkey/
-- Scaleway Managed DB: https://www.scaleway.com/en/pricing/managed-databases/
-- [scw-pitr] https://feature-request.scaleway.com/posts/1027/point-in-time-recovery-for-postgresql
-- Render: https://getdeploying.com/render
-- Fly.io MPG: https://fly.io/docs/mpg/
-- Upstash + BullMQ: https://upstash.com/docs/redis/integrations/bullmq
-- [cnews-github] https://www.cnews.ru/news/top/2026-07-14_rossiyane_poteryali_dostup
-- [habr-cf] https://habr.com/ru/news/922532/
-- [habr-ru-domains] https://habr.com/ru/articles/1022882/
-- [eurid] https://help.eurid.eu/hc/en-gb/articles/9731617172381-Who-can-register-a-eu-or-its-variants-in-other-scripts-domain-name
-- [porkbun-app] https://kb.porkbun.com/article/96-hsts-preload-and-google-registry
-- OpenTofu vs Terraform: https://encore.dev/articles/opentofu-vs-terraform-2026
-
-**Не проверено:** рублёвые цены Yandex Cloud и Selectel; PITR и AOF у Timeweb и Selectel; цены
-OVHcloud; PITR у Scaleway; политика OVHcloud и Scaleway к клиентам из РФ; работа российских карт
-за рубежом в 2026; достаточность мер против «направленности на РФ»; стоимость представителя по
-Art. 27; считается ли IP посетителя ПДн при раздаче статики.
