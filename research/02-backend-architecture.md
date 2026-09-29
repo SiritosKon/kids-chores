@@ -82,7 +82,7 @@
 ```mermaid
 flowchart TB
   pwa["PWA"]
-  proxy["Обратный прокси<br/>Caddy / nginx на VM"]
+  proxy["Обратный прокси<br/>nginx на VM"]
   api["api"]
   notify["notifications"]
   db_core[("Postgres<br/>схема core + outbox")]
@@ -606,7 +606,7 @@ ORM — библиотека, через которую код работает 
 |---|---|---|
 | Язык | TypeScript strict | Как на фронте |
 | Фреймворк | **NestJS** (адаптер Fastify) | Модули, DI, guards, throttler, OpenAPI — структура модульного монолита из коробки. Альтернатива — Hono + `@hono/zod-openapi`: легче, но границы модулей держать дисциплиной. Для обучения и структуры — Nest |
-| БД | PostgreSQL (managed) | Источник правды, RLS, PITR |
+| БД | PostgreSQL | Источник правды, RLS, PITR. EU — контейнер на VM + WAL-G, RU — managed (`03`) |
 | ORM | Prisma | Раздел 8.2 |
 | Брокер, очереди, сессии | Valkey в контейнере на VM | Раздел 5 |
 | Файлы | S3-совместимое хранилище в регионе | Приватное, signed URLs — `04` |
@@ -676,7 +676,7 @@ flowchart TB
     api["api<br/>NestJS, модульный монолит"]
     relay["outbox-relay<br/>образ api"]
     notify["notifications<br/>отдельный сервис"]
-    db[("PostgreSQL, managed<br/>данные + outbox")]
+    db[("PostgreSQL<br/>данные + outbox")]
     kv[("Valkey, контейнер на VM<br/>Streams · BullMQ · сессии")]
     s3[("Объектное хранилище<br/>фото, выгрузки")]
 
