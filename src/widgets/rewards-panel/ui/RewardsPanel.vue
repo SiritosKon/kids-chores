@@ -19,7 +19,7 @@
             <q-icon v-if="parentActive" name="edit" size="14px" color="grey-5" class="q-ml-xs" />
           </q-item-label>
           <q-item-label caption>
-            {{ reward.points }} б.
+            {{ rewardPriceLabel(reward.points) }}
             <template v-if="parentActive && reward.visibility !== 'shop'">
               · {{ REWARD_VISIBILITY_LABELS[reward.visibility] }}
             </template>
@@ -69,24 +69,26 @@
         </q-item-section>
       </q-item>
     </q-list>
-    <RewardEditDialog v-model="editorOpen" :reward="editedReward" />
   </q-expansion-item>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
+import { NEW_REWARD_ID } from '@/shared/config/constants';
+import { rewardPath } from '@/shared/lib/routes';
 import { useChildrenStore, childPhotoUrl, type Child } from '@/entities/child';
 import {
   useRewardsStore,
   rewardColor,
+  rewardPriceLabel,
   REWARD_VISIBILITY_LABELS,
   type Reward,
 } from '@/entities/reward';
 import { useWalletStore } from '@/entities/wallet';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useAwardReward } from '@/features/award-reward';
-import { RewardEditDialog } from '@/features/edit-reward';
 
 const childrenStore = useChildrenStore();
 const rewardsStore = useRewardsStore();
@@ -118,15 +120,12 @@ watch(
   { immediate: true }
 );
 
-const editorOpen = ref(false);
-const editedReward = ref<Reward | null>(null);
+const router = useRouter();
 
 const openEditor = (reward: Reward | null): void => {
-  if (!parentActive.value) {
-    return;
+  if (parentActive.value) {
+    void router.push(rewardPath(reward?.id ?? NEW_REWARD_ID));
   }
-  editedReward.value = reward;
-  editorOpen.value = true;
 };
 </script>
 

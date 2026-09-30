@@ -67,7 +67,7 @@ import { todayKey } from '@/shared/lib/date';
 import { DAY_WORD_FORMS } from '@/shared/lib/constants';
 import { pluralize } from '@/shared/lib/plural';
 import { useChildrenStore } from '@/entities/child';
-import { useRewardsStore } from '@/entities/reward';
+import { useRewardsStore, rewardPriceLabel } from '@/entities/reward';
 import {
   useSettingsStore,
   addMilestone,
@@ -121,7 +121,7 @@ const chosenChildren = computed(() => (draft.value.forEveryone ? undefined : dra
 const rewardOptions = computed(() => [
   ...rewardsStore.active.map((reward) => ({
     value: reward.id,
-    label: `${reward.name} · ${reward.points} б.`,
+    label: `${reward.name} · ${rewardPriceLabel(reward.points)}`,
   })),
   { value: NEW_REWARD_OPTION, label: '＋ Новая награда' },
 ]);

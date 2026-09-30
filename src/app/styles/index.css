@@ -185,37 +185,29 @@ body.body--dark {
 }
 
 .page-stack {
-  display: grid;
   overflow-x: hidden;
 }
 
-.page-stack > * {
-  grid-area: 1 / 1;
-  min-width: 0;
+.page-forward-enter-active,
+.page-back-enter-active {
+  transition: transform 0.22s ease-out, opacity 0.22s ease-out;
 }
 
-.page-forward-enter-active,
 .page-forward-leave-active,
-.page-back-enter-active,
 .page-back-leave-active {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  background: #000000;
-}
-
-.page-forward-enter-active,
-.page-back-leave-active {
-  z-index: 1;
+  transition: transform 0.14s ease-in, opacity 0.14s ease-in;
 }
 
 .page-forward-enter-from,
 .page-back-leave-to {
-  transform: translateX(100%);
+  transform: translateX(48px);
+  opacity: 0;
 }
 
 .page-forward-leave-to,
 .page-back-enter-from {
-  transform: translateX(-30%);
-  opacity: 0.4;
+  transform: translateX(-48px);
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

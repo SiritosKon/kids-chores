@@ -5,4 +5,6 @@ export const stagePath = (stageId: string): string => ROUTES.settingsStage.repla
 export const stageRewardPath = (stageId: string): string =>
   ROUTES.settingsStageReward.replace(':stageId', stageId);
 
+export const rewardPath = (rewardId: string): string => ROUTES.reward.replace(':rewardId', rewardId);
+
 export const routeDepth = (path: string): number => path.split('/').filter(Boolean).length;

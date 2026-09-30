@@ -30,7 +30,7 @@
           <OnboardingPage v-if="needsSetup" />
           <div v-else-if="settingsStore.loaded" class="page-stack">
             <router-view v-slot="{ Component, route }">
-              <transition :name="route.meta.transition">
+              <transition :name="route.meta.transition" mode="out-in">
                 <keep-alive include="HomePage">
                   <component :is="Component" />
                 </keep-alive>

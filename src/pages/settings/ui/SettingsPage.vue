@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md settings-page">
-    <SettingsHeader title="Настройки" :back-to="ROUTES.home" />
+    <PageHeader title="Настройки" :back-to="ROUTES.home" />
 
     <section class="ios-card q-pa-md q-mb-lg">
       <div class="text-subtitle1 text-weight-bold q-mb-md">🔥 Серия</div>
@@ -26,9 +26,9 @@
 import { useRouter } from 'vue-router';
 import { ROUTES, NEW_STAGE_ID } from '@/shared/config/constants';
 import { stagePath } from '@/shared/lib/routes';
+import PageHeader from '@/shared/ui/PageHeader.vue';
 import { StreakStagesCard, BonusCard } from '@/features/edit-settings';
 import { recalculateStreaks } from '@/features/track-streak';
-import SettingsHeader from './SettingsHeader.vue';
 
 const router = useRouter();
 

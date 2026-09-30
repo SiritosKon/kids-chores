@@ -43,4 +43,10 @@ describe('rewards repository', () => {
     expect(stored?.active).toBe(false);
     expect(stored?.archivedAt).toBeTypeOf('number');
   });
+
+  it('keeps a streak prize without a price', async () => {
+    const reward = await createReward({ ...DRAFT, points: 0, visibility: 'streak' });
+
+    expect(await rewardsCatalogue.get(reward.id)).toMatchObject({ points: 0, purchasable: false });
+  });
 });

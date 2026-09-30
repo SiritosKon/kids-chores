@@ -2,10 +2,20 @@
   <div>
     <div class="text-caption text-grey-5">Варианты</div>
     <div class="text-caption text-grey-6 q-mb-sm">
-      Ребёнок выберет один при получении. Цена у всех вариантов одна — цена награды.
+      Ребёнок выберет один при получении. Цена у всех вариантов одна — цена награды. Порядок меняется перетаскиванием за ⋮⋮.
     </div>
-    <q-list v-if="modelValue.length > 0" separator class="variants">
+    <VueDraggable
+      v-if="modelValue.length > 0"
+      v-model="ordered"
+      :animation="150"
+      handle=".variant-handle"
+      ghost-class="variant--ghost"
+      class="variants q-list q-list--separator"
+    >
       <q-item v-for="(variant, index) in modelValue" :key="variant.key">
+        <q-item-section side class="variant-handle" aria-label="Перетащить">
+          <q-icon name="drag_indicator" size="24px" color="grey-5" />
+        </q-item-section>
         <q-item-section avatar>
           <button type="button" class="variant-photo" :aria-label="`Фото: ${variant.name}`" @click="pickPhoto(index)">
             <img v-if="variant.photo" :src="variant.photo" alt="" />
@@ -21,29 +31,20 @@
             @update:model-value="rename(index, String($event ?? ''))"
           />
         </q-item-section>
-        <q-item-section side class="variant-actions">
-          <q-btn flat round dense icon="arrow_upward" :disable="index === 0" aria-label="Выше" @click="move(index, -1)" />
-          <q-btn
-            flat
-            round
-            dense
-            icon="arrow_downward"
-            :disable="index === modelValue.length - 1"
-            aria-label="Ниже"
-            @click="move(index, 1)"
-          />
+        <q-item-section side>
           <q-btn flat round dense icon="delete" color="negative" aria-label="Удалить вариант" @click="remove(index)" />
         </q-item-section>
       </q-item>
-    </q-list>
+    </VueDraggable>
     <q-btn flat no-caps color="primary" icon="add" label="Добавить вариант" class="q-mt-xs" @click="add" />
     <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="onPhoto" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
+import { VueDraggable } from 'vue-draggable-plus';
 import { resizePhoto } from '@/shared/lib/resizePhoto';
 import { VARIANT_PHOTO_SIZE } from '../lib/constants';
 import type { EditableVariant } from './types';
@@ -54,6 +55,11 @@ const emit = defineEmits<{ 'update:modelValue': [variants: EditableVariant[]] }>
 const $q = useQuasar();
 const fileInput = ref<HTMLInputElement | null>(null);
 const photoTarget = ref<number | null>(null);
+
+const ordered = computed({
+  get: () => props.modelValue,
+  set: (variants: EditableVariant[]) => emit('update:modelValue', variants),
+});
 
 const replace = (index: number, patch: Partial<EditableVariant>): void => {
   emit(
@@ -76,15 +82,6 @@ const remove = (index: number): void => {
     'update:modelValue',
     props.modelValue.filter((_, position) => position !== index)
   );
-};
-
-const move = (index: number, shift: number): void => {
-  const next = [...props.modelValue];
-  const [variant] = next.splice(index, 1);
-  if (variant) {
-    next.splice(index + shift, 0, variant);
-    emit('update:modelValue', next);
-  }
 };
 
 const pickPhoto = (index: number): void => {
@@ -135,8 +132,13 @@ const onPhoto = async (): Promise<void> => {
   object-fit: cover;
 }
 
-.variant-actions {
-  flex-direction: row;
-  align-items: center;
+.variant-handle {
+  cursor: grab;
+  touch-action: none;
+  padding-right: 8px;
+}
+
+.variant--ghost {
+  opacity: 0.4;
 }
 </style>

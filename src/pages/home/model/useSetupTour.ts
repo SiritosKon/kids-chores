@@ -26,6 +26,9 @@ export const useSetupTour = () => {
 
   let tour: Driver | null = null;
   let moving = false;
+  let resumeAt = 0;
+
+  const isTourPath = (path: string): boolean => path === ROUTES.home || path === ROUTES.settings;
 
   const isMet = (requirement: TourRequirement | undefined): boolean => {
     if (requirement === 'child') {
@@ -106,7 +109,7 @@ export const useSetupTour = () => {
     }).onOk(() => void finish());
   };
 
-  const start = (): void => {
+  const start = (fromIndex = 0): void => {
     tour = driver({
       steps: TOUR_STEPS.map((step) => ({
         element: step.element,
@@ -126,7 +129,7 @@ export const useSetupTour = () => {
       onDestroyStarted: askToSkip,
     });
     document.addEventListener('scroll', refresh, true);
-    tour.drive();
+    tour.drive(fromIndex);
   };
 
   const shouldRun = computed(
@@ -166,6 +169,22 @@ export const useSetupTour = () => {
       if (tour && enabled && step?.unlocksStreak) {
         await wait(TOUR_DIALOG_DELAY_MS);
         await goTo(activeIndex() + 1);
+      }
+    }
+  );
+
+  watch(
+    () => route.path,
+    async (path) => {
+      if (!shouldRun.value || moving) {
+        return;
+      }
+      if (!isTourPath(path) && tour) {
+        resumeAt = activeIndex();
+        stop();
+      } else if (isTourPath(path) && !tour) {
+        await wait(TOUR_DIALOG_DELAY_MS);
+        start(resumeAt);
       }
     }
   );

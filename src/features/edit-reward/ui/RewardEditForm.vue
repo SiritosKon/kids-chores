@@ -12,8 +12,10 @@
       type="number"
       inputmode="numeric"
       label="Цена в баллах"
-      :min="1"
-      :hint="reward ? 'Прошлые покупки не изменятся' : undefined"
+      :min="minPrice"
+      :error="!priceValid"
+      :error-message="minPrice > 0 ? 'В магазине награда стоит хотя бы 1 балл' : 'Цена не может быть меньше 0'"
+      :hint="priceHint"
     />
 
     <div>
@@ -50,6 +52,7 @@ import {
   saveVariants,
   getVariantPhotos,
   rewardColor,
+  minRewardPrice,
   rewardVisibilitySchema,
   REWARD_VISIBILITY_LABELS,
   type Reward,
@@ -85,17 +88,27 @@ const previewColor = computed(() =>
   rewardColor({ points: points.value || 0, ...(props.reward?.color ? { color: props.reward.color } : {}) })
 );
 
+const minPrice = computed(() => minRewardPrice(visibility.value));
+
+const priceValid = computed(() => Number.isInteger(points.value) && points.value >= minPrice.value);
+
+const priceHint = computed(() => {
+  if (visibility.value === 'streak') {
+    return 'Приз за серию можно оставить без цены — 0 баллов';
+  }
+  return props.reward ? 'Прошлые покупки не изменятся' : undefined;
+});
+
 const canSave = computed(
   () =>
     name.value.trim().length > 0 &&
-    Number.isInteger(points.value) &&
-    points.value > 0 &&
+    priceValid.value &&
     variants.value.every((variant) => variant.name.trim().length > 0)
 );
 
 const reset = (): void => {
   name.value = props.reward?.name ?? '';
-  points.value = props.reward?.points ?? 5;
+  points.value = props.reward?.points ?? (props.visibility === 'streak' ? 0 : 5);
   icon.value = props.reward?.icon ?? 'card_giftcard';
   visibility.value = props.reward?.visibility ?? props.visibility;
   variants.value = [];
