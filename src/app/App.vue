@@ -28,11 +28,15 @@
             Хранилище недоступно — отметки не сохранятся между сессиями.
           </q-banner>
           <OnboardingPage v-if="needsSetup" />
-          <router-view v-else-if="settingsStore.loaded" v-slot="{ Component }">
-            <keep-alive include="HomePage">
-              <component :is="Component" />
-            </keep-alive>
-          </router-view>
+          <div v-else-if="settingsStore.loaded" class="page-stack">
+            <router-view v-slot="{ Component, route }">
+              <transition :name="route.meta.transition">
+                <keep-alive include="HomePage">
+                  <component :is="Component" />
+                </keep-alive>
+              </transition>
+            </router-view>
+          </div>
         </q-page-container>
       </q-layout>
     </div>
