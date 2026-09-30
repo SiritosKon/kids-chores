@@ -1,5 +1,5 @@
 import { useQuasar } from 'quasar';
-import { celebrate } from '@/shared/lib/confetti';
+import { celebrateReward } from '@/shared/lib/confetti';
 import type { Child } from '@/entities/child';
 import { useRewardsStore, VariantPickerDialog, type Reward, type VariantChoice } from '@/entities/reward';
 import { addSpend } from '@/entities/spend';
@@ -26,7 +26,7 @@ export const useAwardReward = () => {
       );
       $q.notify({ type: 'positive', message: `${child.name}: выдано «${title}»` });
       if (!parentSession.active) {
-        celebrate(child.carColor);
+        celebrateReward(child.carColor);
       }
     });
   };

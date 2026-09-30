@@ -98,3 +98,12 @@ export const celebrateStreak = (color = '#FF9F0A'): void => {
   fireworks(colors);
   emojiBurst(['🔥'])(colors);
 };
+
+export const celebrateReward = (color = '#FF9F0A'): void => {
+  if (prefersReducedMotion()) {
+    return;
+  }
+  const colors = palette(color);
+  emojiBurst(['🎁', '✨'])(colors);
+  setTimeout(() => stars(colors), 200);
+};
