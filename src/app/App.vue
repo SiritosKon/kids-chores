@@ -28,7 +28,11 @@
             Хранилище недоступно — отметки не сохранятся между сессиями.
           </q-banner>
           <OnboardingPage v-if="needsSetup" />
-          <HomePage v-else-if="settingsStore.loaded" />
+          <router-view v-else-if="settingsStore.loaded" v-slot="{ Component }">
+            <keep-alive include="HomePage">
+              <component :is="Component" />
+            </keep-alive>
+          </router-view>
         </q-page-container>
       </q-layout>
     </div>
@@ -48,7 +52,6 @@ import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
 import { useWhatsNewStore, WhatsNewDialog } from '@/features/whats-new';
 import { ParentMenu } from '@/widgets/parent-menu';
-import { HomePage } from '@/pages/home';
 import { OnboardingPage } from '@/pages/onboarding';
 
 const $q = useQuasar();

@@ -177,10 +177,3 @@ body.body--dark {
   margin-left: -10px;
 }
 
-body.setup-tour--over-dialogs .driver-overlay {
-  z-index: 6500 !important;
-}
-
-body.setup-tour--over-dialogs .driver-popover.setup-tour {
-  z-index: 6501;
-}

@@ -1,61 +1,50 @@
 import { describe, expect, it } from 'vitest';
-import { streakProgress } from './progress';
+import { streakProgress, isStageReached } from './progress';
 import type { StreakMilestoneInput } from './types';
 
-const MILESTONES: StreakMilestoneInput[] = [
-  { id: 'three-days', days: 3, rewardId: 'icecream-shop' },
-  { id: 'week', days: 7, rewardId: 'icecream-cafe' },
+const STAGES: StreakMilestoneInput[] = [
+  { id: 'fortnight', days: 15, rewardId: 'lego' },
+  { id: 'week', days: 7, rewardId: 'bubble-tea' },
 ];
 
-const WEEKLY: StreakMilestoneInput[] = [{ id: 'week', days: 7, rewardId: 'bubble-tea' }];
-
 describe('streakProgress', () => {
-  it('points at the milestone that comes soonest', () => {
-    const progress = streakProgress(2, MILESTONES);
-
-    expect(progress?.milestoneId).toBe('three-days');
-    expect(progress?.remaining).toBe(1);
-    expect(progress?.achieved).toBe(2);
-  });
-
-  it('starts a fresh cycle right after a milestone fires', () => {
-    const progress = streakProgress(3, MILESTONES);
-
-    expect(progress?.milestoneId).toBe('three-days');
-    expect(progress?.achieved).toBe(0);
-    expect(progress?.remaining).toBe(3);
-  });
-
-  it('prefers the shorter milestone when both are equally close', () => {
-    const progress = streakProgress(0, MILESTONES);
-
-    expect(progress?.milestoneId).toBe('three-days');
-    expect(progress?.ratio).toBe(0);
-  });
-
-  it('switches to the weekly milestone when it is nearer', () => {
-    const progress = streakProgress(6, MILESTONES);
+  it('points at the nearest stage ahead', () => {
+    const progress = streakProgress(2, STAGES);
 
     expect(progress?.milestoneId).toBe('week');
-    expect(progress?.remaining).toBe(1);
+    expect(progress?.achieved).toBe(2);
+    expect(progress?.remaining).toBe(5);
+    expect(progress?.ratio).toBeCloseTo(2 / 7);
   });
 
-  it('measures the cycle, not the run: ten days in a row read as 3 of 7', () => {
-    const progress = streakProgress(10, WEEKLY);
+  it('moves on to the next stage once one is reached', () => {
+    const progress = streakProgress(7, STAGES);
 
-    expect(progress?.achieved).toBe(3);
-    expect(progress?.days).toBe(7);
-    expect(progress?.remaining).toBe(4);
-    expect(progress?.ratio).toBeCloseTo(3 / 7);
+    expect(progress?.milestoneId).toBe('fortnight');
+    expect(progress?.remaining).toBe(8);
   });
 
-  it('empties the meter exactly on the milestone', () => {
-    expect(streakProgress(7, WEEKLY)?.achieved).toBe(0);
-    expect(streakProgress(14, WEEKLY)?.achieved).toBe(0);
-    expect(streakProgress(21, WEEKLY)?.remaining).toBe(7);
+  it('counts the whole run, not a cycle', () => {
+    expect(streakProgress(10, STAGES)?.achieved).toBe(10);
   });
 
-  it('returns nothing without milestones', () => {
+  it('returns nothing once every stage is passed', () => {
+    expect(streakProgress(15, STAGES)).toBeNull();
+    expect(streakProgress(40, STAGES)).toBeNull();
+  });
+
+  it('skips closed stages', () => {
+    expect(streakProgress(2, [{ id: 'old', days: 3, to: '2026-09-01' }])).toBeNull();
+  });
+
+  it('returns nothing without stages', () => {
     expect(streakProgress(4, [])).toBeNull();
+  });
+});
+
+describe('isStageReached', () => {
+  it('marks stages the current run has reached', () => {
+    expect(isStageReached(7, { id: 'week', days: 7 })).toBe(true);
+    expect(isStageReached(6, { id: 'week', days: 7 })).toBe(false);
   });
 });

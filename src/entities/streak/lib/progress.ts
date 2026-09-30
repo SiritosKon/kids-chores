@@ -5,22 +5,24 @@ export const streakProgress = (
   current: number,
   milestones: readonly StreakMilestoneInput[]
 ): StreakProgress | null => {
-  const candidates = milestones.filter(isMilestoneOpen).map((milestone) => {
-    const achieved = current % milestone.days;
-    return {
-      milestoneId: milestone.id,
-      days: milestone.days,
-      ...(milestone.points === undefined ? {} : { points: milestone.points }),
-      ...(milestone.rewardId === undefined ? {} : { rewardId: milestone.rewardId }),
-      achieved,
-      remaining: milestone.days - achieved,
-      ratio: achieved / milestone.days,
-    };
-  });
+  const next = milestones
+    .filter((milestone) => isMilestoneOpen(milestone) && milestone.days > current)
+    .sort((first, second) => first.days - second.days)[0];
 
-  return (
-    candidates.sort(
-      (first, second) => first.remaining - second.remaining || first.days - second.days
-    )[0] ?? null
-  );
+  if (!next) {
+    return null;
+  }
+
+  return {
+    milestoneId: next.id,
+    days: next.days,
+    ...(next.points === undefined ? {} : { points: next.points }),
+    ...(next.rewardId === undefined ? {} : { rewardId: next.rewardId }),
+    achieved: current,
+    remaining: next.days - current,
+    ratio: current / next.days,
+  };
 };
+
+export const isStageReached = (current: number, milestone: StreakMilestoneInput): boolean =>
+  current >= milestone.days;

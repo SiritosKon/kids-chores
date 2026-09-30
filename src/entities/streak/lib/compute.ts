@@ -25,7 +25,7 @@ export const summariseStreak = (
     best = Math.max(best, run);
 
     for (const milestone of milestones.filter((candidate) => isMilestoneActiveOn(candidate, day))) {
-      if (run % milestone.days === 0) {
+      if (run === milestone.days) {
         hits.push({
           milestoneId: milestone.id,
           days: milestone.days,

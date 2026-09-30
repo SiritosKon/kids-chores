@@ -58,8 +58,16 @@ export const recalculateStreaks = async (
     for (const hit of summary.hits) {
       hitCounts[hit.milestoneId] = (hitCounts[hit.milestoneId] ?? 0) + 1;
     }
+    const previous = previousStates.find((state) => state.childId === child.id);
     const celebratedBefore =
-      previousStates.find((state) => state.childId === child.id)?.celebrated ?? {};
+      previous?.hitRule === 'once'
+        ? previous.celebrated
+        : Object.fromEntries(
+            Object.entries(previous?.celebrated ?? {}).map(([milestoneId, count]) => [
+              milestoneId,
+              Math.min(count, hitCounts[milestoneId] ?? 0),
+            ])
+          );
     const celebrated = { ...celebratedBefore };
     for (const [milestoneId, count] of Object.entries(hitCounts)) {
       celebrated[milestoneId] = Math.max(celebrated[milestoneId] ?? 0, count);
@@ -71,6 +79,7 @@ export const recalculateStreaks = async (
       best: summary.best,
       lastClosedDate: summary.lastClosedDate,
       celebrated,
+      hitRule: 'once',
       updatedAt: now,
     });
 

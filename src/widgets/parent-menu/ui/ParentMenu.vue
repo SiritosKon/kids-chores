@@ -11,7 +11,7 @@
           </template>
           <template v-else>
             <q-item-label header>Родительский режим</q-item-label>
-            <q-item clickable v-close-popup data-tour="settings" @click="settingsDialog.open()">
+            <q-item clickable v-close-popup data-tour="settings" @click="openSettings">
               <q-item-section avatar><q-icon name="settings" /></q-item-section>
               <q-item-section>Настройки</q-item-section>
             </q-item>
@@ -51,18 +51,6 @@
     <PinDialog v-model="showLogin" />
     <SpendsDialog v-model="showSpends" />
     <InstallGuideDialog v-model="showInstallGuide" />
-    <SettingsDialog
-      v-model="settingsOpen"
-      @changed="recalculateStreaks"
-      @create-reward="createStreakReward"
-    />
-    <RewardEditDialog
-      v-model="showRewardEditor"
-      visibility="streak"
-      returnable
-      @created="backToSettings"
-      @back="backToSettings()"
-    />
   </div>
 </template>
 
@@ -70,13 +58,12 @@
 import { ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
+import { ROUTES } from '@/shared/config/constants';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
-import type { Reward } from '@/entities/reward';
 import { PinDialog } from '@/features/parent-login';
 import { SpendsDialog } from '@/features/rollback-spend';
-import { SettingsDialog, useSettingsDialogStore } from '@/features/edit-settings';
-import { RewardEditDialog } from '@/features/edit-reward';
 import { InstallGuideDialog, canAddToHomeScreen } from '@/features/install-app';
 import { useWhatsNewStore } from '@/features/whats-new';
 import { exportAll, importAll, downloadJson } from '@/features/backup';
@@ -92,20 +79,15 @@ const openWhatsNew = useWhatsNewStore().open;
 
 const showLogin = ref(false);
 const showSpends = ref(false);
-const settingsDialog = useSettingsDialogStore();
-const { isOpen: settingsOpen } = storeToRefs(settingsDialog);
-const showRewardEditor = ref(false);
 const showInstallGuide = ref(false);
 const installable = canAddToHomeScreen();
 
-const createStreakReward = (): void => {
-  settingsDialog.close();
-  showRewardEditor.value = true;
+const router = useRouter();
+
+const openSettings = (): void => {
+  void router.push(ROUTES.settings);
 };
 
-const backToSettings = (reward?: Reward): void => {
-  settingsDialog.reopen(reward?.id ?? null);
-};
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const exportData = async (): Promise<void> => {

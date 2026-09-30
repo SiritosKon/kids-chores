@@ -40,8 +40,7 @@
       <q-card-actions>
         <q-btn v-if="reward" flat no-caps color="negative" icon="delete" label="Удалить" @click="remove" />
         <q-space />
-        <q-btn v-if="returnable" flat no-caps icon="arrow_back" label="Назад" @click="goBack" />
-        <q-btn v-else flat no-caps label="Отмена" v-close-popup />
+        <q-btn flat no-caps label="Отмена" v-close-popup />
         <q-btn unelevated no-caps color="primary" label="Сохранить" :disable="!canSave" @click="save" />
       </q-card-actions>
     </q-card>
@@ -69,14 +68,12 @@ const props = withDefaults(
     modelValue?: boolean;
     reward?: Reward | null;
     visibility?: RewardVisibility;
-    returnable?: boolean;
   }>(),
-  { modelValue: false, reward: null, visibility: 'shop', returnable: false }
+  { modelValue: false, reward: null, visibility: 'shop' }
 );
 const emit = defineEmits<{
   'update:modelValue': [open: boolean];
   created: [reward: Reward];
-  back: [];
 }>();
 
 const $q = useQuasar();
@@ -108,11 +105,6 @@ const reset = (): void => {
 
 const close = (): void => {
   emit('update:modelValue', false);
-};
-
-const goBack = (): void => {
-  close();
-  emit('back');
 };
 
 const save = async (): Promise<void> => {
