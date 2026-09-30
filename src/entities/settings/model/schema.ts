@@ -17,6 +17,7 @@ export const streakMilestoneSchema = z.object({
   days: z.number().int().positive(),
   points: z.number().int().nonnegative().optional(),
   rewardId: z.string().min(1).optional(),
+  childIds: z.array(z.string().min(1)).min(1).optional(),
   from: dayKeySchema.optional(),
   to: dayKeySchema.optional(),
 });

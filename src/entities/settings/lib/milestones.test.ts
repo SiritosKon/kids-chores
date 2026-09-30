@@ -5,6 +5,7 @@ import {
   removeMilestone,
   openMilestones,
   isStageDaysTaken,
+  milestonesFor,
 } from './milestones';
 
 const WEEK = { id: 'week', days: 7, rewardId: 'bubble-tea' };
@@ -73,8 +74,40 @@ describe('openMilestones', () => {
 
 describe('isStageDaysTaken', () => {
   it('finds another open stage with the same length', () => {
-    expect(isStageDaysTaken([WEEK, FORTNIGHT], 7, null)).toBe(true);
-    expect(isStageDaysTaken([WEEK, FORTNIGHT], 7, 'week')).toBe(false);
-    expect(isStageDaysTaken([{ ...WEEK, to: '2026-09-01' }], 7, null)).toBe(false);
+    expect(isStageDaysTaken([WEEK, FORTNIGHT], 7, undefined, null)).toBe(true);
+    expect(isStageDaysTaken([WEEK, FORTNIGHT], 7, undefined, 'week')).toBe(false);
+    expect(isStageDaysTaken([{ ...WEEK, to: '2026-09-01' }], 7, undefined, null)).toBe(false);
+  });
+
+  it('lets two children have stages of the same length', () => {
+    const timofey = { ...WEEK, childIds: ['timofey'] };
+
+    expect(isStageDaysTaken([timofey], 7, ['daniil'], null)).toBe(false);
+    expect(isStageDaysTaken([timofey], 7, ['timofey', 'daniil'], null)).toBe(true);
+    expect(isStageDaysTaken([timofey], 7, undefined, null)).toBe(true);
+  });
+});
+
+describe('milestonesFor', () => {
+  it('treats a stage without children as a stage for everyone', () => {
+    expect(milestonesFor([WEEK], 'daniil')).toEqual([WEEK]);
+  });
+
+  it('keeps a stage only for the children it names', () => {
+    const timofey = { ...FORTNIGHT, childIds: ['timofey'] };
+
+    expect(milestonesFor([WEEK, timofey], 'daniil')).toEqual([WEEK]);
+    expect(milestonesFor([WEEK, timofey], 'timofey')).toEqual([WEEK, timofey]);
+  });
+});
+
+describe('changeMilestone with children', () => {
+  it('opens a new version when only the children change', () => {
+    const next = changeMilestone([WEEK], 'week', { days: 7, rewardId: 'bubble-tea', childIds: ['timofey'] }, '2026-09-26', 'new');
+
+    expect(next).toEqual([
+      { ...WEEK, to: '2026-09-26' },
+      { id: 'new', days: 7, rewardId: 'bubble-tea', childIds: ['timofey'], from: '2026-09-26' },
+    ]);
   });
 });

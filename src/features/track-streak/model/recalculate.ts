@@ -4,7 +4,7 @@ import { childrenCatalogue } from '@/entities/child';
 import { tasksCatalogue, tasksRequiredOn, STREAK_TASK_ID } from '@/entities/task';
 import { completionsTable, getAllCompletions, type Completion } from '@/entities/completion';
 import { spendsTable, getAllSpends, type Spend } from '@/entities/spend';
-import { getSettings } from '@/entities/settings';
+import { getSettings, milestonesFor } from '@/entities/settings';
 import {
   streaksTable,
   getStreaks,
@@ -52,7 +52,7 @@ export const recalculateStreaks = async (
       requiredOn
     );
 
-    const summary = summariseStreak(closedDays, settings.streak.milestones, today);
+    const summary = summariseStreak(closedDays, milestonesFor(settings.streak.milestones, child.id), today);
 
     const hitCounts: Record<string, number> = {};
     for (const hit of summary.hits) {

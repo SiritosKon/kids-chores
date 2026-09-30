@@ -206,6 +206,31 @@ describe('recalculateStreaks', () => {
     expect((await streakRewards())[0]).toMatchObject({ variantId: 'taro', variantName: 'Таро' });
   });
 
+  it('gives a stage only to the children it names', async () => {
+    await setMilestones([{ id: 'week', days: 7, rewardId: 'bubble-tea', childIds: ['timofey'] }]);
+    await closeDays('timofey', september(7));
+    await closeDays('daniil', september(7));
+
+    await recalculateStreaks('2026-09-16');
+
+    expect((await streakRewards()).map((row) => row.childId)).toEqual(['timofey']);
+    expect((await getStreaks()).find((row) => row.childId === 'daniil')?.current).toBe(7);
+  });
+
+  it('lets each child have a ladder of their own', async () => {
+    await setMilestones([
+      { id: 'timofey-week', days: 7, rewardId: 'bubble-tea', childIds: ['timofey'] },
+      { id: 'daniil-five', days: 5, rewardId: 'icecream-shop', childIds: ['daniil'] },
+    ]);
+    await closeDays('timofey', september(7));
+    await closeDays('daniil', september(7));
+
+    await recalculateStreaks('2026-09-16');
+
+    const rewards = (await streakRewards()).map((row) => `${row.childId}:${row.rewardId}`).sort();
+    expect(rewards).toEqual(['daniil:icecream-shop', 'timofey:bubble-tea']);
+  });
+
   it('drops point awards left by an earlier configuration', async () => {
     await setMilestones([{ id: 'three-days', days: 3, points: 2 }]);
     await closeDays('timofey', ['2026-09-16', '2026-09-17', '2026-09-18']);

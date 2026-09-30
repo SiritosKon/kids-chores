@@ -16,7 +16,7 @@
           label="Сколько дней подряд"
           :min="STREAK_MIN_DAYS"
           :error="daysTaken"
-          error-message="Этап с таким числом дней уже есть"
+          error-message="У этих детей уже есть этап с таким числом дней"
           autofocus
         />
         <q-select
@@ -37,6 +37,21 @@
           hint="Приз выдаётся один раз за серию. Правка действует с сегодняшнего дня"
         />
         <div v-if="!hasPrize" class="text-negative text-caption">Укажите награду или баллы</div>
+
+        <div>
+          <div class="text-caption text-grey-5">Для кого</div>
+          <q-toggle v-model="forEveryone" label="Все дети" color="primary" />
+          <q-option-group
+            v-if="!forEveryone"
+            v-model="childIds"
+            type="checkbox"
+            :options="childOptions"
+            color="primary"
+          />
+          <div v-if="!forEveryone && childIds.length === 0" class="text-negative text-caption">
+            Отметьте хотя бы одного ребёнка
+          </div>
+        </div>
       </q-card-section>
 
       <q-separator />
@@ -56,6 +71,7 @@ import { useQuasar } from 'quasar';
 import { todayKey } from '@/shared/lib/date';
 import { DAY_WORD_FORMS } from '@/shared/lib/constants';
 import { pluralize } from '@/shared/lib/plural';
+import { useChildrenStore } from '@/entities/child';
 import { useRewardsStore } from '@/entities/reward';
 import {
   useSettingsStore,
@@ -80,10 +96,19 @@ const emit = defineEmits<{ 'update:modelValue': [open: boolean]; changed: []; 'c
 const $q = useQuasar();
 const settingsStore = useSettingsStore();
 const rewardsStore = useRewardsStore();
+const childrenStore = useChildrenStore();
 
 const days = ref(7);
 const points = ref(0);
 const rewardId = ref<string | null>(null);
+const forEveryone = ref(true);
+const childIds = ref<string[]>([]);
+
+const childOptions = computed(() =>
+  childrenStore.active.map((child) => ({ value: child.id, label: child.name }))
+);
+
+const chosenChildren = computed(() => (forEveryone.value ? undefined : childIds.value));
 
 const rewardOptions = computed(() => [
   ...rewardsStore.active.map((reward) => ({
@@ -115,17 +140,24 @@ const isCount = (value: number, min: number): boolean => Number.isInteger(value)
 const hasPrize = computed(() => rewardId.value !== null || points.value > 0);
 
 const daysTaken = computed(() =>
-  isStageDaysTaken(settingsStore.streak.milestones, days.value, props.stage?.id ?? null)
+  isStageDaysTaken(settingsStore.streak.milestones, days.value, chosenChildren.value, props.stage?.id ?? null)
 );
 
 const canSave = computed(
-  () => isCount(days.value, STREAK_MIN_DAYS) && isCount(points.value, 0) && hasPrize.value && !daysTaken.value
+  () =>
+    isCount(days.value, STREAK_MIN_DAYS) &&
+    isCount(points.value, 0) &&
+    hasPrize.value &&
+    !daysTaken.value &&
+    (forEveryone.value || childIds.value.length > 0)
 );
 
 const reset = (): void => {
   days.value = props.stage?.days ?? 7;
   points.value = props.stage?.points ?? 0;
   rewardId.value = props.stage?.rewardId ?? null;
+  forEveryone.value = props.stage?.childIds === undefined;
+  childIds.value = [...(props.stage?.childIds ?? [])];
 };
 
 const store = async (milestones: StreakMilestone[]): Promise<void> => {
@@ -139,6 +171,7 @@ const save = async (): Promise<void> => {
     days: days.value,
     ...(points.value > 0 ? { points: points.value } : {}),
     ...(rewardId.value ? { rewardId: rewardId.value } : {}),
+    ...(chosenChildren.value ? { childIds: chosenChildren.value } : {}),
   };
   const milestones = settingsStore.streak.milestones;
   await store(

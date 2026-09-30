@@ -76,7 +76,7 @@ import { DAY_WORD_FORMS } from '@/shared/lib/constants';
 import { pluralize } from '@/shared/lib/plural';
 import { useChildrenStore } from '@/entities/child';
 import { useRewardsStore, rewardColor } from '@/entities/reward';
-import { useSettingsStore, openMilestones } from '@/entities/settings';
+import { useSettingsStore, openMilestones, milestonesFor } from '@/entities/settings';
 import { useStreakStore, streakProgress, isStageReached, type StreakMilestoneInput } from '@/entities/streak';
 
 const props = withDefaults(
@@ -101,7 +101,9 @@ const state = computed(() =>
 
 const current = computed(() => state.value?.current ?? 0);
 const best = computed(() => state.value?.best ?? 0);
-const milestones = computed(() => openMilestones(settingsStore.streak.milestones));
+const milestones = computed(() =>
+  props.childId ? openMilestones(milestonesFor(settingsStore.streak.milestones, props.childId)) : []
+);
 const progress = computed(() => streakProgress(current.value, milestones.value));
 
 const daysLabel = computed(() => pluralize(current.value, DAY_WORD_FORMS));

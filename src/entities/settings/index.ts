@@ -9,5 +9,6 @@ export {
   changeMilestone,
   removeMilestone,
   isStageDaysTaken,
+  milestonesFor,
 } from './lib/milestones';
 export type { MilestoneRule } from './lib/types';
