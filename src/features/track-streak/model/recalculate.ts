@@ -4,7 +4,7 @@ import { childrenCatalogue } from '@/entities/child';
 import { tasksCatalogue, tasksRequiredOn, STREAK_TASK_ID } from '@/entities/task';
 import { completionsTable, getAllCompletions, type Completion } from '@/entities/completion';
 import { spendsTable, getAllSpends, type Spend } from '@/entities/spend';
-import { getSettings } from '@/entities/settings';
+import { getSettings, milestonesFor } from '@/entities/settings';
 import {
   streaksTable,
   getStreaks,
@@ -52,14 +52,22 @@ export const recalculateStreaks = async (
       requiredOn
     );
 
-    const summary = summariseStreak(closedDays, settings.streak.milestones, today);
+    const summary = summariseStreak(closedDays, milestonesFor(settings.streak.milestones, child.id), today);
 
     const hitCounts: Record<string, number> = {};
     for (const hit of summary.hits) {
       hitCounts[hit.milestoneId] = (hitCounts[hit.milestoneId] ?? 0) + 1;
     }
+    const previous = previousStates.find((state) => state.childId === child.id);
     const celebratedBefore =
-      previousStates.find((state) => state.childId === child.id)?.celebrated ?? {};
+      previous?.hitRule === 'once'
+        ? previous.celebrated
+        : Object.fromEntries(
+            Object.entries(previous?.celebrated ?? {}).map(([milestoneId, count]) => [
+              milestoneId,
+              Math.min(count, hitCounts[milestoneId] ?? 0),
+            ])
+          );
     const celebrated = { ...celebratedBefore };
     for (const [milestoneId, count] of Object.entries(hitCounts)) {
       celebrated[milestoneId] = Math.max(celebrated[milestoneId] ?? 0, count);
@@ -71,6 +79,7 @@ export const recalculateStreaks = async (
       best: summary.best,
       lastClosedDate: summary.lastClosedDate,
       celebrated,
+      hitRule: 'once',
       updatedAt: now,
     });
 
@@ -108,6 +117,7 @@ export const recalculateStreaks = async (
         });
       }
       if (hit.rewardId !== undefined) {
+        const granted = spends.find((row) => row.id === id && row.rewardId === hit.rewardId);
         expectedSpends.set(id, {
           id,
           childId: child.id,
@@ -115,6 +125,9 @@ export const recalculateStreaks = async (
           cost: 0,
           createdAt: dayTimestamp(hit.day),
           source: 'streak',
+          ...(granted?.variantId ? { variantId: granted.variantId } : {}),
+          ...(granted?.variantName ? { variantName: granted.variantName } : {}),
+          ...(granted?.chosenAt ? { chosenAt: granted.chosenAt } : {}),
         });
       }
     }

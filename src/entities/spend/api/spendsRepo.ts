@@ -1,19 +1,30 @@
 import { liveQuery, type Subscription } from 'dexie';
 import { table } from '@/shared/api/db';
 import { storedSpendSchema } from '../model/schema';
-import type { Spend } from '../model/types';
+import type { Spend, SpendChoice } from '../model/types';
 
 export const spendsTable = table<Spend>('spends');
 
-export const addSpend = async (childId: string, rewardId: string, cost: number): Promise<void> => {
+export const addSpend = async (
+  childId: string,
+  rewardId: string,
+  cost: number,
+  choice: SpendChoice | null = null
+): Promise<void> => {
+  const now = Date.now();
   await spendsTable.add({
     id: crypto.randomUUID(),
     childId,
     rewardId,
     cost,
-    createdAt: Date.now(),
+    createdAt: now,
     source: 'purchase',
+    ...(choice ? { ...choice, chosenAt: now } : {}),
   });
+};
+
+export const chooseSpendVariant = async (spendId: string, choice: SpendChoice): Promise<void> => {
+  await spendsTable.update(spendId, { ...choice, chosenAt: Date.now() });
 };
 
 export const getSpends = async (): Promise<Spend[]> => {

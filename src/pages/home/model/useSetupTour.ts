@@ -1,13 +1,14 @@
 import { computed, nextTick, onBeforeUnmount, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { driver, type Driver } from 'driver.js';
+import { useRoute, useRouter } from 'vue-router';
+import { ROUTES } from '@/shared/config/constants';
 import { useChildrenStore } from '@/entities/child';
 import { useTasksStore } from '@/entities/task';
 import { useRewardsStore } from '@/entities/reward';
 import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { useSettingsDialogStore } from '@/features/edit-settings';
-import { TOUR_DIALOG_DELAY_MS, TOUR_OVER_DIALOGS_CLASS, TOUR_STEPS } from './constants';
+import { TOUR_DIALOG_DELAY_MS, TOUR_STEPS } from './constants';
 import type { TourRequirement } from './types';
 
 const wait = (ms: number): Promise<void> => new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -19,10 +20,15 @@ export const useSetupTour = () => {
   const rewardsStore = useRewardsStore();
   const settingsStore = useSettingsStore();
   const parentSession = useParentSessionStore();
-  const settingsDialog = useSettingsDialogStore();
+  const router = useRouter();
+  const route = useRoute();
+  const onSettings = (): boolean => route.path === ROUTES.settings;
 
   let tour: Driver | null = null;
   let moving = false;
+  let resumeAt = 0;
+
+  const isTourPath = (path: string): boolean => path === ROUTES.home || path === ROUTES.settings;
 
   const isMet = (requirement: TourRequirement | undefined): boolean => {
     if (requirement === 'child') {
@@ -40,19 +46,20 @@ export const useSetupTour = () => {
 
   const stop = (): void => {
     document.removeEventListener('scroll', refresh, true);
-    document.body.classList.remove(TOUR_OVER_DIALOGS_CLASS);
     tour?.destroy();
     tour = null;
   };
 
   const finish = async (): Promise<void> => {
     stop();
-    settingsDialog.close();
+    if (onSettings()) {
+      await router.push(ROUTES.home);
+    }
     await settingsStore.update({ tourPending: false });
   };
 
   const isSkipped = (index: number): boolean =>
-    TOUR_STEPS[index]?.needsStreak === true && !settingsDialog.streakDraftEnabled;
+    TOUR_STEPS[index]?.needsStreak === true && !settingsStore.streak.enabled;
 
   const goTo = async (requested: number): Promise<void> => {
     if (!tour || moving) {
@@ -70,16 +77,8 @@ export const useSetupTour = () => {
     }
     moving = true;
     const wantsSettings = target.inSettings === true;
-    if (wantsSettings !== settingsDialog.isOpen) {
-      if (wantsSettings) {
-        settingsDialog.open();
-      } else if (direction > 0) {
-        settingsDialog.requestSave();
-        await wait(TOUR_DIALOG_DELAY_MS / 2);
-        settingsDialog.close();
-      } else {
-        settingsDialog.close();
-      }
+    if (wantsSettings !== onSettings()) {
+      await router.push(wantsSettings ? ROUTES.settings : ROUTES.home);
       await wait(TOUR_DIALOG_DELAY_MS);
     }
     tour?.moveTo(index);
@@ -110,14 +109,11 @@ export const useSetupTour = () => {
     }).onOk(() => void finish());
   };
 
-  const start = (): void => {
+  const start = (fromIndex = 0): void => {
     tour = driver({
       steps: TOUR_STEPS.map((step) => ({
         element: step.element,
         popover: { title: step.title, description: step.description, side: step.side },
-        onHighlightStarted: () => {
-          document.body.classList.toggle(TOUR_OVER_DIALOGS_CLASS, step.inSettings === true);
-        },
       })),
       showProgress: true,
       progressText: '{{current}} из {{total}}',
@@ -133,7 +129,7 @@ export const useSetupTour = () => {
       onDestroyStarted: askToSkip,
     });
     document.addEventListener('scroll', refresh, true);
-    tour.drive();
+    tour.drive(fromIndex);
   };
 
   const shouldRun = computed(
@@ -167,12 +163,28 @@ export const useSetupTour = () => {
   );
 
   watch(
-    () => settingsDialog.streakDraftEnabled,
+    () => settingsStore.streak.enabled,
     async (enabled) => {
       const step = TOUR_STEPS[activeIndex()];
       if (tour && enabled && step?.unlocksStreak) {
         await wait(TOUR_DIALOG_DELAY_MS);
         await goTo(activeIndex() + 1);
+      }
+    }
+  );
+
+  watch(
+    () => route.path,
+    async (path) => {
+      if (!shouldRun.value || moving) {
+        return;
+      }
+      if (!isTourPath(path) && tour) {
+        resumeAt = activeIndex();
+        stop();
+      } else if (isTourPath(path) && !tour) {
+        await wait(TOUR_DIALOG_DELAY_MS);
+        start(resumeAt);
       }
     }
   );

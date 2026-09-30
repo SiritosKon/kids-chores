@@ -27,17 +27,24 @@
         </div>
         <div class="streak-progress-row">
           <span class="streak-remaining">
-            ещё {{ progress.remaining }} {{ remainingLabel }} до награды
+            ещё {{ progress.remaining }} {{ remainingLabel }} до «{{ rewardLabel(progress) }}»
           </span>
           <span class="streak-fraction">{{ progress.achieved }} / {{ progress.days }}</span>
         </div>
       </q-card-section>
+      <q-card-section v-else-if="milestones.length > 0 && current > 0" class="q-pt-none streak-remaining">
+        Все этапы серии пройдены. Серия прервётся — можно пройти их заново.
+      </q-card-section>
 
       <q-separator />
-      <q-item-label header>Награда за серию</q-item-label>
+      <q-item-label header>Этапы серии</q-item-label>
       <q-card-section class="q-pa-none q-pb-sm">
         <q-list separator>
-          <q-item v-for="milestone in milestones" :key="milestone.id">
+          <q-item
+            v-for="milestone in milestones"
+            :key="milestone.id"
+            :class="{ 'streak-stage--next': milestone.id === progress?.milestoneId }"
+          >
             <q-item-section avatar>
               <div class="streak-tile" :style="{ background: milestoneColor(milestone) }">
                 <q-icon :name="rewardIcon(milestone.rewardId)" size="20px" color="white" />
@@ -46,8 +53,11 @@
             <q-item-section>
               <q-item-label>{{ rewardLabel(milestone) }}</q-item-label>
               <q-item-label caption>
-                каждые {{ milestone.days }} {{ pluralize(milestone.days, DAY_WORD_FORMS) }}
+                {{ milestone.days }} {{ pluralize(milestone.days, DAY_WORD_FORMS) }} подряд
               </q-item-label>
+            </q-item-section>
+            <q-item-section v-if="isStageReached(current, milestone)" side>
+              <q-icon name="check_circle" color="positive" />
             </q-item-section>
           </q-item>
         </q-list>
@@ -66,8 +76,8 @@ import { DAY_WORD_FORMS } from '@/shared/lib/constants';
 import { pluralize } from '@/shared/lib/plural';
 import { useChildrenStore } from '@/entities/child';
 import { useRewardsStore, rewardColor } from '@/entities/reward';
-import { useSettingsStore, type StreakMilestone } from '@/entities/settings';
-import { useStreakStore, streakProgress, isMilestoneOpen } from '@/entities/streak';
+import { useSettingsStore, openMilestones, milestonesFor } from '@/entities/settings';
+import { useStreakStore, streakProgress, isStageReached, type StreakMilestoneInput } from '@/entities/streak';
 
 const props = withDefaults(
   defineProps<{
@@ -91,7 +101,9 @@ const state = computed(() =>
 
 const current = computed(() => state.value?.current ?? 0);
 const best = computed(() => state.value?.best ?? 0);
-const milestones = computed(() => settingsStore.streak.milestones.filter(isMilestoneOpen));
+const milestones = computed(() =>
+  props.childId ? openMilestones(milestonesFor(settingsStore.streak.milestones, props.childId)) : []
+);
 const progress = computed(() => streakProgress(current.value, milestones.value));
 
 const daysLabel = computed(() => pluralize(current.value, DAY_WORD_FORMS));
@@ -100,12 +112,12 @@ const remainingLabel = computed(() => pluralize(progress.value?.remaining ?? 0, 
 const rewardIcon = (rewardId: string | undefined): string =>
   (rewardId ? rewardsStore.byId(rewardId)?.icon : undefined) ?? 'star';
 
-const milestoneColor = (milestone: StreakMilestone): string => {
+const milestoneColor = (milestone: StreakMilestoneInput): string => {
   const reward = milestone.rewardId ? rewardsStore.byId(milestone.rewardId) : undefined;
   return reward ? rewardColor(reward) : '#FF9F0A';
 };
 
-const rewardLabel = (milestone: StreakMilestone): string => {
+const rewardLabel = (milestone: Pick<StreakMilestoneInput, 'rewardId' | 'points'>): string => {
   if (milestone.rewardId) {
     return rewardsStore.nameOf(milestone.rewardId);
   }
@@ -181,6 +193,10 @@ const rewardLabel = (milestone: StreakMilestone): string => {
   font-size: 13px;
   font-weight: 600;
   color: #ffb340;
+}
+
+.streak-stage--next {
+  background: rgba(255, 159, 10, 0.12);
 }
 
 .streak-tile {

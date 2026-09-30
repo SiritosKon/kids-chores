@@ -1,32 +1,38 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
+import type { StreakMilestone } from '@/entities/settings';
+import { EMPTY_STAGE_DRAFT } from './constants';
+import type { StageDraft } from './types';
 
-export const useSettingsDialogStore = defineStore('settings-dialog', () => {
-  const isOpen = ref(false);
+export const useStageDraftStore = defineStore('stage-draft', () => {
+  const stageId = ref<string | null>(null);
+  const draft = ref<StageDraft>({ ...EMPTY_STAGE_DRAFT });
   const resume = ref(false);
-  const pickedRewardId = ref<string | null>(null);
-  const streakDraftEnabled = ref(false);
-  const saveRequests = ref(0);
 
-  const open = (): void => {
+  const begin = (id: string, stage: StreakMilestone | null): void => {
+    if (resume.value && stageId.value === id) {
+      resume.value = false;
+      return;
+    }
     resume.value = false;
-    pickedRewardId.value = null;
-    isOpen.value = true;
+    stageId.value = id;
+    draft.value = stage
+      ? {
+          days: stage.days,
+          points: stage.points ?? 0,
+          rewardId: stage.rewardId ?? null,
+          forEveryone: stage.childIds === undefined,
+          childIds: [...(stage.childIds ?? [])],
+        }
+      : { ...EMPTY_STAGE_DRAFT, childIds: [] };
   };
 
-  const reopen = (rewardId: string | null = null): void => {
+  const returnWithReward = (rewardId: string | null): void => {
+    if (rewardId) {
+      draft.value = { ...draft.value, rewardId };
+    }
     resume.value = true;
-    pickedRewardId.value = rewardId;
-    isOpen.value = true;
   };
 
-  const close = (): void => {
-    isOpen.value = false;
-  };
-
-  const requestSave = (): void => {
-    saveRequests.value += 1;
-  };
-
-  return { isOpen, resume, pickedRewardId, streakDraftEnabled, saveRequests, open, reopen, close, requestSave };
+  return { stageId, draft, begin, returnWithReward };
 });

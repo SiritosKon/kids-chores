@@ -2,8 +2,6 @@ import type { TourStep } from './types';
 
 export const TOUR_DIALOG_DELAY_MS = 400;
 
-export const TOUR_OVER_DIALOGS_CLASS = 'setup-tour--over-dialogs';
-
 export const TOUR_STEPS: readonly TourStep[] = [
   {
     element: '[data-tour="add-child"]',
@@ -44,7 +42,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     element: '[data-tour="settings-streak"]',
     title: 'Настройка серии',
-    description: 'Сколько дней подряд нужно и что за это дать: награду, баллы или и то и другое. В списке наград можно сразу создать новую.',
+    description: 'Этапы серии: например, 7 дней — бабл-чай, 15 дней — набор Лего. Каждый этап даёт приз один раз за серию. Этапы можно добавить сейчас или после знакомства.',
     side: 'top',
     inSettings: true,
     needsStreak: true,
@@ -52,7 +50,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     element: '[data-tour="settings-bonus"]',
     title: 'Бонус',
-    description: 'Дополнительные баллы за день, в котором отмечены все задачи. Ниже — смена PIN. На «Далее» настройки сохранятся.',
+    description: 'Дополнительные баллы за день, в котором отмечены все задачи. Ниже — смена PIN. Всё сохраняется сразу.',
     side: 'top',
     inSettings: true,
   },

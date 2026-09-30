@@ -31,6 +31,17 @@
           <span class="goal-meter__streak-count">{{ entry.streak }}</span>
           <span class="goal-meter__streak-label">{{ streakLabel }} подряд</span>
         </span>
+        <q-btn
+          v-if="entry.pendingChoices > 0"
+          unelevated
+          rounded
+          dense
+          no-caps
+          color="deep-orange"
+          class="goal-meter__choice"
+          label="🎁 Выбери подарок"
+          @click="emit('choose-gift')"
+        />
         <q-space />
         <q-btn flat dense no-caps color="primary" class="goal-meter__score" @click="emit('open-history')">
           <q-icon name="savings" size="18px" />
@@ -56,7 +67,7 @@ import type { MeterEntry } from '../model/types';
 const props = withDefaults(defineProps<{ entry: MeterEntry; editable?: boolean }>(), {
   editable: false,
 });
-const emit = defineEmits<{ 'open-history': []; 'open-streak': []; edit: [] }>();
+const emit = defineEmits<{ 'open-history': []; 'open-streak': []; 'choose-gift': []; edit: [] }>();
 
 const edit = (): void => {
   if (props.editable) {
@@ -166,5 +177,10 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
   transform: translate(-50%, -50%);
   transition: left 0.4s ease;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+}
+.goal-meter__choice {
+  margin-left: 10px;
+  padding: 2px 12px;
+  font-weight: 600;
 }
 </style>

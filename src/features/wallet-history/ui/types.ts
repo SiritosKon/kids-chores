@@ -4,4 +4,5 @@ export interface LedgerItem {
   amount: number;
   ts: number;
   day: string;
+  variantId?: string;
 }

@@ -28,6 +28,19 @@ db.version(4).stores({
   streaks: 'childId',
 });
 
+db.version(5).stores({
+  completions: 'id, childId, date, [childId+date], [childId+taskId+date]',
+  spends: 'id, childId, rewardId, createdAt, source',
+  versionLog: 'version, firstSeenAt',
+  children: 'id, order',
+  tasks: 'id, order',
+  rewards: 'id, order',
+  rewardVariants: 'id, rewardId, order',
+  variantPhotos: 'id',
+  settings: 'id',
+  streaks: 'childId',
+});
+
 // Dexie раздаёт таблицы динамически и типизировать их здесь нечем: строки
 // описаны zod-схемами в entities, а shared про entities знать не должен.
 // Единственное приведение типа живёт тут; выше по слоям таблицы уже типизированы.

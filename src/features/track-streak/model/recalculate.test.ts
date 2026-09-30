@@ -3,8 +3,8 @@ import { db } from '@/shared/api/db';
 import { EARLIEST_DAY_KEY } from '@/shared/lib/constants';
 import { tasksCatalogue, STREAK_TASK_ID } from '@/entities/task';
 import { saveDayMarks, getAllCompletions } from '@/entities/completion';
-import { getAllSpends } from '@/entities/spend';
-import { getStreaks } from '@/entities/streak';
+import { getAllSpends, spendsTable, chooseSpendVariant } from '@/entities/spend';
+import { getStreaks, streaksTable } from '@/entities/streak';
 import { getSettings, saveSettings, type StreakMilestone } from '@/entities/settings';
 import { seedFamily, FAMILY_TASKS } from '../../../../tests/fixtures/family';
 import { recalculateStreaks } from './recalculate';
@@ -144,15 +144,91 @@ describe('recalculateStreaks', () => {
     expect(streaks.find((row) => row.childId === 'timofey')?.current).toBe(3);
   });
 
-  it('repeats a milestone every N days without resetting the streak', async () => {
+  it('grants a stage once per run, not every N days', async () => {
     await setMilestones([{ id: 'three-days', days: 3, rewardId: 'icecream-shop' }]);
     await closeDays('timofey', september(6));
 
     await recalculateStreaks('2026-09-15');
 
-    expect(await streakRewards()).toHaveLength(2);
+    expect(await streakRewards()).toHaveLength(1);
     const streaks = await getStreaks();
     expect(streaks.find((row) => row.childId === 'timofey')?.current).toBe(6);
+  });
+
+  it('grants every stage of the ladder in one run', async () => {
+    await setMilestones([
+      { id: 'week', days: 7, rewardId: 'bubble-tea' },
+      { id: 'fortnight', days: 15, rewardId: 'icecream-shop' },
+    ]);
+    await closeDays('timofey', september(15));
+
+    await recalculateStreaks('2026-09-24');
+
+    expect((await streakRewards()).map((row) => row.rewardId).sort()).toEqual(['bubble-tea', 'icecream-shop']);
+  });
+
+  it('drops a prize an earlier version gave for day 14', async () => {
+    await closeDays('timofey', september(14));
+    await spendsTable.put({
+      id: 'streak:timofey:week:2026-09-23',
+      childId: 'timofey',
+      rewardId: 'bubble-tea',
+      cost: 0,
+      createdAt: 1789600000000,
+      source: 'streak',
+    });
+
+    await recalculateStreaks('2026-09-23');
+
+    expect((await streakRewards()).map((row) => row.id)).toEqual(['streak:timofey:week:2026-09-16']);
+  });
+
+  it('congratulates a new run after counters from the old rule are reset', async () => {
+    await closeDays('timofey', september(7));
+    await recalculateStreaks('2026-09-16');
+    const [state] = (await getStreaks()).filter((row) => row.childId === 'timofey');
+    await streaksTable.put({ ...state!, celebrated: { week: 2 }, hitRule: 'every' });
+
+    expect(await recalculateStreaks('2026-09-16')).toEqual([]);
+    await closeDays('timofey', september(7, 18));
+
+    expect(await recalculateStreaks('2026-09-24')).toHaveLength(1);
+  });
+
+  it('keeps the variant chosen for a prize when recalculated', async () => {
+    await closeDays('timofey', september(7));
+    await recalculateStreaks('2026-09-16');
+    const [prize] = await streakRewards();
+    await chooseSpendVariant(prize!.id, { variantId: 'taro', variantName: 'Таро' });
+
+    await recalculateStreaks('2026-09-16');
+
+    expect((await streakRewards())[0]).toMatchObject({ variantId: 'taro', variantName: 'Таро' });
+  });
+
+  it('gives a stage only to the children it names', async () => {
+    await setMilestones([{ id: 'week', days: 7, rewardId: 'bubble-tea', childIds: ['timofey'] }]);
+    await closeDays('timofey', september(7));
+    await closeDays('daniil', september(7));
+
+    await recalculateStreaks('2026-09-16');
+
+    expect((await streakRewards()).map((row) => row.childId)).toEqual(['timofey']);
+    expect((await getStreaks()).find((row) => row.childId === 'daniil')?.current).toBe(7);
+  });
+
+  it('lets each child have a ladder of their own', async () => {
+    await setMilestones([
+      { id: 'timofey-week', days: 7, rewardId: 'bubble-tea', childIds: ['timofey'] },
+      { id: 'daniil-five', days: 5, rewardId: 'icecream-shop', childIds: ['daniil'] },
+    ]);
+    await closeDays('timofey', september(7));
+    await closeDays('daniil', september(7));
+
+    await recalculateStreaks('2026-09-16');
+
+    const rewards = (await streakRewards()).map((row) => `${row.childId}:${row.rewardId}`).sort();
+    expect(rewards).toEqual(['daniil:icecream-shop', 'timofey:bubble-tea']);
   });
 
   it('drops point awards left by an earlier configuration', async () => {
@@ -250,12 +326,12 @@ describe('recalculateStreaks', () => {
       { id: 'week', days: 7, rewardId: 'bubble-tea', to: '2026-09-17' },
       { id: 'week-2', days: 7, points: 3, from: '2026-09-17' },
     ]);
-    await closeDays('timofey', september(7, 17));
-    await recalculateStreaks('2026-09-23');
+    await closeDays('timofey', september(7, 18));
+    await recalculateStreaks('2026-09-24');
 
     const rewards = await streakRewards();
     expect(rewards.map((row) => row.rewardId)).toEqual(['bubble-tea']);
-    expect((await streakPointAwards()).map((row) => row.date)).toEqual(['2026-09-23']);
+    expect((await streakPointAwards()).map((row) => row.date)).toEqual(['2026-09-24']);
   });
 
   it('does not congratulate twice when an edit moves the prize day', async () => {
@@ -274,18 +350,18 @@ describe('recalculateStreaks', () => {
     await closeDays('timofey', september(7));
     expect(await recalculateStreaks('2026-09-16')).toHaveLength(1);
 
-    await closeDays('timofey', september(7, 17));
+    await closeDays('timofey', september(7, 18));
 
-    expect(await recalculateStreaks('2026-09-23')).toHaveLength(1);
+    expect(await recalculateStreaks('2026-09-24')).toHaveLength(1);
   });
 
   it('congratulates once per prize when past days are filled in backwards', async () => {
-    const days = september(14).reverse();
+    const days = [...september(7), ...september(7, 18)].reverse();
     let congratulations = 0;
 
     for (const day of days) {
       await closeDay('timofey', day);
-      congratulations += (await recalculateStreaks('2026-09-23')).length;
+      congratulations += (await recalculateStreaks('2026-09-24')).length;
     }
 
     expect(congratulations).toBe(2);

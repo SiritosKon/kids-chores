@@ -12,7 +12,12 @@ export const spendSchema = z.object({
   cost: z.number().int(),
   createdAt: timestamp,
   source: spendSourceSchema,
+  variantId: z.string().min(1).optional(),
+  variantName: z.string().min(1).optional(),
+  chosenAt: timestamp.optional(),
 });
+
+export const spendChoiceSchema = spendSchema.pick({ variantId: true, variantName: true }).required();
 
 export const storedSpendSchema = spendSchema
   .extend({ createdAt: timestamp.optional(), source: spendSourceSchema.optional() })

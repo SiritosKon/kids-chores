@@ -177,10 +177,44 @@ body.body--dark {
   margin-left: -10px;
 }
 
-body.setup-tour--over-dialogs .driver-overlay {
-  z-index: 6500 !important;
+
+.settings-page {
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-body.setup-tour--over-dialogs .driver-popover.setup-tour {
-  z-index: 6501;
+.page-stack {
+  overflow-x: hidden;
+}
+
+.page-forward-enter-active,
+.page-back-enter-active {
+  transition: transform 0.22s ease-out, opacity 0.22s ease-out;
+}
+
+.page-forward-leave-active,
+.page-back-leave-active {
+  transition: transform 0.14s ease-in, opacity 0.14s ease-in;
+}
+
+.page-forward-enter-from,
+.page-back-leave-to {
+  transform: translateX(48px);
+  opacity: 0;
+}
+
+.page-forward-leave-to,
+.page-back-enter-from {
+  transform: translateX(-48px);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-forward-enter-active,
+  .page-forward-leave-active,
+  .page-back-enter-active,
+  .page-back-leave-active {
+    transition: none;
+  }
 }

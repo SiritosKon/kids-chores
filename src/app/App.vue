@@ -28,7 +28,15 @@
             Хранилище недоступно — отметки не сохранятся между сессиями.
           </q-banner>
           <OnboardingPage v-if="needsSetup" />
-          <HomePage v-else-if="settingsStore.loaded" />
+          <div v-else-if="settingsStore.loaded" class="page-stack">
+            <router-view v-slot="{ Component, route }">
+              <transition :name="route.meta.transition" mode="out-in">
+                <keep-alive include="HomePage">
+                  <component :is="Component" />
+                </keep-alive>
+              </transition>
+            </router-view>
+          </div>
         </q-page-container>
       </q-layout>
     </div>
@@ -37,9 +45,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
+import { useRoute, useRouter } from 'vue-router';
+import { ROUTES } from '@/shared/config/constants';
 import { formatDayKeyLong } from '@/shared/lib/date';
 import { isPersistenceAvailable } from '@/shared/api/db';
 import { recordVersion } from '@/entities/app-version';
@@ -48,7 +58,6 @@ import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
 import { useWhatsNewStore, WhatsNewDialog } from '@/features/whats-new';
 import { ParentMenu } from '@/widgets/parent-menu';
-import { HomePage } from '@/pages/home';
 import { OnboardingPage } from '@/pages/onboarding';
 
 const $q = useQuasar();
@@ -59,6 +68,15 @@ const whatsNew = useWhatsNewStore();
 const { isOpen: whatsNewOpen } = storeToRefs(whatsNew);
 const appVersion = __APP_VERSION__;
 const settingsStore = useSettingsStore();
+
+const route = useRoute();
+const router = useRouter();
+
+watch(parentActive, (active) => {
+  if (!active && route.meta.parentOnly === true) {
+    void router.replace(ROUTES.home);
+  }
+});
 
 const needsSetup = computed(() => settingsStore.loaded && !settingsStore.settings?.parentPin);
 

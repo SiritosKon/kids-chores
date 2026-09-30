@@ -44,7 +44,7 @@ describe('summariseStreak', () => {
     expect(summary.best).toBe(3);
   });
 
-  it('fires a milestone every N days without resetting the streak', () => {
+  it('fires each stage once, on the day the run reaches it', () => {
     const days = Array.from({ length: 7 }, (_, index) => `2026-09-${10 + index}`);
 
     const summary = summariseStreak(days, MILESTONES, '2026-09-16');
@@ -52,9 +52,25 @@ describe('summariseStreak', () => {
     expect(summary.current).toBe(7);
     expect(summary.hits.map((hit) => `${hit.milestoneId}@${hit.day}`)).toEqual([
       'three-days@2026-09-12',
-      'three-days@2026-09-15',
       'week@2026-09-16',
     ]);
+  });
+
+  it('does not fire a stage again when the run goes on past it', () => {
+    const days = Array.from({ length: 21 }, (_, index) => `2026-09-${String(1 + index).padStart(2, '0')}`);
+
+    const summary = summariseStreak(days, [{ id: 'week', days: 7 }], '2026-09-21');
+
+    expect(summary.hits.map((hit) => hit.day)).toEqual(['2026-09-07']);
+  });
+
+  it('fires a stage again in a new run after a break', () => {
+    const first = Array.from({ length: 3 }, (_, index) => `2026-09-0${1 + index}`);
+    const second = Array.from({ length: 3 }, (_, index) => `2026-09-1${index}`);
+
+    const summary = summariseStreak([...first, ...second], [{ id: 'three', days: 3 }], '2026-09-12');
+
+    expect(summary.hits.map((hit) => hit.day)).toEqual(['2026-09-03', '2026-09-12']);
   });
 
   it('crosses a month boundary', () => {

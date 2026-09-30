@@ -102,7 +102,7 @@
     <StreakAwardDialog
       :model-value="grantedAwards.length > 0"
       :awards="grantedAwards"
-      @update:model-value="clearAwards"
+      @update:model-value="closeAwards"
     />
     <TaskEditDialog v-model="editorOpen" :task="editedTask" @changed="onTasksChanged" />
   </div>
@@ -113,9 +113,11 @@ import { ref, computed, toRef } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useChildrenStore } from '@/entities/child';
 import { useTasksStore, type Task } from '@/entities/task';
+import { useRewardsStore } from '@/entities/reward';
 import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { StreakAwardDialog } from '@/features/celebrate-streak';
+import { useChooseVariant } from '@/features/choose-reward-variant';
 import { TaskEditDialog } from '@/features/edit-task';
 import { recalculateStreaks } from '@/features/track-streak';
 import { BONUS_ROW, CHECK_COLORS } from './constants';
@@ -142,6 +144,19 @@ const {
   dirty,
   accept,
 } = useDayMarks(toRef(props, 'selectedDate'));
+
+const rewardsStore = useRewardsStore();
+const { chooseInTurn } = useChooseVariant();
+
+const closeAwards = async (): Promise<void> => {
+  const awards = grantedAwards.value.flatMap((award) =>
+    award.rewardId && rewardsStore.hasVariants(award.rewardId)
+      ? [{ id: award.id, childId: award.childId, rewardId: award.rewardId }]
+      : []
+  );
+  clearAwards();
+  await chooseInTurn(awards);
+};
 
 const checkColor = (index: number): string => CHECK_COLORS[index] ?? 'primary';
 

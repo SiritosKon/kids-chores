@@ -3,21 +3,29 @@ import { completionsTable, getAllCompletions } from '@/entities/completion';
 import { spendsTable, getAllSpends } from '@/entities/spend';
 import { childrenCatalogue } from '@/entities/child';
 import { tasksCatalogue } from '@/entities/task';
-import { rewardsCatalogue } from '@/entities/reward';
+import {
+  rewardsCatalogue,
+  variantsCatalogue,
+  variantPhotosTable,
+  getAllVariantPhotos,
+} from '@/entities/reward';
 import { getSettings, saveSettings } from '@/entities/settings';
 import { backupSchema, describeIssues } from './schema';
 import { BACKUP_VERSION, BACKUP_TABLES } from './constants';
 import type { Backup } from './types';
 
 export const exportAll = async (): Promise<Backup> => {
-  const [completions, spends, children, tasks, rewards, settings] = await Promise.all([
-    getAllCompletions(),
-    getAllSpends(),
-    childrenCatalogue.read(),
-    tasksCatalogue.read(),
-    rewardsCatalogue.read(),
-    getSettings(),
-  ]);
+  const [completions, spends, children, tasks, rewards, rewardVariants, variantPhotos, settings] =
+    await Promise.all([
+      getAllCompletions(),
+      getAllSpends(),
+      childrenCatalogue.read(),
+      tasksCatalogue.read(),
+      rewardsCatalogue.read(),
+      variantsCatalogue.read(),
+      getAllVariantPhotos(),
+      getSettings(),
+    ]);
 
   return {
     version: BACKUP_VERSION,
@@ -27,6 +35,8 @@ export const exportAll = async (): Promise<Backup> => {
     children,
     tasks,
     rewards,
+    rewardVariants,
+    variantPhotos,
     ...(settings ? { settings } : {}),
   };
 };
@@ -36,7 +46,8 @@ export const importAll = async (data: unknown): Promise<void> => {
   if (!parsed.success) {
     throw new Error(describeIssues(parsed.error));
   }
-  const { completions, spends = [], children, tasks, rewards, settings } = parsed.data;
+  const { completions, spends = [], children, tasks, rewards, rewardVariants, variantPhotos, settings } =
+    parsed.data;
 
   await transaction(BACKUP_TABLES, async () => {
     await completionsTable.clear();
@@ -58,6 +69,14 @@ export const importAll = async (data: unknown): Promise<void> => {
     if (rewards) {
       await rewardsCatalogue.table.clear();
       await rewardsCatalogue.putMany(rewards);
+    }
+    if (rewardVariants) {
+      await variantsCatalogue.table.clear();
+      await variantsCatalogue.putMany(rewardVariants);
+    }
+    if (variantPhotos) {
+      await variantPhotosTable.clear();
+      await variantPhotosTable.bulkPut(variantPhotos);
     }
     if (settings) {
       await saveSettings(settings);

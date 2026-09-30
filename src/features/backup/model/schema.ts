@@ -3,7 +3,7 @@ import { storedCompletionSchema } from '@/entities/completion';
 import { storedSpendSchema } from '@/entities/spend';
 import { childSchema } from '@/entities/child';
 import { storedTaskSchema } from '@/entities/task';
-import { rewardSchema } from '@/entities/reward';
+import { rewardSchema, rewardVariantSchema, variantPhotoSchema } from '@/entities/reward';
 import { storedSettingsSchema } from '@/entities/settings';
 
 export const backupSchema = z.object({
@@ -14,6 +14,8 @@ export const backupSchema = z.object({
   children: z.array(childSchema).optional(),
   tasks: z.array(storedTaskSchema).optional(),
   rewards: z.array(rewardSchema).optional(),
+  rewardVariants: z.array(rewardVariantSchema).optional(),
+  variantPhotos: z.array(variantPhotoSchema).optional(),
   settings: storedSettingsSchema.optional(),
 });
 
