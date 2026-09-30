@@ -12,7 +12,7 @@
         Каждый этап срабатывает один раз за серию. Серия прервалась — этапы можно пройти заново.
       </div>
       <q-list separator class="stages">
-        <q-item v-for="stage in stages" :key="stage.id" clickable @click="edit(stage)">
+        <q-item v-for="stage in stages" :key="stage.id" clickable @click="emit('open-stage', stage.id)">
           <q-item-section avatar>
             <div class="stage-days">{{ stage.days }}</div>
           </q-item-section>
@@ -25,37 +25,25 @@
           <q-item-section side><q-icon name="chevron_right" /></q-item-section>
         </q-item>
       </q-list>
-      <q-btn flat no-caps color="primary" icon="add" label="Добавить этап" class="q-mt-sm" @click="edit(null)" />
+      <q-btn flat no-caps color="primary" icon="add" label="Добавить этап" class="q-mt-sm" @click="emit('open-stage', null)" />
     </div>
 
-    <StreakStageDialog
-      v-model="dialogOpen"
-      :stage="editing"
-      :picked-reward-id="pickedRewardId"
-      @changed="emit('changed')"
-      @create-reward="emit('create-reward')"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { DAY_WORD_FORMS } from '@/shared/lib/constants';
 import { pluralize } from '@/shared/lib/plural';
 import { useChildrenStore } from '@/entities/child';
 import { useRewardsStore } from '@/entities/reward';
 import { useSettingsStore, openMilestones, type StreakMilestone } from '@/entities/settings';
-import StreakStageDialog from './StreakStageDialog.vue';
 
-withDefaults(defineProps<{ pickedRewardId?: string | null }>(), { pickedRewardId: null });
-const emit = defineEmits<{ changed: []; 'create-reward': [] }>();
+const emit = defineEmits<{ changed: []; 'open-stage': [stageId: string | null] }>();
 
 const settingsStore = useSettingsStore();
 const rewardsStore = useRewardsStore();
 const childrenStore = useChildrenStore();
-
-const dialogOpen = ref(false);
-const editing = ref<StreakMilestone | null>(null);
 
 const stages = computed(() => openMilestones(settingsStore.streak.milestones));
 
@@ -70,11 +58,6 @@ const childrenLabel = (stage: StreakMilestone): string =>
 const toggle = async (enabled: boolean): Promise<void> => {
   await settingsStore.update({ streak: { ...settingsStore.streak, enabled } });
   emit('changed');
-};
-
-const edit = (stage: StreakMilestone | null): void => {
-  editing.value = stage;
-  dialogOpen.value = true;
 };
 </script>
 

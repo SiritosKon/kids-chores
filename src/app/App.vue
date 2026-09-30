@@ -45,9 +45,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
+import { useRoute, useRouter } from 'vue-router';
+import { ROUTES } from '@/shared/config/constants';
 import { formatDayKeyLong } from '@/shared/lib/date';
 import { isPersistenceAvailable } from '@/shared/api/db';
 import { recordVersion } from '@/entities/app-version';
@@ -66,6 +68,15 @@ const whatsNew = useWhatsNewStore();
 const { isOpen: whatsNewOpen } = storeToRefs(whatsNew);
 const appVersion = __APP_VERSION__;
 const settingsStore = useSettingsStore();
+
+const route = useRoute();
+const router = useRouter();
+
+watch(parentActive, (active) => {
+  if (!active && route.meta.parentOnly === true) {
+    void router.replace(ROUTES.home);
+  }
+});
 
 const needsSetup = computed(() => settingsStore.loaded && !settingsStore.settings?.parentPin);
 

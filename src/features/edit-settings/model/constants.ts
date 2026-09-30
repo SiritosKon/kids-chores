@@ -1,4 +1,4 @@
-import type { PinStep } from './types';
+import type { PinStep, StageDraft } from './types';
 
 export const PIN_STEP_TITLES: Readonly<Record<PinStep, string>> = {
   current: 'Введите текущий PIN',
@@ -9,3 +9,11 @@ export const PIN_STEP_TITLES: Readonly<Record<PinStep, string>> = {
 export const STREAK_MIN_DAYS = 2;
 
 export const NEW_REWARD_OPTION = '__new-reward__';
+
+export const EMPTY_STAGE_DRAFT: StageDraft = {
+  days: 7,
+  points: 0,
+  rewardId: null,
+  forEveryone: true,
+  childIds: [],
+};
