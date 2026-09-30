@@ -1,7 +1,8 @@
 import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { rewardsCatalogue } from '../api/rewardsRepo';
-import type { Reward } from './types';
+import { variantsCatalogue } from '../api/variantsRepo';
+import type { Reward, RewardVariant } from './types';
 
 export const useRewardsStore = defineStore('rewards', () => {
   const items = ref<Reward[]>([]);
@@ -11,7 +12,15 @@ export const useRewardsStore = defineStore('rewards', () => {
     items.value = rows;
     loaded.value = true;
   });
-  onScopeDispose(() => subscription.unsubscribe());
+  const variants = ref<RewardVariant[]>([]);
+  const variantsSubscription = variantsCatalogue.watch((rows) => {
+    variants.value = rows.filter((variant) => variant.active);
+  });
+
+  onScopeDispose(() => {
+    subscription.unsubscribe();
+    variantsSubscription.unsubscribe();
+  });
 
   const active = computed(() =>
     items.value
@@ -26,5 +35,11 @@ export const useRewardsStore = defineStore('rewards', () => {
 
   const nameOf = (rewardId: string): string => byId(rewardId)?.name ?? rewardId;
 
-  return { items, active, shop, loaded, byId, nameOf };
+  const variantsOf = (rewardId: string): RewardVariant[] =>
+    variants.value.filter((variant) => variant.rewardId === rewardId);
+
+  const hasVariants = (rewardId: string): boolean =>
+    variants.value.some((variant) => variant.rewardId === rewardId);
+
+  return { items, active, shop, loaded, byId, nameOf, variants, variantsOf, hasVariants };
 });

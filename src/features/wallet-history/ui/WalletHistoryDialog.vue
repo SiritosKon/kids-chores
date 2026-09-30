@@ -14,6 +14,11 @@
           </template>
           <template #default="{ item }">
             <q-item>
+              <q-item-section v-if="item.variantId && photos.get(item.variantId)" avatar>
+                <q-avatar rounded size="40px">
+                  <img :src="photos.get(item.variantId)" alt="" />
+                </q-avatar>
+              </q-item-section>
               <q-item-section>
                 <q-item-label>{{ item.label }}</q-item-label>
               </q-item-section>
@@ -45,7 +50,7 @@ import { groupByDay } from '@/shared/lib/groupByDay';
 import DayGroupedList from '@/shared/ui/DayGroupedList.vue';
 import { getChildLedger } from '@/entities/wallet';
 import { useTasksStore } from '@/entities/task';
-import { useRewardsStore } from '@/entities/reward';
+import { useRewardsStore, getVariantPhotos } from '@/entities/reward';
 import { useChildrenStore } from '@/entities/child';
 import type { LedgerItem } from './types';
 
@@ -63,6 +68,7 @@ const rewardsStore = useRewardsStore();
 const childrenStore = useChildrenStore();
 
 const ledger = ref<LedgerItem[]>([]);
+const photos = ref(new Map<string, string>());
 
 const childName = computed(() => (props.childId ? childrenStore.nameOf(props.childId) : ''));
 
@@ -96,14 +102,18 @@ const load = async (): Promise<void> => {
     })),
     ...spends.map((spend) => ({
       id: spend.id,
-      label: rewardsStore.nameOf(spend.rewardId),
+      label: spend.variantName
+        ? `${rewardsStore.nameOf(spend.rewardId)} → ${spend.variantName}`
+        : rewardsStore.nameOf(spend.rewardId),
       amount: -spend.cost,
       ts: spend.createdAt,
       day: dayKeyOf(spend.createdAt),
+      ...(spend.variantId ? { variantId: spend.variantId } : {}),
     })),
   ];
   items.sort((first, second) => second.ts - first.ts);
   ledger.value = items;
+  photos.value = await getVariantPhotos(items.flatMap((item) => (item.variantId ? [item.variantId] : [])));
 };
 
 watch(

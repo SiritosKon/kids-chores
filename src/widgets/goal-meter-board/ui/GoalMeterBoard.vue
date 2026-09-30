@@ -7,6 +7,7 @@
       :editable="parentActive"
       @open-history="openHistory(entry.childId)"
       @open-streak="openStreak(entry.childId)"
+      @choose-gift="chooseGift(entry.childId)"
       @edit="openEditor(entry.childId)"
     />
     <div v-if="parentActive" class="goal-meter-board__add">
@@ -31,6 +32,7 @@ import { useParentSessionStore } from '@/entities/parent-session';
 import { WalletHistoryDialog } from '@/features/wallet-history';
 import { StreakDialog } from '@/features/streak-details';
 import { ChildEditDialog } from '@/features/edit-child';
+import { useChooseVariant, usePendingChoicesStore } from '@/features/choose-reward-variant';
 import GoalMeter from './GoalMeter.vue';
 import type { MeterEntry } from '../model/types';
 
@@ -38,6 +40,8 @@ const wallet = useWalletStore();
 const childrenStore = useChildrenStore();
 const streakStore = useStreakStore();
 const { active: parentActive } = storeToRefs(useParentSessionStore());
+const pendingChoices = usePendingChoicesStore();
+const { chooseInTurn } = useChooseVariant();
 
 const meterEntries = computed<MeterEntry[]>(() =>
   childrenStore.active.map((child) => {
@@ -51,6 +55,7 @@ const meterEntries = computed<MeterEntry[]>(() =>
       balance,
       ratio: max > 0 ? balance / max : 0,
       streak: streakStore.currentOf(child.id),
+      pendingChoices: pendingChoices.pendingOf(child.id).length,
     };
   })
 );
@@ -70,6 +75,8 @@ const openStreak = (childId: string): void => {
   streakChildId.value = childId;
   streakOpen.value = true;
 };
+
+const chooseGift = (childId: string): Promise<void> => chooseInTurn(pendingChoices.pendingOf(childId));
 
 const editorOpen = ref(false);
 const editedChild = ref<Child | null>(null);

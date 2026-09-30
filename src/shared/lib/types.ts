@@ -4,3 +4,5 @@ export interface DayGroup<Item> {
 }
 
 export type Burst = (colors: string[]) => void;
+
+export type PhotoFit = 'square' | 'fit';

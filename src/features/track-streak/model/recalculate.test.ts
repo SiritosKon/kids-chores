@@ -3,7 +3,7 @@ import { db } from '@/shared/api/db';
 import { EARLIEST_DAY_KEY } from '@/shared/lib/constants';
 import { tasksCatalogue, STREAK_TASK_ID } from '@/entities/task';
 import { saveDayMarks, getAllCompletions } from '@/entities/completion';
-import { getAllSpends, spendsTable } from '@/entities/spend';
+import { getAllSpends, spendsTable, chooseSpendVariant } from '@/entities/spend';
 import { getStreaks, streaksTable } from '@/entities/streak';
 import { getSettings, saveSettings, type StreakMilestone } from '@/entities/settings';
 import { seedFamily, FAMILY_TASKS } from '../../../../tests/fixtures/family';
@@ -193,6 +193,17 @@ describe('recalculateStreaks', () => {
     await closeDays('timofey', september(7, 18));
 
     expect(await recalculateStreaks('2026-09-24')).toHaveLength(1);
+  });
+
+  it('keeps the variant chosen for a prize when recalculated', async () => {
+    await closeDays('timofey', september(7));
+    await recalculateStreaks('2026-09-16');
+    const [prize] = await streakRewards();
+    await chooseSpendVariant(prize!.id, { variantId: 'taro', variantName: 'Таро' });
+
+    await recalculateStreaks('2026-09-16');
+
+    expect((await streakRewards())[0]).toMatchObject({ variantId: 'taro', variantName: 'Таро' });
   });
 
   it('drops point awards left by an earlier configuration', async () => {

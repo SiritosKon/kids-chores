@@ -117,6 +117,7 @@ export const recalculateStreaks = async (
         });
       }
       if (hit.rewardId !== undefined) {
+        const granted = spends.find((row) => row.id === id && row.rewardId === hit.rewardId);
         expectedSpends.set(id, {
           id,
           childId: child.id,
@@ -124,6 +125,9 @@ export const recalculateStreaks = async (
           cost: 0,
           createdAt: dayTimestamp(hit.day),
           source: 'streak',
+          ...(granted?.variantId ? { variantId: granted.variantId } : {}),
+          ...(granted?.variantName ? { variantName: granted.variantName } : {}),
+          ...(granted?.chosenAt ? { chosenAt: granted.chosenAt } : {}),
         });
       }
     }

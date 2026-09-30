@@ -9,7 +9,7 @@
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
 | `pages` | Экраны целиком | `home`, `onboarding`, `settings` |
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `parent-menu` |
-| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `install-app` |
+| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app` |
 | `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session` |
 | `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets` |
 
@@ -42,6 +42,18 @@
 переписываются. В состоянии серии `hitRule` отмечает, по какому правилу посчитаны поздравления
 `celebrated`: записи прошлых версий (`every`, приз каждые N дней) один раз приводятся к числу
 срабатываний по новому правилу.
+
+## Награда с вариантами
+
+Варианты награды — две таблицы в `entities/reward`: `rewardVariants` (название, порядок, архив)
+и `variantPhotos` (фото по id варианта). Фото лежат отдельно, чтобы главная знала, у каких
+наград есть варианты, не загружая картинки; фото читаются только в редакторе, окне выбора и
+кошельке. Выбор — снимок в строке `spends` (`variantId`, `variantName`, `chosenAt`), как `cost`.
+
+Окно выбора `VariantPickerDialog` лежит в `entities/reward/ui`: им пользуются и выдача за
+баллы (`features/award-reward` — выбор до подтверждения), и приз серии
+(`features/choose-reward-variant` — выбор после поздравления или по бейджу «Выбери подарок»),
+а фичи друг друга не импортируют.
 
 ## Межсущностные связи
 

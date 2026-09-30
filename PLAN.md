@@ -132,11 +132,11 @@
 
 ### Модель
 
-- Новая таблица `rewardVariants: { id, rewardId, name, photo, order, createdAt, updatedAt,
-  archivedAt? }`, индекс `rewardId`. Dexie `version(5)` в `shared/api/db.ts`, старые таблицы
-  не трогаем.
-- Фото вариантов не лежат в строке награды: список наград грузится целиком на главной, фото
-  нужны только в редакторе и окне выбора.
+- Новые таблицы: `rewardVariants: { id, rewardId, name, order, active, createdAt, updatedAt,
+  archivedAt? }` с индексом `rewardId` и `variantPhotos: { id, photo }`. Dexie `version(5)` в
+  `shared/api/db.ts`, старые таблицы не трогаем.
+- Фото лежат отдельно от вариантов: главная знает, у каких наград есть варианты, не загружая
+  картинки. Фото нужны только в редакторе, окне выбора и кошельке.
 - `spends`: опциональные `variantId`, `variantName` (снимок, как `cost`), `chosenAt`. Старые
   строки читаются как есть.
 - Выданная награда с вариантами и без `variantId` — «ждёт выбора».
@@ -148,10 +148,11 @@
 - `shared/lib/resizePhoto.ts` — переносим из `features/edit-child/lib`, размер и обрезку
   передаём параметром: ребёнку квадрат 256px, варианту ~1024px по длинной стороне.
 - `entities/reward` — схема и репозиторий вариантов (второй репозиторий внутри слайса, не новая
-  сущность и не третий вход `@x`), стор.
+  сущность и не третий вход `@x`), стор и окно выбора `VariantPickerDialog`: им пользуются
+  две фичи, а фичи друг друга не импортируют.
 - `entities/spend` — поля выбора и `chooseVariant(spendId, variant)`.
 - `features/edit-reward` — блок «Варианты» в `RewardEditDialog`.
-- `features/choose-reward-variant` 🆕 — окно выбора и сохранение.
+- `features/choose-reward-variant` 🆕 — выбор для приза серии и список ждущих выбора.
 - `features/award-reward` — сначала выбор варианта, потом подтверждение выдачи.
 - `features/celebrate-streak` — после поздравления открыть выбор для приза с вариантами.
 - `widgets/goal-meter-board` — бейдж «🎁 Выбери подарок» у ребёнка с ожидающей наградой.

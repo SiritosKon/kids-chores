@@ -15,7 +15,9 @@
           <template #default="{ item: spend }">
             <q-item>
               <q-item-section>
-                <q-item-label>{{ rewardName(spend.rewardId) }}</q-item-label>
+                <q-item-label>
+                  {{ rewardName(spend.rewardId) }}<template v-if="spend.variantName"> → {{ spend.variantName }}</template>
+                </q-item-label>
                 <q-item-label caption>{{ childName(spend.childId) }} · −{{ spend.cost }} б.</q-item-label>
               </q-item-section>
               <q-item-section side>

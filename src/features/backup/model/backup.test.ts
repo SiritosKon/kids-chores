@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/api/db';
 import { childrenCatalogue } from '@/entities/child';
 import { tasksCatalogue } from '@/entities/task';
-import { rewardsCatalogue } from '@/entities/reward';
+import { rewardsCatalogue, saveVariants, variantsCatalogue, getAllVariantPhotos } from '@/entities/reward';
 import { getSettings } from '@/entities/settings';
 import { saveDayMarks, getAllCompletions } from '@/entities/completion';
 import { seedFamily, FAMILY_REWARDS } from '../../../../tests/fixtures/family';
@@ -21,7 +21,7 @@ describe('export and import', () => {
   it('exports catalogues and settings, not history alone', async () => {
     const backup = await exportAll();
 
-    expect(backup.version).toBe(4);
+    expect(backup.version).toBe(5);
     expect(backup.children).toHaveLength(2);
     expect(backup.tasks).toHaveLength(3);
     expect(backup.rewards).toHaveLength(FAMILY_REWARDS.length);
@@ -65,5 +65,23 @@ describe('export and import', () => {
     expect(await tasksCatalogue.read()).toHaveLength(3);
     expect(await rewardsCatalogue.read()).toHaveLength(FAMILY_REWARDS.length);
     expect(await getSettings()).toBeDefined();
+  });
+
+  it('restores reward variants with their photos', async () => {
+    await saveVariants('bubble-tea', [{ id: null, name: 'Таро', photo: 'data:image/jpeg;taro' }], []);
+
+    const backup = await exportAll();
+    await db.delete();
+    await db.open();
+    await importAll(backup);
+
+    expect((await variantsCatalogue.read()).map((variant) => variant.name)).toEqual(['Таро']);
+    expect((await getAllVariantPhotos()).map((row) => row.photo)).toEqual(['data:image/jpeg;taro']);
+  });
+
+  it('imports an older backup without variants', async () => {
+    const { rewardVariants: _variants, variantPhotos: _photos, ...older } = await exportAll();
+
+    await expect(importAll({ ...older, version: 4 })).resolves.toBeUndefined();
   });
 });

@@ -40,6 +40,7 @@ import { ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
 import { COLOR_PALETTE } from '@/shared/ui/constants';
+import { resizePhoto } from '@/shared/lib/resizePhoto';
 import {
   useChildrenStore,
   createChild,
@@ -48,7 +49,7 @@ import {
   childPhotoUrl,
   type Child,
 } from '@/entities/child';
-import { resizePhoto } from '../lib/resizePhoto';
+import { PHOTO_SIZE } from '../lib/constants';
 
 const props = withDefaults(defineProps<{ modelValue?: boolean; child?: Child | null }>(), {
   modelValue: false,
@@ -97,7 +98,7 @@ const onPhoto = async (): Promise<void> => {
     return;
   }
   try {
-    photo.value = await resizePhoto(file);
+    photo.value = await resizePhoto(file, PHOTO_SIZE, 'square');
   } catch {
     $q.notify({ type: 'negative', message: 'Не получилось открыть фото' });
   } finally {

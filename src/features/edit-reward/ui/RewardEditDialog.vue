@@ -34,6 +34,8 @@
           <div class="text-caption text-grey-5 q-mb-sm">Иконка</div>
           <IconPicker v-model="icon" :color="previewColor" />
         </div>
+
+        <VariantsEditor v-model="variants" />
       </q-card-section>
 
       <q-separator />
@@ -53,15 +55,20 @@ import { useQuasar } from 'quasar';
 import IconPicker from '@/shared/ui/IconPicker.vue';
 import { ICON_CHOICES } from '@/shared/ui/constants';
 import {
+  useRewardsStore,
   createReward,
   updateReward,
   archiveReward,
+  saveVariants,
+  getVariantPhotos,
   rewardColor,
   rewardVisibilitySchema,
   REWARD_VISIBILITY_LABELS,
   type Reward,
   type RewardVisibility,
 } from '@/entities/reward';
+import VariantsEditor from './VariantsEditor.vue';
+import type { EditableVariant } from './types';
 
 const props = withDefaults(
   defineProps<{
@@ -77,11 +84,13 @@ const emit = defineEmits<{
 }>();
 
 const $q = useQuasar();
+const rewardsStore = useRewardsStore();
 
 const name = ref('');
 const points = ref(5);
 const icon = ref<string>(ICON_CHOICES[0]);
 const visibility = ref<RewardVisibility>('shop');
+const variants = ref<EditableVariant[]>([]);
 
 const visibilityOptions = rewardVisibilitySchema.options.map((value) => ({
   value,
@@ -93,7 +102,11 @@ const previewColor = computed(() =>
 );
 
 const canSave = computed(
-  () => name.value.trim().length > 0 && Number.isInteger(points.value) && points.value > 0
+  () =>
+    name.value.trim().length > 0 &&
+    Number.isInteger(points.value) &&
+    points.value > 0 &&
+    variants.value.every((variant) => variant.name.trim().length > 0)
 );
 
 const reset = (): void => {
@@ -101,6 +114,19 @@ const reset = (): void => {
   points.value = props.reward?.points ?? 5;
   icon.value = props.reward?.icon ?? 'card_giftcard';
   visibility.value = props.reward?.visibility ?? props.visibility;
+  variants.value = [];
+  void loadVariants();
+};
+
+const loadVariants = async (): Promise<void> => {
+  const existing = props.reward ? rewardsStore.variantsOf(props.reward.id) : [];
+  const photos = await getVariantPhotos(existing.map((variant) => variant.id));
+  variants.value = existing.map((variant) => ({
+    key: variant.id,
+    id: variant.id,
+    name: variant.name,
+    photo: photos.get(variant.id) ?? '',
+  }));
 };
 
 const close = (): void => {
@@ -114,10 +140,14 @@ const save = async (): Promise<void> => {
     icon: icon.value,
     visibility: visibility.value,
   };
+  const drafts = variants.value.map(({ id, name: variantName, photo }) => ({ id, name: variantName, photo }));
   if (props.reward) {
     await updateReward(props.reward.id, draft);
+    await saveVariants(props.reward.id, drafts, rewardsStore.variantsOf(props.reward.id));
   } else {
-    emit('created', await createReward(draft));
+    const created = await createReward(draft);
+    await saveVariants(created.id, drafts, []);
+    emit('created', created);
   }
   close();
 };

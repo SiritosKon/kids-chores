@@ -6,4 +6,5 @@ export interface MeterEntry {
   balance: number;
   ratio: number;
   streak: number;
+  pendingChoices: number;
 }

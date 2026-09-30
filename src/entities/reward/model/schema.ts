@@ -19,3 +19,19 @@ export const rewardSchema = z.object({
   archivedAt: timestamp.optional(),
 });
 
+
+export const rewardVariantSchema = z.object({
+  id: z.string().min(1),
+  rewardId: z.string().min(1),
+  name: z.string().min(1),
+  order: z.number().int().nonnegative(),
+  active: z.boolean(),
+  createdAt: timestamp,
+  updatedAt: timestamp,
+  archivedAt: timestamp.optional(),
+});
+
+export const variantPhotoSchema = z.object({
+  id: z.string().min(1),
+  photo: z.string(),
+});
