@@ -8,8 +8,6 @@ export const PIN_STEP_TITLES: Readonly<Record<PinStep, string>> = {
 
 export const STREAK_MIN_DAYS = 2;
 
-export const NEW_REWARD_OPTION = '__new-reward__';
-
 export const EMPTY_STAGE_DRAFT: StageDraft = {
   days: 7,
   points: 0,

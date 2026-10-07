@@ -22,16 +22,14 @@
 
     <q-input v-model="draft.name" label="Имя" :autofocus="!openGoal" maxlength="30" />
 
-    <q-select
+    <RewardSelect
       ref="goalSelect"
       :model-value="draft.goalRewardId"
-      :options="goalOptions"
       label="Цель — на что копит"
-      emit-value
-      map-options
-      clearable
       hint="Под копилкой появится полоса до цели"
+      :visibilities="GOAL_VISIBILITIES"
       @update:model-value="pickGoal"
+      @create="emit('create-reward')"
     />
     <q-select
       v-if="variantOptions.length > 0"
@@ -56,7 +54,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue';
-import { useQuasar, type QSelect } from 'quasar';
+import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
 import { NEW_CHILD_ID } from '@/shared/config/constants';
 import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
@@ -70,9 +68,8 @@ import {
   childPhotoUrl,
   type Child,
 } from '@/entities/child';
-import { useRewardsStore, canBeGoal, REWARD_VISIBILITY_LABELS } from '@/entities/reward';
+import { useRewardsStore, RewardSelect, GOAL_VISIBILITIES } from '@/entities/reward';
 import { PHOTO_SIZE } from '../lib/constants';
-import { NEW_GOAL_REWARD_OPTION } from '../model/constants';
 import { useChildFormStore } from '../model/store';
 
 const props = withDefaults(defineProps<{ child?: Child | null; openGoal?: boolean }>(), {
@@ -88,23 +85,10 @@ const formStore = useChildFormStore();
 const { draft } = storeToRefs(formStore);
 
 const fileInput = ref<HTMLInputElement | null>(null);
-const goalSelect = ref<QSelect | null>(null);
+const goalSelect = ref<InstanceType<typeof RewardSelect> | null>(null);
 
 const photoUrl = computed(() => childPhotoUrl(draft.value.photo));
 const canSave = computed(() => draft.value.name.trim().length > 0);
-
-const goalOptions = computed(() => [
-  ...rewardsStore.active
-    .filter((reward) => canBeGoal(reward.visibility))
-    .map((reward) => ({
-      value: reward.id,
-      label:
-        reward.visibility === 'goal'
-          ? `${reward.name} · ${reward.points} б. · ${REWARD_VISIBILITY_LABELS.goal.toLowerCase()}`
-          : `${reward.name} · ${reward.points} б.`,
-    })),
-  { value: NEW_GOAL_REWARD_OPTION, label: '＋ Новая награда' },
-]);
 
 const variantOptions = computed(() =>
   draft.value.goalRewardId
@@ -121,10 +105,6 @@ const goal = computed(() => {
 });
 
 const pickGoal = (value: string | null): void => {
-  if (value === NEW_GOAL_REWARD_OPTION) {
-    emit('create-reward');
-    return;
-  }
   draft.value.goalRewardId = value;
   draft.value.goalVariantId = null;
 };
@@ -142,7 +122,7 @@ onMounted(async () => {
   const resumed = formStore.begin(props.child?.id ?? NEW_CHILD_ID, props.child, freeColor());
   if (props.openGoal && !resumed) {
     await nextTick();
-    goalSelect.value?.showPopup();
+    goalSelect.value?.open();
   }
 });
 

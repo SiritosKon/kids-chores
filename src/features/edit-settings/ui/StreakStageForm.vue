@@ -9,14 +9,12 @@
       :error="daysTaken"
       error-message="У этих детей уже есть этап с таким числом дней"
     />
-    <q-select
+    <RewardSelect
       :model-value="draft.rewardId"
-      :options="rewardOptions"
       label="Награда"
-      emit-value
-      map-options
-      clearable
-      @update:model-value="pickReward"
+      :visibilities="PRIZE_VISIBILITIES"
+      @update:model-value="draft.rewardId = $event"
+      @create="emit('create-reward')"
     />
     <q-input
       v-model.number="draft.points"
@@ -46,7 +44,7 @@ import { todayKey } from '@/shared/lib/date';
 import { DAY_WORD_FORMS } from '@/shared/lib/constants';
 import { pluralize } from '@/shared/lib/plural';
 import { ChildrenPicker } from '@/entities/child';
-import { useRewardsStore, rewardPriceLabel } from '@/entities/reward';
+import { RewardSelect, PRIZE_VISIBILITIES } from '@/entities/reward';
 import {
   useSettingsStore,
   addMilestone,
@@ -55,7 +53,7 @@ import {
   isStageDaysTaken,
   type StreakMilestone,
 } from '@/entities/settings';
-import { NEW_REWARD_OPTION, STREAK_MIN_DAYS } from '../model/constants';
+import { STREAK_MIN_DAYS } from '../model/constants';
 import { useStageDraftStore } from '../model/store';
 
 const props = withDefaults(defineProps<{ stage?: StreakMilestone | null }>(), { stage: null });
@@ -63,7 +61,6 @@ const emit = defineEmits<{ changed: []; 'create-reward': [] }>();
 
 const $q = useQuasar();
 const settingsStore = useSettingsStore();
-const rewardsStore = useRewardsStore();
 const { draft } = storeToRefs(useStageDraftStore());
 
 const chooseChildren = (childIds: string[] | null): void => {
@@ -72,24 +69,6 @@ const chooseChildren = (childIds: string[] | null): void => {
 };
 
 const chosenChildren = computed(() => (draft.value.forEveryone ? undefined : draft.value.childIds));
-
-const rewardOptions = computed(() => [
-  ...rewardsStore.active
-    .filter((reward) => reward.visibility !== 'goal')
-    .map((reward) => ({
-      value: reward.id,
-      label: `${reward.name} · ${rewardPriceLabel(reward.points)}`,
-    })),
-  { value: NEW_REWARD_OPTION, label: '＋ Новая награда' },
-]);
-
-const pickReward = (value: string | null): void => {
-  if (value === NEW_REWARD_OPTION) {
-    emit('create-reward');
-    return;
-  }
-  draft.value.rewardId = value;
-};
 
 const isCount = (value: number, min: number): boolean => Number.isInteger(value) && value >= min;
 
