@@ -27,7 +27,7 @@
         </div>
         <div class="streak-progress-row">
           <span class="streak-remaining">
-            ещё {{ progress.remaining }} {{ remainingLabel }} до «{{ rewardLabel(progress) }}»
+            ещё {{ progress.remaining }} {{ remainingLabel }} до {{ progressTarget }}
           </span>
           <span class="streak-fraction">{{ progress.achieved }} / {{ progress.days }}</span>
         </div>
@@ -78,6 +78,8 @@ import { useChildrenStore } from '@/entities/child';
 import { useRewardsStore, rewardColor } from '@/entities/reward';
 import { useSettingsStore, openMilestones, milestonesFor } from '@/entities/settings';
 import { useStreakStore, streakProgress, isStageReached, type StreakMilestoneInput } from '@/entities/streak';
+import { useParentSessionStore } from '@/entities/parent-session';
+import { SURPRISE } from './constants';
 
 const props = withDefaults(
   defineProps<{
@@ -92,6 +94,7 @@ const childrenStore = useChildrenStore();
 const rewardsStore = useRewardsStore();
 const settingsStore = useSettingsStore();
 const streakStore = useStreakStore();
+const parentSession = useParentSessionStore();
 
 const childName = computed(() => (props.childId ? childrenStore.nameOf(props.childId) : ''));
 
@@ -109,20 +112,43 @@ const progress = computed(() => streakProgress(current.value, milestones.value))
 const daysLabel = computed(() => pluralize(current.value, DAY_WORD_FORMS));
 const remainingLabel = computed(() => pluralize(progress.value?.remaining ?? 0, DAY_WORD_FORMS));
 
-const rewardIcon = (rewardId: string | undefined): string =>
-  (rewardId ? rewardsStore.byId(rewardId)?.icon : undefined) ?? 'star';
+const isSurprise = (rewardId: string | undefined): boolean =>
+  rewardId !== undefined && rewardsStore.byId(rewardId)?.visibility === 'hidden';
+
+const hidesSurprise = (rewardId: string | undefined): boolean => isSurprise(rewardId) && !parentSession.active;
+
+const rewardIcon = (rewardId: string | undefined): string => {
+  if (hidesSurprise(rewardId)) {
+    return SURPRISE.icon;
+  }
+  return (rewardId ? rewardsStore.byId(rewardId)?.icon : undefined) ?? 'star';
+};
 
 const milestoneColor = (milestone: StreakMilestoneInput): string => {
+  if (hidesSurprise(milestone.rewardId)) {
+    return SURPRISE.color;
+  }
   const reward = milestone.rewardId ? rewardsStore.byId(milestone.rewardId) : undefined;
   return reward ? rewardColor(reward) : '#FF9F0A';
 };
 
 const rewardLabel = (milestone: Pick<StreakMilestoneInput, 'rewardId' | 'points'>): string => {
+  if (hidesSurprise(milestone.rewardId)) {
+    return SURPRISE.label;
+  }
   if (milestone.rewardId) {
-    return rewardsStore.nameOf(milestone.rewardId);
+    const name = rewardsStore.nameOf(milestone.rewardId);
+    return isSurprise(milestone.rewardId) ? `${name} · ${SURPRISE.label.toLowerCase()}` : name;
   }
   return milestone.points ? `${milestone.points} б.` : 'Без награды';
 };
+
+const progressTarget = computed(() => {
+  if (!progress.value) {
+    return '';
+  }
+  return hidesSurprise(progress.value.rewardId) ? 'сюрприза 🎁' : `«${rewardLabel(progress.value)}»`;
+});
 </script>
 
 <style scoped>
