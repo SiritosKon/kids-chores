@@ -63,7 +63,12 @@
             <span class="ellipsis">Цель: {{ entry.goal.name }}</span>
             <span class="goal-meter__goal-count">{{ entry.goal.saved }} / {{ entry.goal.price }}</span>
           </div>
-          <q-linear-progress :value="entry.goal.ratio" rounded size="8px" color="blue" track-color="grey-9" />
+          <div class="goal-meter__goal-track">
+            <div
+              class="goal-meter__goal-fill"
+              :style="{ width: `${Math.round(entry.goal.ratio * 100)}%`, background: entry.carColor }"
+            ></div>
+          </div>
         </div>
         <q-btn
           v-if="entry.goal.ready"
@@ -88,18 +93,15 @@
           @click="emit('remove-goal')"
         />
       </div>
-      <q-btn
+      <button
         v-else-if="editable"
-        flat
-        dense
-        no-caps
-        size="sm"
-        color="blue"
-        icon="flag"
-        label="Добавить цель"
-        class="goal-meter__add-goal"
+        type="button"
+        class="add-tile add-tile--small goal-meter__add-goal"
         @click="emit('add-goal')"
-      />
+      >
+        <q-icon name="add" size="16px" />
+        Добавить цель
+      </button>
     </div>
   </div>
 </template>
@@ -277,8 +279,20 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
 }
 
 .goal-meter__add-goal {
-  margin-top: 6px;
-  padding: 0 6px;
+  margin-top: 10px;
+}
+
+.goal-meter__goal-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #3a3a3c;
+  overflow: hidden;
+}
+
+.goal-meter__goal-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
 }
 
 .goal-meter__claim {
