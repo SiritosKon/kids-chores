@@ -30,7 +30,7 @@ export default defineConfig({
     VitePWA({
       selfDestroying: !enablePwa,
       registerType: 'autoUpdate',
-      includeAssets: ['apple-touch-icon.png', 'splash/*.png'],
+      includeAssets: ['apple-touch-icon.png', 'favicon.svg', 'favicon.png', 'splash/*.png'],
       manifest: {
         name: 'Домашние дела детей',
         short_name: 'Дела детей',
