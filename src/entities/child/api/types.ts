@@ -1,3 +1,3 @@
 import type { Child } from '../model/types';
 
-export type ChildDraft = Pick<Child, 'name' | 'carColor' | 'photo'>;
+export type ChildDraft = Pick<Child, 'name' | 'carColor' | 'photo' | 'goal'>;

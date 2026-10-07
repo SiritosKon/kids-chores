@@ -8,6 +8,7 @@
       @open-history="openHistory(entry.childId)"
       @open-streak="openStreak(entry.childId)"
       @choose-gift="chooseGift(entry.childId)"
+      @claim-goal="claimGoal(entry.childId)"
       @edit="openEditor(entry.childId)"
     />
     <div v-if="parentActive" class="goal-meter-board__add">
@@ -23,9 +24,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useChildrenStore, childPhotoUrl, type Child } from '@/entities/child';
+import { useChildrenStore, childPhotoUrl, setChildGoal, type Child } from '@/entities/child';
+import { useRewardsStore, getVariantPhotos, type RewardVariant } from '@/entities/reward';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
 import { useStreakStore } from '@/entities/streak';
 import { useParentSessionStore } from '@/entities/parent-session';
@@ -33,8 +35,10 @@ import { WalletHistoryDialog } from '@/features/wallet-history';
 import { StreakDialog } from '@/features/streak-details';
 import { ChildEditDialog } from '@/features/edit-child';
 import { useChooseVariant, usePendingChoicesStore } from '@/features/choose-reward-variant';
+import { useAwardReward } from '@/features/award-reward';
 import GoalMeter from './GoalMeter.vue';
-import type { MeterEntry } from '../model/types';
+import { goalEntry } from '../lib/goal';
+import type { GoalEntry, MeterEntry } from '../model/types';
 
 const wallet = useWalletStore();
 const childrenStore = useChildrenStore();
@@ -42,6 +46,44 @@ const streakStore = useStreakStore();
 const { active: parentActive } = storeToRefs(useParentSessionStore());
 const pendingChoices = usePendingChoicesStore();
 const { chooseInTurn } = useChooseVariant();
+const rewardsStore = useRewardsStore();
+const { award } = useAwardReward();
+
+const goalPhotos = ref<Map<string, string>>(new Map());
+
+const goalVariantIds = computed(() =>
+  childrenStore.active.flatMap((child) => (child.goal?.variantId ? [child.goal.variantId] : []))
+);
+
+watch(
+  goalVariantIds,
+  async (ids) => {
+    goalPhotos.value = ids.length > 0 ? await getVariantPhotos(ids) : new Map();
+  },
+  { immediate: true }
+);
+
+const goalVariant = (child: Child): RewardVariant | undefined =>
+  child.goal?.variantId
+    ? rewardsStore.variantsOf(child.goal.rewardId).find((variant) => variant.id === child.goal?.variantId)
+    : undefined;
+
+const goalOf = (child: Child, balance: number): GoalEntry | null => {
+  const variant = goalVariant(child);
+  const reward = child.goal ? rewardsStore.byId(child.goal.rewardId) : undefined;
+  return goalEntry(reward, variant, balance, variant ? (goalPhotos.value.get(variant.id) ?? '') : '');
+};
+
+const claimGoal = async (childId: string): Promise<void> => {
+  const child = childrenStore.byId(childId);
+  const reward = child?.goal ? rewardsStore.byId(child.goal.rewardId) : undefined;
+  if (!child || !reward) {
+    return;
+  }
+  if (await award(child, reward, goalVariant(child) ?? null)) {
+    await setChildGoal(child.id, undefined);
+  }
+};
 
 const meterEntries = computed<MeterEntry[]>(() =>
   childrenStore.active.map((child) => {
@@ -56,6 +98,7 @@ const meterEntries = computed<MeterEntry[]>(() =>
       ratio: max > 0 ? balance / max : 0,
       streak: streakStore.currentOf(child.id),
       pendingChoices: pendingChoices.pendingOf(child.id).length,
+      goal: goalOf(child, balance),
     };
   })
 );

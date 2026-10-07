@@ -21,6 +21,27 @@
         </div>
 
         <q-input v-model="name" label="Имя" autofocus maxlength="30" />
+
+        <q-select
+          v-model="goalRewardId"
+          :options="goalOptions"
+          label="Цель — на что копит"
+          emit-value
+          map-options
+          clearable
+          :hint="goalOptions.length === 0 ? 'Сначала добавьте награду в магазин' : 'Под копилкой появится полоса до цели'"
+          @update:model-value="goalVariantId = null"
+        />
+        <q-select
+          v-if="variantOptions.length > 0"
+          v-model="goalVariantId"
+          :options="variantOptions"
+          label="Какой вариант"
+          emit-value
+          map-options
+          clearable
+          hint="Не выбран — ребёнок выберет при получении"
+        />
       </q-card-section>
 
       <q-separator />
@@ -49,6 +70,7 @@ import {
   childPhotoUrl,
   type Child,
 } from '@/entities/child';
+import { useRewardsStore } from '@/entities/reward';
 import { PHOTO_SIZE } from '../lib/constants';
 
 const props = withDefaults(defineProps<{ modelValue?: boolean; child?: Child | null }>(), {
@@ -59,14 +81,36 @@ const emit = defineEmits<{ 'update:modelValue': [open: boolean]; saved: [child: 
 
 const $q = useQuasar();
 const childrenStore = useChildrenStore();
+const rewardsStore = useRewardsStore();
 
 const name = ref('');
 const carColor = ref<string>(COLOR_PALETTE[0]);
 const photo = ref('');
+const goalRewardId = ref<string | null>(null);
+const goalVariantId = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const photoUrl = computed(() => childPhotoUrl(photo.value));
 const canSave = computed(() => name.value.trim().length > 0);
+
+const goalOptions = computed(() =>
+  rewardsStore.shop.map((reward) => ({ value: reward.id, label: `${reward.name} · ${reward.points} б.` }))
+);
+
+const variantOptions = computed(() =>
+  goalRewardId.value
+    ? rewardsStore.variantsOf(goalRewardId.value).map((variant) => ({ value: variant.id, label: variant.name }))
+    : []
+);
+
+const goal = computed(() => {
+  if (!goalRewardId.value) {
+    return undefined;
+  }
+  return goalVariantId.value
+    ? { rewardId: goalRewardId.value, variantId: goalVariantId.value }
+    : { rewardId: goalRewardId.value };
+});
 
 const randomOf = (colors: readonly string[]): string =>
   colors[Math.floor(Math.random() * colors.length)] ?? COLOR_PALETTE[0];
@@ -81,6 +125,8 @@ const reset = (): void => {
   name.value = props.child?.name ?? '';
   carColor.value = props.child?.carColor ?? freeColor();
   photo.value = props.child?.photo ?? '';
+  goalRewardId.value = props.child?.goal?.rewardId ?? null;
+  goalVariantId.value = props.child?.goal?.variantId ?? null;
 };
 
 const close = (): void => {
@@ -107,7 +153,7 @@ const onPhoto = async (): Promise<void> => {
 };
 
 const save = async (): Promise<void> => {
-  const draft = { name: name.value.trim(), carColor: carColor.value, photo: photo.value };
+  const draft = { name: name.value.trim(), carColor: carColor.value, photo: photo.value, goal: goal.value };
   if (props.child) {
     await updateChild(props.child.id, draft);
     emit('saved', { ...props.child, ...draft });

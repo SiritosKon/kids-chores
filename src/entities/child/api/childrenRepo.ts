@@ -1,6 +1,6 @@
 import { createCatalogue } from '@/shared/api/catalogue';
 import { childSchema } from '../model/schema';
-import type { Child } from '../model/types';
+import type { Child, ChildGoal } from '../model/types';
 import type { ChildDraft } from './types';
 
 export const childrenCatalogue = createCatalogue<Child>('children', (rows) =>
@@ -23,5 +23,8 @@ export const createChild = async (draft: ChildDraft): Promise<Child> => {
 
 export const updateChild = (childId: string, draft: ChildDraft): Promise<void> =>
   childrenCatalogue.update(childId, draft);
+
+export const setChildGoal = (childId: string, goal: ChildGoal | undefined): Promise<void> =>
+  childrenCatalogue.update(childId, { goal });
 
 export const archiveChild = (childId: string): Promise<void> => childrenCatalogue.archive(childId);
