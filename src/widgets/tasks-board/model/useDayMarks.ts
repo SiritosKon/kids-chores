@@ -2,12 +2,20 @@ import { ref, computed, watch, onMounted, type Ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { celebrate, celebrateStreak } from '@/shared/lib/confetti';
 import { useChildrenStore, type Child } from '@/entities/child';
-import { useTasksStore, tasksRequiredOn, BONUS_TASK_ID } from '@/entities/task';
+import {
+  useTasksStore,
+  tasksRequiredOn,
+  isTaskRequiredOn,
+  questsOpenOn,
+  isQuestOpenOn,
+  BONUS_TASK_ID,
+  type Task,
+} from '@/entities/task';
 import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { getDayCompletions, saveDayMarks, type TaskMark } from '@/entities/completion';
+import { getDayCompletions, getTaskCompletions, saveDayMarks, type TaskMark } from '@/entities/completion';
 import { recalculateStreaks, type StreakAward } from '@/features/track-streak';
-import type { MarksByChild } from './types';
+import type { MarksByChild, QuestDoneDays, QuestState } from './types';
 
 export const useDayMarks = (selectedDate: Ref<string>) => {
   const $q = useQuasar();
@@ -18,14 +26,40 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
 
   const children = computed(() => childrenStore.active);
   const tasks = computed(() => tasksRequiredOn(tasksStore.items, selectedDate.value));
+  const quests = computed(() => questsOpenOn(tasksStore.items, selectedDate.value));
   const bonus = computed(() => settingsStore.bonus);
 
   const grantedAwards = ref<StreakAward[]>([]);
   const saved = ref<MarksByChild>({});
   const checked = ref<MarksByChild>({});
+  const questDone = ref<QuestDoneDays>({});
 
   const marksOf = (source: MarksByChild, childId: string): Set<string> =>
     source[childId] ?? new Set<string>();
+
+  const requiredFor = (childId: string): Task[] =>
+    tasks.value.filter((task) => isTaskRequiredOn(task, selectedDate.value, childId));
+
+  const isAssigned = (childId: string, taskId: string): boolean =>
+    requiredFor(childId).some((task) => task.id === taskId);
+
+  const isDoneElsewhere = (childId: string, questId: string): boolean => {
+    const day = questDone.value[childId]?.[questId];
+    return day !== undefined && day !== selectedDate.value;
+  };
+
+  const questState = (childId: string, questId: string): QuestState => {
+    const quest = quests.value.find((row) => row.id === questId);
+    if (!quest || !isQuestOpenOn(quest, selectedDate.value, childId)) {
+      return 'none';
+    }
+    return isDoneElsewhere(childId, questId) ? 'done' : 'open';
+  };
+
+  const markableFor = (childId: string): Task[] => [
+    ...requiredFor(childId),
+    ...quests.value.filter((quest) => questState(childId, quest.id) === 'open'),
+  ];
 
   const isChecked = (childId: string, taskId: string): boolean =>
     marksOf(checked.value, childId).has(taskId);
@@ -35,7 +69,8 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
 
   const closesDay = (source: MarksByChild, childId: string): boolean => {
     const marks = marksOf(source, childId);
-    return tasks.value.length > 0 && tasks.value.every((task) => marks.has(task.id));
+    const required = requiredFor(childId);
+    return required.length > 0 && required.every((task) => marks.has(task.id));
   };
 
   const bonusEarned = (childId: string): boolean =>
@@ -60,10 +95,18 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   };
 
   const load = async (): Promise<void> => {
-    const taskIds = new Set(tasks.value.map((task) => task.id));
+    const questIds = quests.value.map((quest) => quest.id);
+    const nextDone: QuestDoneDays = {};
+    for (const child of children.value) {
+      const rows = await getTaskCompletions(child.id, questIds);
+      nextDone[child.id] = Object.fromEntries(rows.map((row) => [row.taskId, row.date]));
+    }
+    questDone.value = nextDone;
+
     const nextSaved: MarksByChild = {};
     const nextChecked: MarksByChild = {};
     for (const child of children.value) {
+      const taskIds = new Set(markableFor(child.id).map((task) => task.id));
       const rows = await getDayCompletions(child.id, selectedDate.value);
       const marks = new Set(rows.map((row) => row.taskId).filter((id) => taskIds.has(id)));
       nextSaved[child.id] = marks;
@@ -81,13 +124,15 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
       }
       const earnsBonus = bonusEarned(child.id);
 
-      const marks: TaskMark[] = tasks.value
+      const markable = markableFor(child.id);
+      const marks: TaskMark[] = markable
         .filter((task) => isChecked(child.id, task.id))
         .map((task) => ({ taskId: task.id, points: task.points }));
       if (earnsBonus) {
         marks.push({ taskId: BONUS_TASK_ID, points: bonus.value.points });
       }
-      await saveDayMarks(child.id, selectedDate.value, marks);
+      const scope = new Set([...markable.map((task) => task.id), BONUS_TASK_ID]);
+      await saveDayMarks(child.id, selectedDate.value, marks, scope);
     }
 
     grantedAwards.value = await recalculateStreaks();
@@ -102,7 +147,7 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
     }
   };
 
-  watch([selectedDate, children, tasks], load);
+  watch([selectedDate, children, tasks, quests], load);
   onMounted(load);
 
   const clearAwards = (): void => {
@@ -112,9 +157,12 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   return {
     children,
     tasks,
+    quests,
     bonus,
     grantedAwards,
     clearAwards,
+    isAssigned,
+    questState,
     isChecked,
     isLocked,
     bonusEarned,

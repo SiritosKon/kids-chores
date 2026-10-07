@@ -1,21 +1,28 @@
 import { createCatalogue } from '@/shared/api/catalogue';
+import { dayKeyOf } from '@/shared/lib/date';
 import { storedTaskSchema } from '../model/schema';
-import { openPeriod, closePeriod } from '../lib/schedule';
-import type { Task } from '../model/types';
-import type { TaskDraft } from './types';
+import { openPeriod, closePeriod, endPeriods, reassignPeriods, sameChildren, questWindow } from '../lib/schedule';
+import type { QuestDates, Task } from '../model/types';
+import type { TaskDraft, TaskOptions } from './types';
 
 export const tasksCatalogue = createCatalogue<Task>('tasks', (rows) =>
   storedTaskSchema.array().parse(rows)
 );
 
-export const createTask = async (draft: TaskDraft, today: string): Promise<Task> => {
+export const createTask = async (
+  draft: TaskDraft,
+  today: string,
+  { childIds, quest }: TaskOptions = {}
+): Promise<Task> => {
   const now = Date.now();
   const task: Task = {
     ...draft,
     id: crypto.randomUUID(),
     order: await tasksCatalogue.nextOrder(),
     active: true,
-    activePeriods: [{ from: today }],
+    activePeriods: quest ? [questWindow(quest, childIds)] : openPeriod([], today, childIds),
+    ...(childIds ? { childIds: [...childIds] } : {}),
+    ...(quest ? { quest: true } : {}),
     createdAt: now,
     updatedAt: now,
   };
@@ -34,14 +41,59 @@ export const setTaskActive = async (taskId: string, active: boolean, today: stri
   await tasksCatalogue.update(taskId, {
     active,
     activePeriods: active
-      ? openPeriod(task.activePeriods, today)
+      ? openPeriod(task.activePeriods, today, task.childIds)
       : closePeriod(task.activePeriods, today),
+  });
+};
+
+export const assignTask = async (
+  taskId: string,
+  childIds: readonly string[] | undefined,
+  today: string
+): Promise<void> => {
+  const task = await tasksCatalogue.get(taskId);
+  if (!task || sameChildren(task.childIds, childIds)) {
+    return;
+  }
+  await tasksCatalogue.update(taskId, {
+    childIds: childIds ? [...childIds] : undefined,
+    activePeriods: reassignPeriods(task.activePeriods, today, childIds),
+  });
+};
+
+export const updateQuest = async (
+  taskId: string,
+  dates: QuestDates,
+  childIds: readonly string[] | undefined
+): Promise<void> => {
+  const task = await tasksCatalogue.get(taskId);
+  if (!task?.quest) {
+    return;
+  }
+  await tasksCatalogue.update(taskId, {
+    childIds: childIds ? [...childIds] : undefined,
+    activePeriods: [questWindow(dates, childIds)],
   });
 };
 
 export const archiveTask = async (taskId: string, today: string): Promise<void> => {
   const task = await tasksCatalogue.get(taskId);
   if (task) {
-    await tasksCatalogue.archive(taskId, { activePeriods: closePeriod(task.activePeriods, today) });
+    await tasksCatalogue.archive(taskId, { activePeriods: endPeriods(task.activePeriods, today) });
+  }
+};
+
+export const trimRemovedTasks = async (): Promise<void> => {
+  const tasks = await tasksCatalogue.read();
+  const trimmed = tasks.flatMap((task) => {
+    if (task.archivedAt === undefined) {
+      return [];
+    }
+    const activePeriods = endPeriods(task.activePeriods, dayKeyOf(task.archivedAt));
+    const changed = JSON.stringify(activePeriods) !== JSON.stringify(task.activePeriods);
+    return changed ? [{ ...task, activePeriods }] : [];
+  });
+  if (trimmed.length > 0) {
+    await tasksCatalogue.putMany(trimmed);
   }
 };

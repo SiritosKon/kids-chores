@@ -53,6 +53,55 @@
         <q-icon name="sports_score" size="26px" class="goal-meter__flag" />
         <MonsterTruck :color="entry.carColor" :size="46" class="goal-meter__car" :style="{ left: carLeft }" />
       </div>
+      <div v-if="entry.goal" class="goal-meter__goal">
+        <div class="goal-meter__goal-thumb" :style="{ background: entry.goal.color }">
+          <img v-if="entry.goal.photo" :src="entry.goal.photo" :alt="entry.goal.name" />
+          <q-icon v-else :name="entry.goal.icon" size="18px" color="white" />
+        </div>
+        <div class="goal-meter__goal-body">
+          <div class="goal-meter__goal-head">
+            <span class="ellipsis">Цель: {{ entry.goal.name }}</span>
+            <span class="goal-meter__goal-count">{{ entry.goal.saved }} / {{ entry.goal.price }}</span>
+          </div>
+          <div class="goal-meter__goal-track">
+            <div
+              class="goal-meter__goal-fill"
+              :style="{ width: `${Math.round(entry.goal.ratio * 100)}%`, background: entry.carColor }"
+            ></div>
+          </div>
+        </div>
+        <q-btn
+          v-if="entry.goal.ready"
+          unelevated
+          rounded
+          dense
+          no-caps
+          color="positive"
+          class="goal-meter__claim"
+          label="Получить"
+          @click="emit('claim-goal')"
+        />
+        <q-btn
+          v-if="editable"
+          flat
+          round
+          dense
+          size="sm"
+          icon="close"
+          color="grey-6"
+          aria-label="Убрать цель"
+          @click="emit('remove-goal')"
+        />
+      </div>
+      <button
+        v-else-if="editable"
+        type="button"
+        class="add-tile add-tile--small goal-meter__add-goal"
+        @click="emit('add-goal')"
+      >
+        <q-icon name="add" size="16px" />
+        Добавить цель
+      </button>
     </div>
   </div>
 </template>
@@ -67,7 +116,15 @@ import type { MeterEntry } from '../model/types';
 const props = withDefaults(defineProps<{ entry: MeterEntry; editable?: boolean }>(), {
   editable: false,
 });
-const emit = defineEmits<{ 'open-history': []; 'open-streak': []; 'choose-gift': []; edit: [] }>();
+const emit = defineEmits<{
+  'open-history': [];
+  'open-streak': [];
+  'choose-gift': [];
+  'claim-goal': [];
+  'add-goal': [];
+  'remove-goal': [];
+  edit: [];
+}>();
 
 const edit = (): void => {
   if (props.editable) {
@@ -178,6 +235,72 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
   transition: left 0.4s ease;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
+.goal-meter__goal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.goal-meter__goal-thumb {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.goal-meter__goal-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.goal-meter__goal-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.goal-meter__goal-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #c7c7cc;
+}
+
+.goal-meter__goal-count {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.goal-meter__add-goal {
+  margin-top: 10px;
+}
+
+.goal-meter__goal-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #3a3a3c;
+  overflow: hidden;
+}
+
+.goal-meter__goal-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.goal-meter__claim {
+  flex: 0 0 auto;
+  padding: 2px 12px;
+  font-weight: 600;
+}
+
 .goal-meter__choice {
   margin-left: 10px;
   padding: 2px 12px;

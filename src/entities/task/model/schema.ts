@@ -5,9 +5,12 @@ import type { Task } from './types';
 
 const timestamp = z.number().int().nonnegative();
 
+const childIdsSchema = z.array(z.string().min(1)).min(1);
+
 export const taskPeriodSchema = z.object({
   from: dayKeySchema,
   to: dayKeySchema.optional(),
+  childIds: childIdsSchema.optional(),
 });
 
 export const taskSchema = z.object({
@@ -19,6 +22,8 @@ export const taskSchema = z.object({
   order: z.number().int().nonnegative(),
   active: z.boolean(),
   activePeriods: z.array(taskPeriodSchema),
+  childIds: childIdsSchema.optional(),
+  quest: z.boolean().optional(),
   createdAt: timestamp,
   updatedAt: timestamp,
   archivedAt: timestamp.optional(),

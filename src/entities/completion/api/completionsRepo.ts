@@ -11,7 +11,27 @@ export const getDayCompletions = async (childId: string, dateKey: string): Promi
   return storedCompletionSchema.array().parse(rows);
 };
 
-export const saveDayMarks = async (childId: string, dateKey: string, marks: TaskMark[]): Promise<void> => {
+export const getTaskCompletions = async (
+  childId: string,
+  taskIds: readonly string[]
+): Promise<Completion[]> => {
+  const batches = await Promise.all(
+    taskIds.map((taskId) =>
+      completionsTable
+        .where('[childId+taskId+date]')
+        .between([childId, taskId, ''], [childId, taskId, '\uffff'])
+        .toArray()
+    )
+  );
+  return storedCompletionSchema.array().parse(batches.flat());
+};
+
+export const saveDayMarks = async (
+  childId: string,
+  dateKey: string,
+  marks: TaskMark[],
+  scope?: ReadonlySet<string>
+): Promise<void> => {
   const existing = await getDayCompletions(childId, dateKey);
   const existingTaskIds = new Set(existing.map((row) => row.taskId));
   const markedTaskIds = new Set(marks.map((mark) => mark.taskId));
@@ -29,7 +49,9 @@ export const saveDayMarks = async (childId: string, dateKey: string, marks: Task
       updatedAt: now,
     }));
 
-  const toDelete = existing.filter((row) => !markedTaskIds.has(row.taskId)).map((row) => row.id);
+  const toDelete = existing
+    .filter((row) => !markedTaskIds.has(row.taskId) && (scope === undefined || scope.has(row.taskId)))
+    .map((row) => row.id);
 
   await transaction([completionsTable], async () => {
     if (toDelete.length > 0) {

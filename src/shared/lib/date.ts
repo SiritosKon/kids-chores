@@ -1,6 +1,6 @@
 import { date } from 'quasar';
 import { z } from 'zod';
-import { DAY_KEY_FORMAT } from './constants';
+import { DAY_KEY_FORMAT, DAY_MS } from './constants';
 
 export const dayKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
@@ -52,3 +52,6 @@ const toDate = (dayKey: string): Date => {
   const [year = '0', month = '1', day = '1'] = dayKey.split('-');
   return new Date(Number(year), Number(month) - 1, Number(day));
 };
+
+export const daysBetween = (from: string, to: string): number =>
+  Math.round((toDate(to).getTime() - toDate(from).getTime()) / DAY_MS);

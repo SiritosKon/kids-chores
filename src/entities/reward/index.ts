@@ -11,6 +11,7 @@ export {
   saveVariants,
 } from './api/variantsRepo';
 export { rewardTierColor, rewardColor } from './lib/tier';
-export { minRewardPrice, rewardPriceLabel } from './lib/visibility';
-export { REWARD_VISIBILITY_LABELS } from './lib/constants';
+export { minRewardPrice, rewardPriceLabel, canBeGoal } from './lib/visibility';
+export { REWARD_VISIBILITY_LABELS, GOAL_VISIBILITIES, PRIZE_VISIBILITIES } from './lib/constants';
 export { default as VariantPickerDialog } from './ui/VariantPickerDialog.vue';
+export { default as RewardSelect } from './ui/RewardSelect.vue';
