@@ -63,13 +63,7 @@
             <span class="ellipsis">Цель: {{ entry.goal.name }}</span>
             <span class="goal-meter__goal-count">{{ entry.goal.saved }} / {{ entry.goal.price }}</span>
           </div>
-          <q-linear-progress
-            :value="entry.goal.ratio"
-            rounded
-            size="8px"
-            :color="entry.goal.ready ? 'positive' : 'primary'"
-            track-color="grey-9"
-          />
+          <q-linear-progress :value="entry.goal.ratio" rounded size="8px" color="blue" track-color="grey-9" />
         </div>
         <q-btn
           v-if="entry.goal.ready"
@@ -82,7 +76,30 @@
           label="Получить"
           @click="emit('claim-goal')"
         />
+        <q-btn
+          v-if="editable"
+          flat
+          round
+          dense
+          size="sm"
+          icon="close"
+          color="grey-6"
+          aria-label="Убрать цель"
+          @click="emit('remove-goal')"
+        />
       </div>
+      <q-btn
+        v-else-if="editable"
+        flat
+        dense
+        no-caps
+        size="sm"
+        color="blue"
+        icon="flag"
+        label="Добавить цель"
+        class="goal-meter__add-goal"
+        @click="emit('add-goal')"
+      />
     </div>
   </div>
 </template>
@@ -102,6 +119,8 @@ const emit = defineEmits<{
   'open-streak': [];
   'choose-gift': [];
   'claim-goal': [];
+  'add-goal': [];
+  'remove-goal': [];
   edit: [];
 }>();
 
@@ -255,6 +274,11 @@ const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`
 .goal-meter__goal-count {
   flex: 0 0 auto;
   font-weight: 600;
+}
+
+.goal-meter__add-goal {
+  margin-top: 6px;
+  padding: 0 6px;
 }
 
 .goal-meter__claim {

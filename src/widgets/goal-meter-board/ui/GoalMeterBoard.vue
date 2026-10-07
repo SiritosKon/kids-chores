@@ -9,6 +9,8 @@
       @open-streak="openStreak(entry.childId)"
       @choose-gift="chooseGift(entry.childId)"
       @claim-goal="claimGoal(entry.childId)"
+      @add-goal="addGoal(entry.childId)"
+      @remove-goal="removeGoal(entry.childId)"
       @edit="openEditor(entry.childId)"
     />
     <div v-if="parentActive" class="goal-meter-board__add">
@@ -25,9 +27,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 import { NEW_CHILD_ID } from '@/shared/config/constants';
-import { childPath } from '@/shared/lib/routes';
+import { childPath, childGoalPath } from '@/shared/lib/routes';
 import { useChildrenStore, childPhotoUrl, setChildGoal, type Child } from '@/entities/child';
 import { useRewardsStore, getVariantPhotos, type RewardVariant } from '@/entities/reward';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
@@ -48,6 +51,7 @@ const { active: parentActive } = storeToRefs(useParentSessionStore());
 const pendingChoices = usePendingChoicesStore();
 const { chooseInTurn } = useChooseVariant();
 const rewardsStore = useRewardsStore();
+const $q = useQuasar();
 const { award } = useAwardReward();
 
 const goalPhotos = ref<Map<string, string>>(new Map());
@@ -126,6 +130,25 @@ const router = useRouter();
 
 const openEditor = (childId: string | null): void => {
   void router.push(childPath(childId ?? NEW_CHILD_ID));
+};
+
+const addGoal = (childId: string): void => {
+  void router.push(childGoalPath(childId));
+};
+
+const removeGoal = (childId: string): void => {
+  const child = childrenStore.byId(childId);
+  const reward = child?.goal ? rewardsStore.byId(child.goal.rewardId) : undefined;
+  if (!child) {
+    return;
+  }
+  $q.dialog({
+    title: 'Убрать цель',
+    message: `${child.name} больше не копит на «${reward?.name ?? 'цель'}». Баллы останутся в копилке.`,
+    cancel: { flat: true, noCaps: true, label: 'Отмена' },
+    ok: { flat: true, noCaps: true, color: 'negative', label: 'Убрать' },
+    persistent: true,
+  }).onOk(() => setChildGoal(child.id, undefined));
 };
 </script>
 

@@ -74,10 +74,12 @@ const chooseChildren = (childIds: string[] | null): void => {
 const chosenChildren = computed(() => (draft.value.forEveryone ? undefined : draft.value.childIds));
 
 const rewardOptions = computed(() => [
-  ...rewardsStore.active.map((reward) => ({
-    value: reward.id,
-    label: `${reward.name} · ${rewardPriceLabel(reward.points)}`,
-  })),
+  ...rewardsStore.active
+    .filter((reward) => reward.visibility !== 'goal')
+    .map((reward) => ({
+      value: reward.id,
+      label: `${reward.name} · ${rewardPriceLabel(reward.points)}`,
+    })),
   { value: NEW_REWARD_OPTION, label: '＋ Новая награда' },
 ]);
 

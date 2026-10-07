@@ -55,4 +55,8 @@ describe('goalEntry', () => {
     expect(goalEntry({ ...LEGO, active: false }, undefined, 10, '')).toBeNull();
     expect(goalEntry({ ...LEGO, purchasable: false, visibility: 'hidden' }, undefined, 10, '')).toBeNull();
   });
+
+  it('takes a reward made only as a goal', () => {
+    expect(goalEntry({ ...LEGO, purchasable: false, visibility: 'goal' }, undefined, 10, '')).toMatchObject({ saved: 10 });
+  });
 });

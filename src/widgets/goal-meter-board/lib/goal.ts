@@ -1,4 +1,4 @@
-import { rewardColor, type Reward, type RewardVariant } from '@/entities/reward';
+import { rewardColor, canBeGoal, type Reward, type RewardVariant } from '@/entities/reward';
 import type { GoalEntry } from '../model/types';
 
 export const goalEntry = (
@@ -7,7 +7,7 @@ export const goalEntry = (
   balance: number,
   photo: string
 ): GoalEntry | null => {
-  if (!reward || !reward.active || !reward.purchasable || reward.points <= 0) {
+  if (!reward || !reward.active || !canBeGoal(reward.visibility) || reward.points <= 0) {
     return null;
   }
   const price = reward.points;

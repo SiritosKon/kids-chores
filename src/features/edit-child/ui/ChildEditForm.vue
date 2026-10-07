@@ -2,30 +2,40 @@
   <div class="form-stack">
     <div class="form-row">
       <q-avatar size="72px" color="grey-9">
-        <img v-if="photoUrl" :src="photoUrl" :alt="name" />
-        <MonsterTruck v-else :color="carColor" :size="52" />
+        <img v-if="photoUrl" :src="photoUrl" :alt="draft.name" />
+        <MonsterTruck v-else :color="draft.carColor" :size="52" />
       </q-avatar>
       <div class="column items-start">
         <q-btn flat dense no-caps color="primary" icon="photo_camera" label="Загрузить фото" @click="pickPhoto" />
-        <q-btn v-if="photo" flat dense no-caps color="grey-5" icon="hide_image" label="Убрать фото" @click="photo = ''" />
+        <q-btn
+          v-if="draft.photo"
+          flat
+          dense
+          no-caps
+          color="grey-5"
+          icon="hide_image"
+          label="Убрать фото"
+          @click="draft.photo = ''"
+        />
       </div>
     </div>
 
-    <q-input v-model="name" label="Имя" autofocus maxlength="30" />
+    <q-input v-model="draft.name" label="Имя" :autofocus="!openGoal" maxlength="30" />
 
     <q-select
-      v-model="goalRewardId"
+      ref="goalSelect"
+      :model-value="draft.goalRewardId"
       :options="goalOptions"
       label="Цель — на что копит"
       emit-value
       map-options
       clearable
-      :hint="goalOptions.length === 0 ? 'Сначала добавьте награду в магазин' : 'Под копилкой появится полоса до цели'"
-      @update:model-value="goalVariantId = null"
+      hint="Под копилкой появится полоса до цели"
+      @update:model-value="pickGoal"
     />
     <q-select
       v-if="variantOptions.length > 0"
-      v-model="goalVariantId"
+      v-model="draft.goalVariantId"
       :options="variantOptions"
       label="Какой вариант"
       emit-value
@@ -45,8 +55,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useQuasar } from 'quasar';
+import { ref, computed, onMounted, nextTick } from 'vue';
+import { useQuasar, type QSelect } from 'quasar';
+import { storeToRefs } from 'pinia';
+import { NEW_CHILD_ID } from '@/shared/config/constants';
 import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
 import { COLOR_PALETTE } from '@/shared/ui/constants';
 import { resizePhoto } from '@/shared/lib/resizePhoto';
@@ -58,44 +70,64 @@ import {
   childPhotoUrl,
   type Child,
 } from '@/entities/child';
-import { useRewardsStore } from '@/entities/reward';
+import { useRewardsStore, canBeGoal, REWARD_VISIBILITY_LABELS } from '@/entities/reward';
 import { PHOTO_SIZE } from '../lib/constants';
+import { NEW_GOAL_REWARD_OPTION } from '../model/constants';
+import { useChildFormStore } from '../model/store';
 
-const props = withDefaults(defineProps<{ child?: Child | null }>(), { child: null });
-const emit = defineEmits<{ done: []; cancel: [] }>();
+const props = withDefaults(defineProps<{ child?: Child | null; openGoal?: boolean }>(), {
+  child: null,
+  openGoal: false,
+});
+const emit = defineEmits<{ done: []; cancel: []; 'create-reward': [] }>();
 
 const $q = useQuasar();
 const childrenStore = useChildrenStore();
 const rewardsStore = useRewardsStore();
+const formStore = useChildFormStore();
+const { draft } = storeToRefs(formStore);
 
-const name = ref('');
-const carColor = ref<string>(COLOR_PALETTE[0]);
-const photo = ref('');
-const goalRewardId = ref<string | null>(null);
-const goalVariantId = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
+const goalSelect = ref<QSelect | null>(null);
 
-const photoUrl = computed(() => childPhotoUrl(photo.value));
-const canSave = computed(() => name.value.trim().length > 0);
+const photoUrl = computed(() => childPhotoUrl(draft.value.photo));
+const canSave = computed(() => draft.value.name.trim().length > 0);
 
-const goalOptions = computed(() =>
-  rewardsStore.shop.map((reward) => ({ value: reward.id, label: `${reward.name} · ${reward.points} б.` }))
-);
+const goalOptions = computed(() => [
+  ...rewardsStore.active
+    .filter((reward) => canBeGoal(reward.visibility))
+    .map((reward) => ({
+      value: reward.id,
+      label:
+        reward.visibility === 'goal'
+          ? `${reward.name} · ${reward.points} б. · ${REWARD_VISIBILITY_LABELS.goal.toLowerCase()}`
+          : `${reward.name} · ${reward.points} б.`,
+    })),
+  { value: NEW_GOAL_REWARD_OPTION, label: '＋ Новая награда' },
+]);
 
 const variantOptions = computed(() =>
-  goalRewardId.value
-    ? rewardsStore.variantsOf(goalRewardId.value).map((variant) => ({ value: variant.id, label: variant.name }))
+  draft.value.goalRewardId
+    ? rewardsStore.variantsOf(draft.value.goalRewardId).map((variant) => ({ value: variant.id, label: variant.name }))
     : []
 );
 
 const goal = computed(() => {
-  if (!goalRewardId.value) {
+  const { goalRewardId, goalVariantId } = draft.value;
+  if (!goalRewardId) {
     return undefined;
   }
-  return goalVariantId.value
-    ? { rewardId: goalRewardId.value, variantId: goalVariantId.value }
-    : { rewardId: goalRewardId.value };
+  return goalVariantId ? { rewardId: goalRewardId, variantId: goalVariantId } : { rewardId: goalRewardId };
 });
+
+const pickGoal = (value: string | null): void => {
+  if (value === NEW_GOAL_REWARD_OPTION) {
+    emit('create-reward');
+    return;
+  }
+  draft.value.goalRewardId = value;
+  draft.value.goalVariantId = null;
+};
 
 const randomOf = (colors: readonly string[]): string =>
   colors[Math.floor(Math.random() * colors.length)] ?? COLOR_PALETTE[0];
@@ -106,15 +138,13 @@ const freeColor = (): string => {
   return randomOf(free.length > 0 ? free : COLOR_PALETTE);
 };
 
-const reset = (): void => {
-  name.value = props.child?.name ?? '';
-  carColor.value = props.child?.carColor ?? freeColor();
-  photo.value = props.child?.photo ?? '';
-  goalRewardId.value = props.child?.goal?.rewardId ?? null;
-  goalVariantId.value = props.child?.goal?.variantId ?? null;
-};
-
-onMounted(reset);
+onMounted(async () => {
+  const resumed = formStore.begin(props.child?.id ?? NEW_CHILD_ID, props.child, freeColor());
+  if (props.openGoal && !resumed) {
+    await nextTick();
+    goalSelect.value?.showPopup();
+  }
+});
 
 const pickPhoto = (): void => {
   fileInput.value?.click();
@@ -127,7 +157,7 @@ const onPhoto = async (): Promise<void> => {
     return;
   }
   try {
-    photo.value = await resizePhoto(file, PHOTO_SIZE, 'square');
+    draft.value.photo = await resizePhoto(file, PHOTO_SIZE, 'square');
   } catch {
     $q.notify({ type: 'negative', message: 'Не получилось открыть фото' });
   } finally {
@@ -136,11 +166,16 @@ const onPhoto = async (): Promise<void> => {
 };
 
 const save = async (): Promise<void> => {
-  const draft = { name: name.value.trim(), carColor: carColor.value, photo: photo.value, goal: goal.value };
+  const row = {
+    name: draft.value.name.trim(),
+    carColor: draft.value.carColor,
+    photo: draft.value.photo,
+    goal: goal.value,
+  };
   if (props.child) {
-    await updateChild(props.child.id, draft);
+    await updateChild(props.child.id, row);
   } else {
-    await createChild(draft);
+    await createChild(row);
   }
   emit('done');
 };

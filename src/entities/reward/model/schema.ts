@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const timestamp = z.number().int().nonnegative();
 
-export const rewardVisibilitySchema = z.enum(['shop', 'streak', 'hidden']);
+export const rewardVisibilitySchema = z.enum(['shop', 'streak', 'hidden', 'goal']);
 
 export const rewardSchema = z.object({
   id: z.string().min(1),

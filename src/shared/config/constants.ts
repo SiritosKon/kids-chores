@@ -7,6 +7,7 @@ export const ROUTES = {
   reward: '/rewards/:rewardId',
   task: '/tasks/:taskId',
   child: '/children/:childId',
+  childReward: '/children/:childId/reward',
 } as const;
 
 export const NEW_STAGE_ID = 'new';
@@ -18,3 +19,5 @@ export const NEW_TASK_ID = 'new';
 export const QUEST_QUERY_KEY = 'quest';
 
 export const NEW_CHILD_ID = 'new';
+
+export const GOAL_QUERY_KEY = 'goal';

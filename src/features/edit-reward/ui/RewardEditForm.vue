@@ -79,10 +79,13 @@ const icon = ref<string>(ICON_CHOICES[0]);
 const visibility = ref<RewardVisibility>('shop');
 const variants = ref<EditableVariant[]>([]);
 
-const visibilityOptions = rewardVisibilitySchema.options.map((value) => ({
-  value,
-  label: REWARD_VISIBILITY_LABELS[value],
-}));
+const offersGoal = computed(() => props.visibility === 'goal' || props.reward?.visibility === 'goal');
+
+const visibilityOptions = computed(() =>
+  rewardVisibilitySchema.options
+    .filter((value) => value !== 'goal' || offersGoal.value)
+    .map((value) => ({ value, label: REWARD_VISIBILITY_LABELS[value] }))
+);
 
 const previewColor = computed(() =>
   rewardColor({ points: points.value || 0, ...(props.reward?.color ? { color: props.reward.color } : {}) })
@@ -95,6 +98,9 @@ const priceValid = computed(() => Number.isInteger(points.value) && points.value
 const priceHint = computed(() => {
   if (visibility.value === 'streak') {
     return 'Приз за серию можно оставить без цены — 0 баллов';
+  }
+  if (visibility.value === 'goal') {
+    return 'Столько баллов ребёнок копит. В магазине и в серии награды не будет';
   }
   return props.reward ? 'Прошлые покупки не изменятся' : undefined;
 });
