@@ -35,10 +35,11 @@ const emit = defineEmits<{ 'update:modelValue': [childIds: string[] | null] }>()
 const childrenStore = useChildrenStore();
 
 const allState = computed<boolean | null>(() => {
-  if (props.modelValue === null) {
+  const chosen = props.modelValue;
+  if (chosen === null || childrenStore.active.every((child) => chosen.includes(child.id))) {
     return true;
   }
-  return props.modelValue.length > 0 ? null : false;
+  return chosen.length > 0 ? null : false;
 });
 
 const isChosen = (childId: string): boolean => props.modelValue === null || props.modelValue.includes(childId);
