@@ -33,13 +33,13 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   const isLocked = (childId: string, taskId: string): boolean =>
     !parentSession.active && marksOf(saved.value, childId).has(taskId);
 
-  const bonusEarned = (childId: string): boolean => {
-    if (!bonus.value.enabled || tasks.value.length === 0) {
-      return false;
-    }
-    const marks = marksOf(checked.value, childId);
-    return tasks.value.every((task) => marks.has(task.id));
+  const closesDay = (source: MarksByChild, childId: string): boolean => {
+    const marks = marksOf(source, childId);
+    return tasks.value.length > 0 && tasks.value.every((task) => marks.has(task.id));
   };
+
+  const bonusEarned = (childId: string): boolean =>
+    bonus.value.enabled && closesDay(checked.value, childId);
 
   const dirty = computed(() =>
     children.value.some((child) => {
@@ -74,14 +74,12 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   };
 
   const accept = async (): Promise<void> => {
-    const celebrated: Child[] = [];
+    const closedNow: Child[] = [];
     for (const child of children.value) {
-      const stored = marksOf(saved.value, child.id);
-      const wasCompleteBefore = tasks.value.every((task) => stored.has(task.id));
-      const earnsBonus = bonusEarned(child.id);
-      if (earnsBonus && !wasCompleteBefore) {
-        celebrated.push(child);
+      if (closesDay(checked.value, child.id) && !closesDay(saved.value, child.id)) {
+        closedNow.push(child);
       }
+      const earnsBonus = bonusEarned(child.id);
 
       const marks: TaskMark[] = tasks.value
         .filter((task) => isChecked(child.id, task.id))
@@ -96,13 +94,10 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
     await load();
     $q.notify({ type: 'positive', message: 'Сохранено' });
     if (!parentSession.active) {
-      const [firstAward] = grantedAwards.value;
-      if (firstAward) {
-        celebrateStreak(childrenStore.byId(firstAward.childId)?.carColor);
-      } else {
-        for (const child of celebrated) {
-          celebrate(child.carColor);
-        }
+      if (grantedAwards.value.length > 0) {
+        celebrateStreak();
+      } else if (closedNow.length > 0) {
+        celebrate(closedNow.map((child) => child.carColor));
       }
     }
   };
