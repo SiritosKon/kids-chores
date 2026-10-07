@@ -2,7 +2,7 @@ import { ref, computed, watch, onMounted, type Ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { celebrate, celebrateStreak } from '@/shared/lib/confetti';
 import { useChildrenStore, type Child } from '@/entities/child';
-import { useTasksStore, tasksRequiredOn, BONUS_TASK_ID } from '@/entities/task';
+import { useTasksStore, tasksRequiredOn, isTaskRequiredOn, BONUS_TASK_ID, type Task } from '@/entities/task';
 import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { getDayCompletions, saveDayMarks, type TaskMark } from '@/entities/completion';
@@ -27,6 +27,12 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   const marksOf = (source: MarksByChild, childId: string): Set<string> =>
     source[childId] ?? new Set<string>();
 
+  const requiredFor = (childId: string): Task[] =>
+    tasks.value.filter((task) => isTaskRequiredOn(task, selectedDate.value, childId));
+
+  const isAssigned = (childId: string, taskId: string): boolean =>
+    requiredFor(childId).some((task) => task.id === taskId);
+
   const isChecked = (childId: string, taskId: string): boolean =>
     marksOf(checked.value, childId).has(taskId);
 
@@ -35,7 +41,8 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
 
   const closesDay = (source: MarksByChild, childId: string): boolean => {
     const marks = marksOf(source, childId);
-    return tasks.value.length > 0 && tasks.value.every((task) => marks.has(task.id));
+    const required = requiredFor(childId);
+    return required.length > 0 && required.every((task) => marks.has(task.id));
   };
 
   const bonusEarned = (childId: string): boolean =>
@@ -60,10 +67,10 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   };
 
   const load = async (): Promise<void> => {
-    const taskIds = new Set(tasks.value.map((task) => task.id));
     const nextSaved: MarksByChild = {};
     const nextChecked: MarksByChild = {};
     for (const child of children.value) {
+      const taskIds = new Set(requiredFor(child.id).map((task) => task.id));
       const rows = await getDayCompletions(child.id, selectedDate.value);
       const marks = new Set(rows.map((row) => row.taskId).filter((id) => taskIds.has(id)));
       nextSaved[child.id] = marks;
@@ -81,7 +88,7 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
       }
       const earnsBonus = bonusEarned(child.id);
 
-      const marks: TaskMark[] = tasks.value
+      const marks: TaskMark[] = requiredFor(child.id)
         .filter((task) => isChecked(child.id, task.id))
         .map((task) => ({ taskId: task.id, points: task.points }));
       if (earnsBonus) {
@@ -115,6 +122,7 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
     bonus,
     grantedAwards,
     clearAwards,
+    isAssigned,
     isChecked,
     isLocked,
     bonusEarned,

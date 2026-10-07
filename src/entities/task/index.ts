@@ -7,6 +7,7 @@ export {
   createTask,
   updateTask,
   setTaskActive,
+  assignTask,
   archiveTask,
 } from './api/tasksRepo';
 export type { TaskDraft } from './api/types';

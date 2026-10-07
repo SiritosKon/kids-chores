@@ -41,6 +41,7 @@
         </div>
         <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
           <q-checkbox
+            v-if="isAssigned(child.id, task.id)"
             :model-value="isChecked(child.id, task.id)"
             :disable="isLocked(child.id, task.id)"
             :color="checkColor(index)"
@@ -48,6 +49,7 @@
             unchecked-icon="radio_button_unchecked"
             @update:model-value="toggle(child.id, task.id, $event)"
           />
+          <span v-else class="tasks-col__none" aria-label="Не для этого ребёнка">—</span>
         </div>
       </div>
 
@@ -137,6 +139,7 @@ const {
   bonus,
   grantedAwards,
   clearAwards,
+  isAssigned,
   isChecked,
   isLocked,
   bonusEarned,
@@ -234,6 +237,12 @@ const openEditor = (task: Task | null): void => {
 .task-points {
   font-size: 12px;
   color: #8e8e93;
+}
+
+.tasks-col__none {
+  color: #48484a;
+  font-size: 18px;
+  line-height: 40px;
 }
 
 .tasks-col {

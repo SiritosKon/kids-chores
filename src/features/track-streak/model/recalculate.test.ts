@@ -367,4 +367,37 @@ describe('recalculateStreaks', () => {
     expect(congratulations).toBe(2);
     expect(await streakRewards()).toHaveLength(2);
   });
+
+  it('closes a day without the tasks given to another child', async () => {
+    await tasksCatalogue.update('reading', {
+      childIds: ['timofey'],
+      activePeriods: [{ from: EARLIEST_DAY_KEY, childIds: ['timofey'] }],
+    });
+    for (const day of september(7)) {
+      await saveDayMarks('daniil', day, [
+        { taskId: 'study', points: 1 },
+        { taskId: 'order', points: 1 },
+      ]);
+    }
+
+    await recalculateStreaks('2026-09-16');
+
+    const states = await getStreaks();
+    expect(states.find((state) => state.childId === 'daniil')?.current).toBe(7);
+    expect(states.find((state) => state.childId === 'timofey')?.current).toBe(0);
+    expect((await streakRewards()).map((row) => row.childId)).toEqual(['daniil']);
+  });
+
+  it('keeps a finished streak when a task is given to another child later', async () => {
+    await closeDays('daniil', september(7));
+    await recalculateStreaks('2026-09-16');
+    await tasksCatalogue.update('reading', {
+      childIds: ['timofey'],
+      activePeriods: [{ from: EARLIEST_DAY_KEY, to: '2026-09-17' }, { from: '2026-09-17', childIds: ['timofey'] }],
+    });
+
+    await recalculateStreaks('2026-09-17');
+
+    expect((await streakRewards()).map((row) => row.childId)).toEqual(['daniil']);
+  });
 });

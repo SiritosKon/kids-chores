@@ -35,7 +35,10 @@ export const recalculateStreaks = async (
     getStreaks(),
   ]);
 
-  const requiredOn = (day: string): string[] => tasksRequiredOn(tasks, day).map((task) => task.id);
+  const requiredOn =
+    (childId: string) =>
+    (day: string): string[] =>
+      tasksRequiredOn(tasks, day, childId).map((task) => task.id);
   const alreadyGranted = new Set([
     ...completions.filter((row) => row.taskId === STREAK_TASK_ID).map((row) => row.id),
     ...spends.filter((row) => row.source === 'streak').map((row) => row.id),
@@ -49,7 +52,7 @@ export const recalculateStreaks = async (
   for (const child of children) {
     const closedDays = closedDaysFrom(
       completions.filter((row) => row.childId === child.id),
-      requiredOn
+      requiredOn(child.id)
     );
 
     const summary = summariseStreak(closedDays, milestonesFor(settings.streak.milestones, child.id), today);

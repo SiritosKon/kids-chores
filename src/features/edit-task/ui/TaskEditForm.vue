@@ -18,6 +18,9 @@
 
     <q-toggle v-if="task" v-model="active" label="Задача включена" color="primary" />
 
+    <ChildrenPicker v-model="childIds" />
+    <div v-if="task" class="text-caption text-grey-5">Правка действует с сегодняшнего дня, прошлые серии не изменятся</div>
+
     <div>
       <div class="text-caption text-grey-5 q-mb-sm">Иконка</div>
       <IconPicker v-model="icon" :color="color" />
@@ -44,7 +47,8 @@ import { todayKey } from '@/shared/lib/date';
 import ColorPicker from '@/shared/ui/ColorPicker.vue';
 import IconPicker from '@/shared/ui/IconPicker.vue';
 import { COLOR_PALETTE, ICON_CHOICES } from '@/shared/ui/constants';
-import { createTask, updateTask, setTaskActive, archiveTask, type Task } from '@/entities/task';
+import { ChildrenPicker } from '@/entities/child';
+import { createTask, updateTask, setTaskActive, assignTask, archiveTask, type Task } from '@/entities/task';
 
 const props = withDefaults(defineProps<{ task?: Task | null }>(), { task: null });
 const emit = defineEmits<{ done: []; cancel: [] }>();
@@ -56,9 +60,14 @@ const points = ref(1);
 const icon = ref<string>(ICON_CHOICES[0]);
 const color = ref<string>(COLOR_PALETTE[2]);
 const active = ref(true);
+const childIds = ref<string[] | null>(null);
 
 const canSave = computed(
-  () => name.value.trim().length > 0 && Number.isInteger(points.value) && points.value > 0
+  () =>
+    name.value.trim().length > 0 &&
+    Number.isInteger(points.value) &&
+    points.value > 0 &&
+    (childIds.value === null || childIds.value.length > 0)
 );
 
 const reset = (): void => {
@@ -67,6 +76,7 @@ const reset = (): void => {
   icon.value = props.task?.icon ?? ICON_CHOICES[0];
   color.value = props.task?.color ?? COLOR_PALETTE[2];
   active.value = props.task?.active ?? true;
+  childIds.value = props.task?.childIds ? [...props.task.childIds] : null;
 };
 
 onMounted(reset);
@@ -74,11 +84,13 @@ onMounted(reset);
 const save = async (): Promise<void> => {
   const today = todayKey();
   const draft = { name: name.value.trim(), points: points.value, icon: icon.value, color: color.value };
+  const children = childIds.value ?? undefined;
   if (props.task) {
     await updateTask(props.task.id, draft);
+    await assignTask(props.task.id, children, today);
     await setTaskActive(props.task.id, active.value, today);
   } else {
-    await createTask(draft, today);
+    await createTask(draft, today, children);
   }
   emit('done');
 };

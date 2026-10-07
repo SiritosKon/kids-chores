@@ -5,3 +5,4 @@ export { childrenCatalogue, createChild, updateChild, archiveChild } from './api
 export type { ChildDraft } from './api/types';
 export { childPhotoUrl, isUploadedPhoto } from './lib/photo';
 export { CHILD_PHOTO_PRESET_IDS } from './config/constants';
+export { default as ChildrenPicker } from './ui/ChildrenPicker.vue';
