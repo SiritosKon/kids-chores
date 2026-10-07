@@ -104,13 +104,15 @@
       :awards="grantedAwards"
       @update:model-value="closeAwards"
     />
-    <TaskEditDialog v-model="editorOpen" :task="editedTask" @changed="onTasksChanged" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, toRef } from 'vue';
+import { computed, toRef } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
+import { NEW_TASK_ID } from '@/shared/config/constants';
+import { taskPath } from '@/shared/lib/routes';
 import { useChildrenStore } from '@/entities/child';
 import { useTasksStore, type Task } from '@/entities/task';
 import { useRewardsStore } from '@/entities/reward';
@@ -118,8 +120,6 @@ import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { StreakAwardDialog } from '@/features/celebrate-streak';
 import { useChooseVariant } from '@/features/choose-reward-variant';
-import { TaskEditDialog } from '@/features/edit-task';
-import { recalculateStreaks } from '@/features/track-streak';
 import { BONUS_ROW, CHECK_COLORS } from './constants';
 import { useDayMarks } from '../model/useDayMarks';
 
@@ -166,19 +166,12 @@ const switchedOffTasks = computed(() =>
   parentActive.value ? tasksStore.kept.filter((task) => !task.active) : []
 );
 
-const editorOpen = ref(false);
-const editedTask = ref<Task | null>(null);
+const router = useRouter();
 
 const openEditor = (task: Task | null): void => {
-  if (!parentActive.value) {
-    return;
+  if (parentActive.value) {
+    void router.push(taskPath(task?.id ?? NEW_TASK_ID));
   }
-  editedTask.value = task;
-  editorOpen.value = true;
-};
-
-const onTasksChanged = async (): Promise<void> => {
-  await recalculateStreaks();
 };
 </script>
 

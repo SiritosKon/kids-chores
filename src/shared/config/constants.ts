@@ -5,8 +5,11 @@ export const ROUTES = {
   settingsStage: '/settings/stage/:stageId',
   settingsStageReward: '/settings/stage/:stageId/reward',
   reward: '/rewards/:rewardId',
+  task: '/tasks/:taskId',
 } as const;
 
 export const NEW_STAGE_ID = 'new';
 
 export const NEW_REWARD_ID = 'new';
+
+export const NEW_TASK_ID = 'new';
