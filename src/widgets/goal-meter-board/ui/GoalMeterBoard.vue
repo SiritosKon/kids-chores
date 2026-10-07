@@ -30,6 +30,7 @@ import { storeToRefs } from 'pinia';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 import { NEW_CHILD_ID } from '@/shared/config/constants';
+import { DEFAULT_METER_FIGURE } from '@/shared/ui/constants';
 import { childPath, childGoalPath } from '@/shared/lib/routes';
 import { useChildrenStore, childPhotoUrl, setChildGoal, type Child } from '@/entities/child';
 import { useRewardsStore, getVariantPhotos, type RewardVariant } from '@/entities/reward';
@@ -99,6 +100,7 @@ const meterEntries = computed<MeterEntry[]>(() =>
       name: child.name,
       photo: childPhotoUrl(child.photo) ?? '',
       carColor: child.carColor,
+      figure: child.figure ?? DEFAULT_METER_FIGURE,
       balance,
       ratio: max > 0 ? balance / max : 0,
       streak: streakStore.currentOf(child.id),

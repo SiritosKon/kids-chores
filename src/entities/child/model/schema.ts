@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { METER_FIGURES } from '@/shared/ui/constants';
 
 const timestamp = z.number().int().nonnegative();
 
@@ -11,6 +12,7 @@ export const childSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   carColor: z.string().min(1),
+  figure: z.enum(METER_FIGURES).optional(),
   weeklyGoal: z.number().int().positive().optional(),
   photo: z.string(),
   goal: childGoalSchema.optional(),

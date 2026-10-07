@@ -3,7 +3,7 @@
     <div class="form-row">
       <q-avatar size="72px" color="grey-9">
         <img v-if="photoUrl" :src="photoUrl" :alt="draft.name" />
-        <MonsterTruck v-else :color="draft.carColor" :size="52" />
+        <MeterFigure v-else :kind="draft.figure" :color="draft.carColor" :size="52" />
       </q-avatar>
       <div class="column items-start">
         <q-btn flat dense no-caps color="primary" icon="photo_camera" label="Загрузить фото" @click="pickPhoto" />
@@ -21,6 +21,11 @@
     </div>
 
     <q-input v-model="draft.name" label="Имя" :autofocus="!openGoal" maxlength="30" />
+
+    <div>
+      <div class="text-caption text-grey-5 q-mb-sm">Фигурка на копилке</div>
+      <FigurePicker v-model="draft.figure" :color="draft.carColor" />
+    </div>
 
     <RewardSelect
       ref="goalSelect"
@@ -57,7 +62,8 @@ import { ref, computed, onMounted, nextTick } from 'vue';
 import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
 import { NEW_CHILD_ID } from '@/shared/config/constants';
-import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
+import MeterFigure from '@/shared/ui/MeterFigure.vue';
+import FigurePicker from '@/shared/ui/FigurePicker.vue';
 import { COLOR_PALETTE } from '@/shared/ui/constants';
 import { resizePhoto } from '@/shared/lib/resizePhoto';
 import {
@@ -149,6 +155,7 @@ const save = async (): Promise<void> => {
   const row = {
     name: draft.value.name.trim(),
     carColor: draft.value.carColor,
+    figure: draft.value.figure,
     photo: draft.value.photo,
     goal: goal.value,
   };

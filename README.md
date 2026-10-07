@@ -70,7 +70,7 @@ parent menu.
 | `npm test` | Run the unit tests once |
 | `npm run build` | Type-check and build into `dist/` |
 | `npm run preview` | Serve the built `dist/` locally |
-| `npm run splash` | Redraw the iOS splash screens from `public/pwa-512.png` |
+| `npm run splash` | Redraw the iOS splash screens from the portrait and landscape art in `art/` |
 
 Local builds register a self-destroying service worker, so nothing gets stuck in the cache. The
 caching service worker is enabled only in the deploy (`ENABLE_PWA=true`).
@@ -87,6 +87,7 @@ src/        application code, one folder per FSD layer
 tests/      shared test fixtures
 scripts/    splash screen generator and release notes builder
 public/     icons and splash screens
+art/        icon and splash art: SVG sources and the splash masters
 ```
 
 ## Releases and deployment

@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
+import { DEFAULT_METER_FIGURE } from '@/shared/ui/constants';
 import type { Child } from '@/entities/child';
 import { EMPTY_CHILD_DRAFT } from './constants';
 import type { ChildFormDraft } from './types';
@@ -19,6 +20,7 @@ export const useChildFormStore = defineStore('child-form', () => {
     draft.value = {
       name: child?.name ?? '',
       carColor: child?.carColor ?? carColor,
+      figure: child?.figure ?? DEFAULT_METER_FIGURE,
       photo: child?.photo ?? '',
       goalRewardId: child?.goal?.rewardId ?? null,
       goalVariantId: child?.goal?.variantId ?? null,
