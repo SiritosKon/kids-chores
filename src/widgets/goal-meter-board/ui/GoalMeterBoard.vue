@@ -19,13 +19,15 @@
     </div>
     <WalletHistoryDialog v-model="historyOpen" :child-id="historyChildId" />
     <StreakDialog v-model="streakOpen" :child-id="streakChildId" />
-    <ChildEditDialog v-model="editorOpen" :child="editedChild" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
+import { NEW_CHILD_ID } from '@/shared/config/constants';
+import { childPath } from '@/shared/lib/routes';
 import { useChildrenStore, childPhotoUrl, setChildGoal, type Child } from '@/entities/child';
 import { useRewardsStore, getVariantPhotos, type RewardVariant } from '@/entities/reward';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
@@ -33,7 +35,6 @@ import { useStreakStore } from '@/entities/streak';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { WalletHistoryDialog } from '@/features/wallet-history';
 import { StreakDialog } from '@/features/streak-details';
-import { ChildEditDialog } from '@/features/edit-child';
 import { useChooseVariant, usePendingChoicesStore } from '@/features/choose-reward-variant';
 import { useAwardReward } from '@/features/award-reward';
 import GoalMeter from './GoalMeter.vue';
@@ -121,12 +122,10 @@ const openStreak = (childId: string): void => {
 
 const chooseGift = (childId: string): Promise<void> => chooseInTurn(pendingChoices.pendingOf(childId));
 
-const editorOpen = ref(false);
-const editedChild = ref<Child | null>(null);
+const router = useRouter();
 
 const openEditor = (childId: string | null): void => {
-  editedChild.value = childId ? (childrenStore.byId(childId) ?? null) : null;
-  editorOpen.value = true;
+  void router.push(childPath(childId ?? NEW_CHILD_ID));
 };
 </script>
 

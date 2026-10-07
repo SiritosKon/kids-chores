@@ -6,6 +6,7 @@ import { HomePage } from '@/pages/home';
 import { SettingsPage, StreakStagePage, StageRewardPage, PinPage } from '@/pages/settings';
 import { RewardPage } from '@/pages/reward';
 import { TaskPage } from '@/pages/task';
+import { ChildPage } from '@/pages/child';
 import { BACK_TRANSITION, FORWARD_TRANSITION } from './constants';
 
 const parentOnly = { parentOnly: true };
@@ -20,6 +21,7 @@ export const router = createRouter({
     { path: ROUTES.settingsStageReward, component: StageRewardPage, meta: parentOnly },
     { path: ROUTES.reward, component: RewardPage, meta: parentOnly },
     { path: ROUTES.task, component: TaskPage, meta: parentOnly },
+    { path: ROUTES.child, component: ChildPage, meta: parentOnly },
     { path: '/:rest(.*)*', redirect: ROUTES.home },
   ],
 });

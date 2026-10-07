@@ -1,1 +1,1 @@
-export { default as ChildEditDialog } from './ui/ChildEditDialog.vue';
+export { default as ChildEditForm } from './ui/ChildEditForm.vue';

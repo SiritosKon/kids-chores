@@ -7,7 +7,7 @@
 | Слой | Что лежит | Слайсы |
 |---|---|---|
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
-| `pages` | Экраны целиком | `home`, `onboarding`, `settings`, `reward`, `task` |
+| `pages` | Экраны целиком | `home`, `onboarding`, `settings`, `reward`, `task`, `child` |
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `parent-menu` |
 | `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout` |
 | `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session` |
@@ -44,7 +44,8 @@
 Награда тоже правится страницей (`/rewards/:rewardId`, `pages/reward`): форма `RewardEditForm`
 одна на главную и на «＋ Новая награда» из этапа, модалки редактора нет. Задача — так же:
 `/tasks/:taskId`, `pages/task`, форма `TaskEditForm`; после сохранения страница пересчитывает
-серию, потому что правка задачи меняет, какие дни закрыты. Знакомство с
+серию, потому что правка задачи меняет, какие дни закрыты. Ребёнок — тоже страница:
+`/children/:childId`, `pages/child`, форма `ChildEditForm`. Знакомство с
 приложением идёт по главной и настройкам; ушли с них на другую страницу — знакомство встаёт
 на паузу и продолжается с того же шага по возвращении.
 
