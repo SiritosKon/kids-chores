@@ -103,4 +103,22 @@ describe('tasks repository', () => {
     const stored = await tasksCatalogue.get(quest.id);
     expect(stored?.activePeriods).toEqual([{ from: '2026-09-20', to: '2026-09-25', childIds: ['dan'] }]);
   });
+
+  it('takes a removed quest off the board from today', async () => {
+    const quest = await createTask(DRAFT, '2026-09-20', { quest: { from: '2026-09-20', lastDay: '2026-09-23' } });
+
+    await archiveTask(quest.id, '2026-09-21');
+
+    const stored = await tasksCatalogue.get(quest.id);
+    expect(stored?.activePeriods).toEqual([{ from: '2026-09-20', to: '2026-09-21' }]);
+    expect(isQuestOpenOn(stored!, '2026-09-21')).toBe(false);
+  });
+
+  it('drops a removed quest that has not started yet', async () => {
+    const quest = await createTask(DRAFT, '2026-09-20', { quest: { from: '2026-09-25', lastDay: '2026-09-27' } });
+
+    await archiveTask(quest.id, '2026-09-21');
+
+    expect((await tasksCatalogue.get(quest.id))?.activePeriods).toEqual([]);
+  });
 });

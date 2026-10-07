@@ -124,13 +124,15 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
       }
       const earnsBonus = bonusEarned(child.id);
 
-      const marks: TaskMark[] = markableFor(child.id)
+      const markable = markableFor(child.id);
+      const marks: TaskMark[] = markable
         .filter((task) => isChecked(child.id, task.id))
         .map((task) => ({ taskId: task.id, points: task.points }));
       if (earnsBonus) {
         marks.push({ taskId: BONUS_TASK_ID, points: bonus.value.points });
       }
-      await saveDayMarks(child.id, selectedDate.value, marks);
+      const scope = new Set([...markable.map((task) => task.id), BONUS_TASK_ID]);
+      await saveDayMarks(child.id, selectedDate.value, marks, scope);
     }
 
     grantedAwards.value = await recalculateStreaks();

@@ -1,6 +1,6 @@
 import { createCatalogue } from '@/shared/api/catalogue';
 import { storedTaskSchema } from '../model/schema';
-import { openPeriod, closePeriod, reassignPeriods, sameChildren, questWindow } from '../lib/schedule';
+import { openPeriod, closePeriod, endPeriods, reassignPeriods, sameChildren, questWindow } from '../lib/schedule';
 import type { QuestDates, Task } from '../model/types';
 import type { TaskDraft, TaskOptions } from './types';
 
@@ -78,6 +78,6 @@ export const updateQuest = async (
 export const archiveTask = async (taskId: string, today: string): Promise<void> => {
   const task = await tasksCatalogue.get(taskId);
   if (task) {
-    await tasksCatalogue.archive(taskId, { activePeriods: closePeriod(task.activePeriods, today) });
+    await tasksCatalogue.archive(taskId, { activePeriods: endPeriods(task.activePeriods, today) });
   }
 };

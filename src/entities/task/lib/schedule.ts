@@ -81,6 +81,11 @@ export const questDates = (task: Pick<Task, 'activePeriods'>): QuestDates | unde
   return period?.to === undefined ? undefined : { from: period.from, lastDay: shiftDayKey(period.to, -1) };
 };
 
+export const endPeriods = (periods: readonly TaskPeriod[], day: string): TaskPeriod[] =>
+  periods
+    .filter((period) => period.from < day)
+    .map((period) => (period.to === undefined || period.to > day ? { ...period, to: day } : period));
+
 export const reassignPeriods = (
   periods: readonly TaskPeriod[],
   day: string,
