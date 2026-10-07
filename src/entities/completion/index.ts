@@ -3,6 +3,7 @@ export type { Completion } from './model/types';
 export {
   completionsTable,
   getDayCompletions,
+  getTaskCompletions,
   saveDayMarks,
   resetWeek,
   getAllCompletions,

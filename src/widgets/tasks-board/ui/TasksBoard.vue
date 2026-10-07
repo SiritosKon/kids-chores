@@ -10,7 +10,7 @@
       Детей пока нет. Добавьте ребёнка в родительском режиме.
     </div>
 
-    <div v-else-if="regularTasks.length === 0 && !parentActive" class="ios-card board-stub text-grey-5">
+    <div v-else-if="!hasRows && !parentActive" class="ios-card board-stub text-grey-5">
       Задач пока нет. Добавьте задачи в родительском режиме.
     </div>
 
@@ -71,6 +71,43 @@
           />
         </div>
       </div>
+      <template v-if="quests.length > 0">
+        <div class="quests-head">Квесты</div>
+        <div v-for="quest in quests" :key="quest.id" class="task-row">
+          <div class="task-tile" :style="{ background: quest.color }">
+            <q-icon :name="quest.icon" size="20px" color="white" />
+          </div>
+          <div class="task-info" :class="{ 'task-info--editable': parentActive }" @click="openEditor(quest)">
+            <div>
+              {{ quest.name }}
+              <q-icon v-if="parentActive" name="edit" size="14px" color="grey-5" class="q-ml-xs" />
+            </div>
+            <div class="task-points">
+              +{{ quest.points }} б. · {{ questDeadlineLabel(questDeadline(quest), selectedDate) }}
+            </div>
+          </div>
+          <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
+            <q-checkbox
+              v-if="questState(child.id, quest.id) === 'open'"
+              :model-value="isChecked(child.id, quest.id)"
+              :disable="isLocked(child.id, quest.id)"
+              :color="checkColor(index)"
+              checked-icon="check_circle"
+              unchecked-icon="radio_button_unchecked"
+              @update:model-value="toggle(child.id, quest.id, $event)"
+            />
+            <q-checkbox
+              v-else-if="questState(child.id, quest.id) === 'done'"
+              :model-value="true"
+              disable
+              :color="checkColor(index)"
+              checked-icon="check_circle"
+            />
+            <span v-else class="tasks-col__none" aria-label="Не для этого ребёнка">—</span>
+          </div>
+        </div>
+      </template>
+
       <div
         v-for="task in switchedOffTasks"
         :key="task.id"
@@ -97,7 +134,7 @@
       </div>
     </div>
 
-    <div v-if="ready && children.length > 0 && regularTasks.length > 0" class="row justify-end q-mt-md">
+    <div v-if="ready && children.length > 0 && hasRows" class="row justify-end q-mt-md">
       <q-btn color="primary" rounded unelevated icon="check" label="Принять" class="text-weight-bold" :disable="!dirty" @click="accept" />
     </div>
 
@@ -116,7 +153,7 @@ import { useRouter } from 'vue-router';
 import { NEW_TASK_ID } from '@/shared/config/constants';
 import { taskPath } from '@/shared/lib/routes';
 import { useChildrenStore } from '@/entities/child';
-import { useTasksStore, type Task } from '@/entities/task';
+import { useTasksStore, questDeadline, type Task } from '@/entities/task';
 import { useRewardsStore } from '@/entities/reward';
 import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
@@ -124,6 +161,7 @@ import { StreakAwardDialog } from '@/features/celebrate-streak';
 import { useChooseVariant } from '@/features/choose-reward-variant';
 import { BONUS_ROW, CHECK_COLORS } from './constants';
 import { useDayMarks } from '../model/useDayMarks';
+import { questDeadlineLabel } from '../lib/questDeadline';
 
 const props = defineProps<{ selectedDate: string }>();
 
@@ -136,10 +174,12 @@ const ready = computed(() => childrenStore.loaded && tasksStore.loaded && settin
 const {
   children,
   tasks: regularTasks,
+  quests,
   bonus,
   grantedAwards,
   clearAwards,
   isAssigned,
+  questState,
   isChecked,
   isLocked,
   bonusEarned,
@@ -160,6 +200,8 @@ const closeAwards = async (): Promise<void> => {
   clearAwards();
   await chooseInTurn(awards);
 };
+
+const hasRows = computed(() => regularTasks.value.length > 0 || quests.value.length > 0);
 
 const checkColor = (index: number): string => CHECK_COLORS[index] ?? 'primary';
 
@@ -237,6 +279,16 @@ const openEditor = (task: Task | null): void => {
 .task-points {
   font-size: 12px;
   color: #8e8e93;
+}
+
+.quests-head {
+  padding: 10px 16px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8e8e93;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .tasks-col__none {

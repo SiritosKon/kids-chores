@@ -1,3 +1,4 @@
+import { shiftDayKey } from '@/shared/lib/date';
 import type { Task, TaskPeriod } from '../model/types';
 
 const coversDay = (period: TaskPeriod, day: string): boolean =>
@@ -6,17 +7,35 @@ const coversDay = (period: TaskPeriod, day: string): boolean =>
 const coversChild = (period: TaskPeriod, childId: string | undefined): boolean =>
   childId === undefined || period.childIds === undefined || period.childIds.includes(childId);
 
+const isActiveOn = (task: Pick<Task, 'activePeriods'>, day: string, childId: string | undefined): boolean =>
+  task.activePeriods.some((period) => coversDay(period, day) && coversChild(period, childId));
+
 export const isTaskRequiredOn = (
-  task: Pick<Task, 'activePeriods'>,
+  task: Pick<Task, 'activePeriods' | 'quest'>,
   day: string,
   childId?: string
-): boolean => task.activePeriods.some((period) => coversDay(period, day) && coversChild(period, childId));
+): boolean => task.quest !== true && isActiveOn(task, day, childId);
 
-export const tasksRequiredOn = <Row extends Pick<Task, 'activePeriods'>>(
+export const tasksRequiredOn = <Row extends Pick<Task, 'activePeriods' | 'quest'>>(
   tasks: readonly Row[],
   day: string,
   childId?: string
 ): Row[] => tasks.filter((task) => isTaskRequiredOn(task, day, childId));
+
+export const isQuestOpenOn = (
+  task: Pick<Task, 'activePeriods' | 'quest'>,
+  day: string,
+  childId?: string
+): boolean => task.quest === true && isActiveOn(task, day, childId);
+
+export const questsOpenOn = <Row extends Pick<Task, 'activePeriods' | 'quest'>>(
+  tasks: readonly Row[],
+  day: string,
+  childId?: string
+): Row[] => tasks.filter((task) => isQuestOpenOn(task, day, childId));
+
+export const questDeadline = (task: Pick<Task, 'activePeriods'>): string | undefined =>
+  task.activePeriods.at(-1)?.to;
 
 export const sameChildren = (left?: readonly string[], right?: readonly string[]): boolean => {
   if (left === undefined || right === undefined) {
@@ -53,6 +72,9 @@ export const closePeriod = (periods: readonly TaskPeriod[], day: string): TaskPe
   }
   return [...periods.slice(0, -1), { ...last, to: day }];
 };
+
+export const questWindow = (from: string, days: number, childIds?: readonly string[]): TaskPeriod =>
+  withChildren({ from, to: shiftDayKey(from, days) }, childIds);
 
 export const reassignPeriods = (
   periods: readonly TaskPeriod[],

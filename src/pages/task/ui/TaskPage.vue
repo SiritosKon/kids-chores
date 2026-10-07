@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md settings-page">
-    <PageHeader :title="task ? 'Задача' : 'Новая задача'" :back-to="ROUTES.home" />
+    <PageHeader :title="title" :back-to="ROUTES.home" />
     <section v-if="tasksStore.loaded" class="ios-card q-pa-md">
       <TaskEditForm :key="taskId" :task="task" @done="onDone" @cancel="close" />
     </section>
@@ -37,6 +37,13 @@ watch(
   },
   { immediate: true }
 );
+
+const title = computed(() => {
+  if (!task.value) {
+    return 'Новая задача';
+  }
+  return task.value.quest ? 'Квест' : 'Задача';
+});
 
 const close = (): void => {
   goBack(ROUTES.home);

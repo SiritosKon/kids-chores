@@ -23,6 +23,7 @@ export const taskSchema = z.object({
   active: z.boolean(),
   activePeriods: z.array(taskPeriodSchema),
   childIds: childIdsSchema.optional(),
+  quest: z.boolean().optional(),
   createdAt: timestamp,
   updatedAt: timestamp,
   archivedAt: timestamp.optional(),
