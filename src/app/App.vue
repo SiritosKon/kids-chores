@@ -57,6 +57,7 @@ import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
 import { useWhatsNewStore, WhatsNewDialog } from '@/features/whats-new';
+import { useParentAutoLogout } from '@/features/parent-auto-logout';
 import { ParentMenu } from '@/widgets/parent-menu';
 import { OnboardingPage } from '@/pages/onboarding';
 
@@ -68,6 +69,8 @@ const whatsNew = useWhatsNewStore();
 const { isOpen: whatsNewOpen } = storeToRefs(whatsNew);
 const appVersion = __APP_VERSION__;
 const settingsStore = useSettingsStore();
+
+useParentAutoLogout();
 
 const route = useRoute();
 const router = useRouter();

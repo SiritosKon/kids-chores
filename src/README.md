@@ -9,7 +9,7 @@
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
 | `pages` | Экраны целиком | `home`, `onboarding`, `settings` |
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `parent-menu` |
-| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app` |
+| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout` |
 | `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session` |
 | `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets` |
 
@@ -48,6 +48,13 @@
 
 Черновик этапа живёт в `useStageDraftStore`: со страницы этапа можно уйти создать награду и
 вернуться с ней, не потеряв введённое.
+
+## Родительский режим
+
+Родрежим закрывается сам после 5 минут без касаний (`features/parent-auto-logout`). Время
+считается от последнего касания, а не таймером в фоне: iOS замораживает таймеры, пока приложение
+свёрнуто, поэтому при возвращении на экран проверяем, сколько прошло. Во время знакомства с
+приложением автовыход не срабатывает: тур идёт в родрежиме и выйти из него посреди шага нельзя.
 
 ## Серия
 
