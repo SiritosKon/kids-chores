@@ -6,10 +6,12 @@ import { dirname, join } from 'node:path';
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 const publicDir = join(rootDir, 'public');
 const INDEX_HTML = join(rootDir, 'index.html');
-const SOURCE_ICON = join(publicDir, 'pwa-512.png');
+const ART_DIR = join(rootDir, 'art');
+const SOURCES = {
+  portrait: join(ART_DIR, 'splash-portrait.png'),
+  landscape: join(ART_DIR, 'splash-landscape.png'),
+};
 const BACKDROP = [0, 0, 0];
-const ICON_SHARE = 0.28;
-const CORNER_SHARE = 0.23;
 
 const BASE_PATH = '/kids-chores/';
 
@@ -134,16 +136,17 @@ const encodePng = (width, height, pixels) => {
   ]);
 };
 
-const resize = (source, size) => {
-  const out = Buffer.alloc(size * size * 3);
-  const ratio = source.width / size;
+const resize = (source, width, height) => {
+  const out = Buffer.alloc(width * height * 3);
+  const ratioX = source.width / width;
+  const ratioY = source.height / height;
 
-  for (let y = 0; y < size; y += 1) {
-    const fromY = Math.floor(y * ratio);
-    const toY = Math.max(fromY + 1, Math.floor((y + 1) * ratio));
-    for (let x = 0; x < size; x += 1) {
-      const fromX = Math.floor(x * ratio);
-      const toX = Math.max(fromX + 1, Math.floor((x + 1) * ratio));
+  for (let y = 0; y < height; y += 1) {
+    const fromY = Math.floor(y * ratioY);
+    const toY = Math.max(fromY + 1, Math.floor((y + 1) * ratioY));
+    for (let x = 0; x < width; x += 1) {
+      const fromX = Math.floor(x * ratioX);
+      const toX = Math.max(fromX + 1, Math.floor((x + 1) * ratioX));
       let red = 0;
       let green = 0;
       let blue = 0;
@@ -157,7 +160,7 @@ const resize = (source, size) => {
           count += 1;
         }
       }
-      const at = (y * size + x) * 3;
+      const at = (y * width + x) * 3;
       out[at] = Math.round(red / count);
       out[at + 1] = Math.round(green / count);
       out[at + 2] = Math.round(blue / count);
@@ -167,20 +170,13 @@ const resize = (source, size) => {
   return out;
 };
 
-const insideRounded = (x, y, size, radius) => {
-  const nearestX = Math.min(Math.max(x, radius), size - radius);
-  const nearestY = Math.min(Math.max(y, radius), size - radius);
-  const dx = x - nearestX;
-  const dy = y - nearestY;
-  return dx * dx + dy * dy <= radius * radius;
-};
-
-const compose = (icon, width, height) => {
-  const size = Math.round(Math.min(width, height) * ICON_SHARE);
-  const scaled = resize(icon, size);
-  const radius = Math.round(size * CORNER_SHARE);
-  const left = Math.round((width - size) / 2);
-  const top = Math.round((height - size) / 2);
+const compose = (art, width, height) => {
+  const scale = Math.min(width / art.width, height / art.height, 1);
+  const artWidth = Math.round(art.width * scale);
+  const artHeight = Math.round(art.height * scale);
+  const scaled = resize(art, artWidth, artHeight);
+  const left = Math.round((width - artWidth) / 2);
+  const top = Math.round((height - artHeight) / 2);
 
   const canvas = Buffer.alloc(width * height * 3);
   for (let index = 0; index < width * height; index += 1) {
@@ -189,17 +185,8 @@ const compose = (icon, width, height) => {
     canvas[index * 3 + 2] = BACKDROP[2];
   }
 
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      if (!insideRounded(x, y, size, radius)) {
-        continue;
-      }
-      const from = (y * size + x) * 3;
-      const to = ((top + y) * width + left + x) * 3;
-      canvas[to] = scaled[from];
-      canvas[to + 1] = scaled[from + 1];
-      canvas[to + 2] = scaled[from + 2];
-    }
+  for (let y = 0; y < artHeight; y += 1) {
+    scaled.copy(canvas, ((top + y) * width + left) * 3, y * artWidth * 3, (y + 1) * artWidth * 3);
   }
 
   return encodePng(width, height, canvas);
@@ -218,16 +205,19 @@ const writeLinks = () => {
   writeFileSync(INDEX_HTML, kept.join('\n'));
 };
 
-const icon = decodePng(readFileSync(SOURCE_ICON));
+const art = {
+  portrait: decodePng(readFileSync(SOURCES.portrait)),
+  landscape: decodePng(readFileSync(SOURCES.landscape)),
+};
 const splashDir = join(publicDir, 'splash');
 rmSync(splashDir, { recursive: true, force: true });
 mkdirSync(splashDir, { recursive: true });
 
 for (const screen of SCREENS) {
   const [width, height] = screen.pixels;
-  writeFileSync(join(splashDir, fileName(screen)), compose(icon, width, height));
+  writeFileSync(join(splashDir, fileName(screen)), compose(art[screen.orientation], width, height));
 }
 
 writeLinks();
 
-console.log(`${SCREENS.length} splash screens drawn from ${SOURCE_ICON}`);
+console.log(`${SCREENS.length} splash screens drawn from ${ART_DIR}`);
