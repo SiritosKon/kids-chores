@@ -1,6 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/api/db';
-import { tasksCatalogue, createTask, setTaskActive, assignTask, updateQuest, archiveTask } from './tasksRepo';
+import {
+  tasksCatalogue,
+  createTask,
+  setTaskActive,
+  assignTask,
+  updateQuest,
+  archiveTask,
+  trimRemovedTasks,
+} from './tasksRepo';
 import { isQuestOpenOn, isTaskRequiredOn, questDates } from '../lib/schedule';
 
 const DRAFT = { name: 'Спорт', icon: 'fitness_center', color: '#30D158', points: 2 };
@@ -120,5 +128,24 @@ describe('tasks repository', () => {
     await archiveTask(quest.id, '2026-09-21');
 
     expect((await tasksCatalogue.get(quest.id))?.activePeriods).toEqual([]);
+  });
+
+  it('trims a quest removed before removal cut its dates', async () => {
+    const quest = await createTask(DRAFT, '2026-09-20', { quest: { from: '2026-09-20', lastDay: '2026-09-23' } });
+    const removedAt = new Date('2026-09-21T15:00:00').getTime();
+    await tasksCatalogue.put({ ...quest, active: false, archivedAt: removedAt });
+
+    await trimRemovedTasks();
+
+    expect((await tasksCatalogue.get(quest.id))?.activePeriods).toEqual([{ from: '2026-09-20', to: '2026-09-21' }]);
+  });
+
+  it('leaves tasks that are still in use alone', async () => {
+    const task = await createTask(DRAFT, '2026-09-01');
+    const before = await tasksCatalogue.get(task.id);
+
+    await trimRemovedTasks();
+
+    expect(await tasksCatalogue.get(task.id)).toEqual(before);
   });
 });

@@ -19,6 +19,7 @@ export {
   assignTask,
   updateQuest,
   archiveTask,
+  trimRemovedTasks,
 } from './api/tasksRepo';
 export type { TaskDraft, TaskOptions } from './api/types';
 export { reservedTaskName, isReservedTaskId } from './lib/reserved';

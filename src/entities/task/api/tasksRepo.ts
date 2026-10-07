@@ -1,4 +1,5 @@
 import { createCatalogue } from '@/shared/api/catalogue';
+import { dayKeyOf } from '@/shared/lib/date';
 import { storedTaskSchema } from '../model/schema';
 import { openPeriod, closePeriod, endPeriods, reassignPeriods, sameChildren, questWindow } from '../lib/schedule';
 import type { QuestDates, Task } from '../model/types';
@@ -79,5 +80,20 @@ export const archiveTask = async (taskId: string, today: string): Promise<void> 
   const task = await tasksCatalogue.get(taskId);
   if (task) {
     await tasksCatalogue.archive(taskId, { activePeriods: endPeriods(task.activePeriods, today) });
+  }
+};
+
+export const trimRemovedTasks = async (): Promise<void> => {
+  const tasks = await tasksCatalogue.read();
+  const trimmed = tasks.flatMap((task) => {
+    if (task.archivedAt === undefined) {
+      return [];
+    }
+    const activePeriods = endPeriods(task.activePeriods, dayKeyOf(task.archivedAt));
+    const changed = JSON.stringify(activePeriods) !== JSON.stringify(task.activePeriods);
+    return changed ? [{ ...task, activePeriods }] : [];
+  });
+  if (trimmed.length > 0) {
+    await tasksCatalogue.putMany(trimmed);
   }
 };
