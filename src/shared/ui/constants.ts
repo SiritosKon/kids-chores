@@ -75,3 +75,15 @@ export const ICON_CHOICES = [
   'redeem',
   'rocket_launch',
 ] as const;
+
+export const METER_FIGURES = ['truck', 'boat', 'plane', 'helicopter', 'ball'] as const;
+
+export const DEFAULT_METER_FIGURE = 'truck';
+
+export const METER_FIGURE_LABELS = {
+  truck: 'Машинка',
+  boat: 'Кораблик',
+  plane: 'Самолётик',
+  helicopter: 'Вертолётик',
+  ball: 'Мяч',
+} as const;

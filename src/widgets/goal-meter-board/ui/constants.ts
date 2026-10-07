@@ -1,0 +1,1 @@
+export const BALL_DEGREES_PER_PERCENT = 14.4;

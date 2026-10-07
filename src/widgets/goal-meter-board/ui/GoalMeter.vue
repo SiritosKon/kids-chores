@@ -8,7 +8,7 @@
       @click="edit"
     >
       <img v-if="entry.photo" :src="entry.photo" :alt="entry.name" />
-      <MonsterTruck v-else :color="entry.carColor" :size="38" />
+      <MeterFigure v-else :kind="entry.figure" :color="entry.carColor" :size="38" />
     </q-avatar>
 
     <div class="goal-meter__body">
@@ -51,7 +51,13 @@
       <div class="goal-meter__track">
         <div class="goal-meter__fill" :style="{ width: pct + '%' }"></div>
         <q-icon name="sports_score" size="26px" class="goal-meter__flag" />
-        <MonsterTruck :color="entry.carColor" :size="46" class="goal-meter__car" :style="{ left: carLeft }" />
+        <MeterFigure
+          :kind="entry.figure"
+          :color="entry.carColor"
+          :size="46"
+          class="goal-meter__car"
+          :style="{ left: carLeft, transform: carTransform }"
+        />
       </div>
       <div v-if="entry.goal" class="goal-meter__goal">
         <div class="goal-meter__goal-thumb" :style="{ background: entry.goal.color }">
@@ -109,8 +115,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { pluralize } from '@/shared/lib/plural';
-import MonsterTruck from '@/shared/ui/MonsterTruck.vue';
+import MeterFigure from '@/shared/ui/MeterFigure.vue';
 import { isStreakShown } from '@/entities/streak';
+import { BALL_DEGREES_PER_PERCENT } from './constants';
 import type { MeterEntry } from '../model/types';
 
 const props = withDefaults(defineProps<{ entry: MeterEntry; editable?: boolean }>(), {
@@ -136,6 +143,9 @@ const streakLabel = computed(() => pluralize(props.entry.streak, ['день', '�
 
 const pct = computed(() => Math.min(100, Math.round(props.entry.ratio * 100)));
 const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`);
+const carTransform = computed(() =>
+  props.entry.figure === 'ball' ? `translate(-50%, -50%) rotate(${pct.value * BALL_DEGREES_PER_PERCENT}deg)` : undefined
+);
 </script>
 
 <style scoped>

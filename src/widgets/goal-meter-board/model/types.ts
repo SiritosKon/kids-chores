@@ -1,3 +1,5 @@
+import type { MeterFigureKind } from '@/shared/ui/types';
+
 export interface GoalEntry {
   name: string;
   price: number;
@@ -14,6 +16,7 @@ export interface MeterEntry {
   name: string;
   photo: string;
   carColor: string;
+  figure: MeterFigureKind;
   balance: number;
   ratio: number;
   streak: number;
