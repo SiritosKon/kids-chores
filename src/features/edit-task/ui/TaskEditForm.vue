@@ -17,18 +17,21 @@
     />
 
     <q-toggle v-if="!task" v-model="isQuest" label="Разовый квест" color="primary" />
-    <q-input
-      v-if="isQuest"
-      v-model.number="questDays"
-      type="number"
-      inputmode="numeric"
-      label="Сколько дней на выполнение"
-      :min="1"
-      :max="QUEST_MAX_DAYS"
-      :error="!questDaysValid"
-      :error-message="`От 1 до ${QUEST_MAX_DAYS} дней`"
-      :hint="questHint"
-    />
+    <template v-if="isQuest">
+      <q-select
+        v-model="questTerm"
+        :options="QUEST_TERM_OPTIONS"
+        label="Срок"
+        emit-value
+        map-options
+        :hint="questError ? undefined : questHint"
+      />
+      <div v-if="questTerm === 'custom'" class="form-row">
+        <q-input v-model="customDates.from" type="date" label="Начало" stack-label class="col" />
+        <q-input v-model="customDates.lastDay" type="date" label="Конец" stack-label class="col" />
+      </div>
+      <div v-if="questError" class="text-negative text-caption">{{ questError }}</div>
+    </template>
     <q-toggle v-if="task && !isQuest" v-model="active" label="Задача включена" color="primary" />
 
     <ChildrenPicker v-model="childIds" />
@@ -58,7 +61,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
-import { todayKey, daysBetween, formatDayKeyLong, shiftDayKey } from '@/shared/lib/date';
+import { todayKey, formatDayKeyLong } from '@/shared/lib/date';
 import ColorPicker from '@/shared/ui/ColorPicker.vue';
 import IconPicker from '@/shared/ui/IconPicker.vue';
 import { COLOR_PALETTE, ICON_CHOICES } from '@/shared/ui/constants';
@@ -70,12 +73,18 @@ import {
   assignTask,
   updateQuest,
   archiveTask,
-  questDeadline,
+  questDates,
+  type QuestDates,
   type Task,
 } from '@/entities/task';
-import { QUEST_DEFAULT_DAYS, QUEST_MAX_DAYS } from '../model/constants';
+import { termDates, questDatesError } from '../lib/questTerm';
+import { DEFAULT_QUEST_TERM, QUEST_TERM_OPTIONS } from '../model/constants';
+import type { QuestTerm } from '../model/types';
 
-const props = withDefaults(defineProps<{ task?: Task | null }>(), { task: null });
+const props = withDefaults(defineProps<{ task?: Task | null; asQuest?: boolean }>(), {
+  task: null,
+  asQuest: false,
+});
 const emit = defineEmits<{ done: []; cancel: [] }>();
 
 const $q = useQuasar();
@@ -87,22 +96,17 @@ const color = ref<string>(COLOR_PALETTE[2]);
 const active = ref(true);
 const childIds = ref<string[] | null>(null);
 const isQuest = ref(false);
-const questDays = ref(QUEST_DEFAULT_DAYS);
+const questTerm = ref<QuestTerm>(DEFAULT_QUEST_TERM);
+const customDates = ref<QuestDates>({ from: todayKey(), lastDay: todayKey() });
 
-const questStart = computed(() => props.task?.activePeriods[0]?.from ?? todayKey());
+const chosenDates = computed(() => termDates(questTerm.value, todayKey(), customDates.value));
 
-const questDaysValid = computed(
-  () =>
-    !isQuest.value ||
-    (Number.isInteger(questDays.value) && questDays.value >= 1 && questDays.value <= QUEST_MAX_DAYS)
-);
+const questError = computed(() => (isQuest.value ? questDatesError(chosenDates.value, todayKey()) : null));
 
 const questHint = computed(() => {
-  if (!questDaysValid.value) {
-    return undefined;
-  }
-  const lastDay = formatDayKeyLong(shiftDayKey(questStart.value, questDays.value - 1));
-  return `Последний день — ${lastDay}. Не успел — квест сгорает. В серию и бонус за день не входит`;
+  const { from, lastDay } = chosenDates.value;
+  const start = from > todayKey() ? `Начнётся: ${formatDayKeyLong(from)}. ` : '';
+  return `${start}Последний день — ${formatDayKeyLong(lastDay)}. Не успел — квест сгорает. В серию и бонус за день не входит`;
 });
 
 const canSave = computed(
@@ -110,7 +114,7 @@ const canSave = computed(
     name.value.trim().length > 0 &&
     Number.isInteger(points.value) &&
     points.value > 0 &&
-    questDaysValid.value &&
+    questError.value === null &&
     (childIds.value === null || childIds.value.length > 0)
 );
 
@@ -121,9 +125,10 @@ const reset = (): void => {
   color.value = props.task?.color ?? COLOR_PALETTE[2];
   active.value = props.task?.active ?? true;
   childIds.value = props.task?.childIds ? [...props.task.childIds] : null;
-  isQuest.value = props.task?.quest === true;
-  const deadline = props.task ? questDeadline(props.task) : undefined;
-  questDays.value = deadline ? daysBetween(questStart.value, deadline) : QUEST_DEFAULT_DAYS;
+  isQuest.value = props.task ? props.task.quest === true : props.asQuest;
+  const stored = props.task ? questDates(props.task) : undefined;
+  questTerm.value = stored ? 'custom' : DEFAULT_QUEST_TERM;
+  customDates.value = stored ?? termDates(DEFAULT_QUEST_TERM, todayKey(), customDates.value);
 };
 
 onMounted(reset);
@@ -134,7 +139,7 @@ const save = async (): Promise<void> => {
   const children = childIds.value ?? undefined;
   if (props.task?.quest) {
     await updateTask(props.task.id, draft);
-    await updateQuest(props.task.id, questDays.value, children);
+    await updateQuest(props.task.id, chosenDates.value, children);
   } else if (props.task) {
     await updateTask(props.task.id, draft);
     await assignTask(props.task.id, children, today);
@@ -142,7 +147,7 @@ const save = async (): Promise<void> => {
   } else {
     await createTask(draft, today, {
       ...(children ? { childIds: children } : {}),
-      ...(isQuest.value ? { questDays: questDays.value } : {}),
+      ...(isQuest.value ? { quest: chosenDates.value } : {}),
     });
   }
   emit('done');

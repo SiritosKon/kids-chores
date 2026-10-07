@@ -1,7 +1,7 @@
 import { createCatalogue } from '@/shared/api/catalogue';
 import { storedTaskSchema } from '../model/schema';
 import { openPeriod, closePeriod, reassignPeriods, sameChildren, questWindow } from '../lib/schedule';
-import type { Task } from '../model/types';
+import type { QuestDates, Task } from '../model/types';
 import type { TaskDraft, TaskOptions } from './types';
 
 export const tasksCatalogue = createCatalogue<Task>('tasks', (rows) =>
@@ -11,7 +11,7 @@ export const tasksCatalogue = createCatalogue<Task>('tasks', (rows) =>
 export const createTask = async (
   draft: TaskDraft,
   today: string,
-  { childIds, questDays }: TaskOptions = {}
+  { childIds, quest }: TaskOptions = {}
 ): Promise<Task> => {
   const now = Date.now();
   const task: Task = {
@@ -19,10 +19,9 @@ export const createTask = async (
     id: crypto.randomUUID(),
     order: await tasksCatalogue.nextOrder(),
     active: true,
-    activePeriods:
-      questDays === undefined ? openPeriod([], today, childIds) : [questWindow(today, questDays, childIds)],
+    activePeriods: quest ? [questWindow(quest, childIds)] : openPeriod([], today, childIds),
     ...(childIds ? { childIds: [...childIds] } : {}),
-    ...(questDays === undefined ? {} : { quest: true }),
+    ...(quest ? { quest: true } : {}),
     createdAt: now,
     updatedAt: now,
   };
@@ -63,17 +62,16 @@ export const assignTask = async (
 
 export const updateQuest = async (
   taskId: string,
-  days: number,
+  dates: QuestDates,
   childIds: readonly string[] | undefined
 ): Promise<void> => {
   const task = await tasksCatalogue.get(taskId);
-  const start = task?.activePeriods[0]?.from;
-  if (!task?.quest || start === undefined) {
+  if (!task?.quest) {
     return;
   }
   await tasksCatalogue.update(taskId, {
     childIds: childIds ? [...childIds] : undefined,
-    activePeriods: [questWindow(start, days, childIds)],
+    activePeriods: [questWindow(dates, childIds)],
   });
 };
 

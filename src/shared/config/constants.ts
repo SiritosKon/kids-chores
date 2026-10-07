@@ -15,4 +15,6 @@ export const NEW_REWARD_ID = 'new';
 
 export const NEW_TASK_ID = 'new';
 
+export const QUEST_QUERY_KEY = 'quest';
+
 export const NEW_CHILD_ID = 'new';

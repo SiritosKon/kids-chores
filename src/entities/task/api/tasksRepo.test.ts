@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/api/db';
 import { tasksCatalogue, createTask, setTaskActive, assignTask, updateQuest, archiveTask } from './tasksRepo';
-import { isQuestOpenOn, isTaskRequiredOn } from '../lib/schedule';
+import { isQuestOpenOn, isTaskRequiredOn, questDates } from '../lib/schedule';
 
 const DRAFT = { name: 'Спорт', icon: 'fitness_center', color: '#30D158', points: 2 };
 
@@ -72,8 +72,11 @@ describe('tasks repository', () => {
     ]);
   });
 
-  it('opens a quest for the given number of days and never requires it', async () => {
-    const quest = await createTask(DRAFT, '2026-09-20', { questDays: 2, childIds: ['tim'] });
+  it('opens a quest from its first to its last day and never requires it', async () => {
+    const quest = await createTask(DRAFT, '2026-09-20', {
+      quest: { from: '2026-09-20', lastDay: '2026-09-21' },
+      childIds: ['tim'],
+    });
 
     expect(quest.quest).toBe(true);
     expect(quest.activePeriods).toEqual([{ from: '2026-09-20', to: '2026-09-22', childIds: ['tim'] }]);
@@ -81,12 +84,21 @@ describe('tasks repository', () => {
     expect(isQuestOpenOn(quest, '2026-09-22', 'tim')).toBe(false);
     expect(isQuestOpenOn(quest, '2026-09-21', 'dan')).toBe(false);
     expect(isTaskRequiredOn(quest, '2026-09-21', 'tim')).toBe(false);
+    expect(questDates(quest)).toEqual({ from: '2026-09-20', lastDay: '2026-09-21' });
   });
 
-  it('moves the quest deadline from the day it was given', async () => {
-    const quest = await createTask(DRAFT, '2026-09-20', { questDays: 2 });
+  it('starts a quest on a later day', async () => {
+    const quest = await createTask(DRAFT, '2026-09-20', { quest: { from: '2026-09-25', lastDay: '2026-09-27' } });
 
-    await updateQuest(quest.id, 5, ['dan']);
+    expect(isQuestOpenOn(quest, '2026-09-24')).toBe(false);
+    expect(isQuestOpenOn(quest, '2026-09-25')).toBe(true);
+    expect(isQuestOpenOn(quest, '2026-09-27')).toBe(true);
+  });
+
+  it('moves the quest dates and children', async () => {
+    const quest = await createTask(DRAFT, '2026-09-20', { quest: { from: '2026-09-20', lastDay: '2026-09-21' } });
+
+    await updateQuest(quest.id, { from: '2026-09-20', lastDay: '2026-09-24' }, ['dan']);
 
     const stored = await tasksCatalogue.get(quest.id);
     expect(stored?.activePeriods).toEqual([{ from: '2026-09-20', to: '2026-09-25', childIds: ['dan'] }]);

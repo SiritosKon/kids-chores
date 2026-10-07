@@ -1,5 +1,5 @@
 import { shiftDayKey } from '@/shared/lib/date';
-import type { Task, TaskPeriod } from '../model/types';
+import type { QuestDates, Task, TaskPeriod } from '../model/types';
 
 const coversDay = (period: TaskPeriod, day: string): boolean =>
   period.from <= day && (period.to === undefined || day < period.to);
@@ -73,8 +73,13 @@ export const closePeriod = (periods: readonly TaskPeriod[], day: string): TaskPe
   return [...periods.slice(0, -1), { ...last, to: day }];
 };
 
-export const questWindow = (from: string, days: number, childIds?: readonly string[]): TaskPeriod =>
-  withChildren({ from, to: shiftDayKey(from, days) }, childIds);
+export const questWindow = ({ from, lastDay }: QuestDates, childIds?: readonly string[]): TaskPeriod =>
+  withChildren({ from, to: shiftDayKey(lastDay, 1) }, childIds);
+
+export const questDates = (task: Pick<Task, 'activePeriods'>): QuestDates | undefined => {
+  const period = task.activePeriods.at(-1);
+  return period?.to === undefined ? undefined : { from: period.from, lastDay: shiftDayKey(period.to, -1) };
+};
 
 export const reassignPeriods = (
   periods: readonly TaskPeriod[],

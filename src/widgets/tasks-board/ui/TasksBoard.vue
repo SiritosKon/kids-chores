@@ -127,10 +127,16 @@
       </div>
 
       <div v-if="parentActive" class="task-row">
-        <button type="button" class="add-tile" data-tour="add-task" @click="openEditor(null)">
-          <q-icon name="add" size="22px" />
-          Добавить задачу
-        </button>
+        <div class="add-row">
+          <button type="button" class="add-tile" data-tour="add-task" @click="openEditor(null)">
+            <q-icon name="add" size="22px" />
+            Добавить задачу
+          </button>
+          <button type="button" class="add-tile" @click="openQuestEditor">
+            <q-icon name="flag" size="22px" />
+            Добавить квест
+          </button>
+        </div>
       </div>
     </div>
 
@@ -151,7 +157,7 @@ import { computed, toRef } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { NEW_TASK_ID } from '@/shared/config/constants';
-import { taskPath } from '@/shared/lib/routes';
+import { taskPath, newQuestPath } from '@/shared/lib/routes';
 import { useChildrenStore } from '@/entities/child';
 import { useTasksStore, questDeadline, type Task } from '@/entities/task';
 import { useRewardsStore } from '@/entities/reward';
@@ -218,6 +224,10 @@ const openEditor = (task: Task | null): void => {
     void router.push(taskPath(task?.id ?? NEW_TASK_ID));
   }
 };
+
+const openQuestEditor = (): void => {
+  void router.push(newQuestPath());
+};
 </script>
 
 <style scoped>
@@ -279,6 +289,16 @@ const openEditor = (task: Task | null): void => {
 .task-points {
   font-size: 12px;
   color: #8e8e93;
+}
+
+.add-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.add-row > .add-tile {
+  flex: 1 1 0;
 }
 
 .quests-head {

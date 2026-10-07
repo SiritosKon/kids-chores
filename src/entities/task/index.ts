@@ -1,11 +1,12 @@
 export { taskSchema, storedTaskSchema, taskPeriodSchema } from './model/schema';
-export type { Task, TaskPeriod } from './model/types';
+export type { Task, TaskPeriod, QuestDates } from './model/types';
 export {
   isTaskRequiredOn,
   tasksRequiredOn,
   isQuestOpenOn,
   questsOpenOn,
   questDeadline,
+  questDates,
   openPeriod,
   closePeriod,
 } from './lib/schedule';
