@@ -2,6 +2,13 @@ import type { ChangelogEntry } from './types';
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '0.5.2',
+    date: '2026-10-18',
+    notes: [
+      'Проверка для взрослых при сбросе PIN: примеры пяти видов вперемешку — умножение, сложение, вычитание, деление и в два действия',
+    ],
+  },
+  {
     version: '0.5.1',
     date: '2026-10-07',
     notes: [
