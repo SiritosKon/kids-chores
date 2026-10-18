@@ -13,7 +13,7 @@ const SOURCES = {
 };
 const BACKDROP = [0, 0, 0];
 
-const BASE_PATH = '/kids-chores/';
+const BASE_PATH = '/';
 
 const DEVICES = [
   [375, 667, 2],
