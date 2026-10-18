@@ -15,18 +15,18 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     date: '2026-10-18',
     notes: {
       ru: [
-        'Первый запуск: приложение сразу с примером — ребёнок, пять задач и четыре награды, всё можно поменять',
-        'PIN родителя задаётся в окне поверх приложения, там же выбирается язык',
+        'Первый запуск: приложение сразу с примером — ребёнок, три задачи и три награды, всё можно поменять',
+        'PIN родителя задаётся в окне поверх приложения, язык берётся с устройства',
         'Знакомство короче: четыре шага — дети, задачи, награды и меню',
       ],
       en: [
-        'First launch: the app opens with an example — a kid, five chores and four rewards, all of them editable',
-        'The parent PIN is set in a window over the app, where you also pick the language',
+        'First launch: the app opens with an example — a kid, three chores and three rewards, all of them editable',
+        'The parent PIN is set in a window over the app; the language comes from the device',
         'A shorter intro tour: four steps — kids, chores, rewards and the menu',
       ],
       es: [
-        'Primer inicio: la app se abre con un ejemplo, un niño, cinco tareas y cuatro premios, y todo se puede cambiar',
-        'El PIN de padres se crea en una ventana sobre la app, donde también eliges el idioma',
+        'Primer inicio: la app se abre con un ejemplo, un niño, tres tareas y tres premios, y todo se puede cambiar',
+        'El PIN de padres se crea en una ventana sobre la app; el idioma se toma del dispositivo',
         'Un recorrido más corto: cuatro pasos, niños, tareas, premios y el menú',
       ],
     },

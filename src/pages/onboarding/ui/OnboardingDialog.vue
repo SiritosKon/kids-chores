@@ -7,10 +7,6 @@
         <p class="text-grey-5 q-mt-sm q-mb-none">{{ t('onboardingPage.intro') }}</p>
       </q-card-section>
 
-      <q-card-section class="q-pt-none">
-        <LanguageToggle :model-value="locale" @update:model-value="pickLocale" />
-      </q-card-section>
-
       <q-card-section>
         <div class="text-center text-subtitle1 q-mb-sm">{{ t(PIN_SETUP_TITLE_KEYS[step]) }}</div>
         <PinInput :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="error" @complete="onPin" />
@@ -34,33 +30,26 @@ import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import { APP_NAME } from '@/shared/config/constants';
-import { applyLocale, currentLocale, type Locale } from '@/shared/i18n';
+import { currentLocale } from '@/shared/i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
-import LanguageToggle from '@/shared/ui/LanguageToggle.vue';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { setupParentPin, PARENT_PIN_LENGTH } from '@/entities/settings';
-import { seedPresets, renamePresets, type PresetRow } from '@/features/starter-presets';
+import { seedPresets } from '@/features/starter-presets';
 import { PIN_SETUP_TITLE_KEYS } from '../model/constants';
 import type { PinSetupStep } from '../model/types';
 
 const $q = useQuasar();
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const parentSession = useParentSessionStore();
 
 const step = ref<PinSetupStep>('choose');
 const pin = ref('');
 const chosen = ref('');
 const error = ref(false);
-const presets = ref<PresetRow[]>([]);
 
-onMounted(async () => {
-  presets.value = await seedPresets();
+onMounted(() => {
+  void seedPresets();
 });
-
-const pickLocale = async (picked: Locale): Promise<void> => {
-  applyLocale(picked);
-  await renamePresets(presets.value);
-};
 
 const onPin = async (value: string): Promise<void> => {
   error.value = false;

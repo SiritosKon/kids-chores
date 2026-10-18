@@ -13,11 +13,3 @@ export interface PresetTask extends Omit<TaskDraft, 'name'> {
 export interface PresetReward extends Omit<RewardDraft, 'name'> {
   nameKey: string;
 }
-
-export type PresetKind = 'child' | 'task' | 'reward';
-
-export interface PresetRow {
-  kind: PresetKind;
-  id: string;
-  nameKey: string;
-}
