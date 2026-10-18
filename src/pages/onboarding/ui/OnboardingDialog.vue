@@ -4,7 +4,14 @@
       <q-card-section class="text-center">
         <div class="onboarding__emoji">🏁</div>
         <div class="text-h6 text-weight-bold">{{ t('onboardingPage.welcome', { app: APP_NAME }) }}</div>
-        <p class="text-grey-5 q-mt-sm q-mb-none">{{ t('onboardingPage.intro') }}</p>
+        <p class="q-mt-sm q-mb-none">{{ t('onboardingPage.intro') }}</p>
+      </q-card-section>
+
+      <q-card-section class="q-pt-none text-grey-5">
+        <div>{{ t('onboardingPage.abilitiesTitle') }}</div>
+        <ul class="onboarding__abilities">
+          <li v-for="key in PARENT_MODE_ABILITY_KEYS" :key="key">{{ t(key) }}</li>
+        </ul>
       </q-card-section>
 
       <q-card-section>
@@ -35,7 +42,7 @@ import PinInput from '@/shared/ui/PinInput.vue';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { setupParentPin, PARENT_PIN_LENGTH } from '@/entities/settings';
 import { seedPresets } from '@/features/starter-presets';
-import { PIN_SETUP_TITLE_KEYS } from '../model/constants';
+import { PARENT_MODE_ABILITY_KEYS, PIN_SETUP_TITLE_KEYS } from '../model/constants';
 import type { PinSetupStep } from '../model/types';
 
 const $q = useQuasar();
@@ -89,6 +96,11 @@ const onPin = async (value: string): Promise<void> => {
   flex: 0 0 auto;
   color: #ff9f0a;
   margin-top: 1px;
+}
+
+.onboarding__abilities {
+  margin: 4px 0 0;
+  padding-left: 20px;
 }
 
 .onboarding__emoji {

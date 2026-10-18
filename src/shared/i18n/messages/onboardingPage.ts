@@ -3,8 +3,14 @@ import { defineMessages } from '../lib';
 export const onboardingPage = defineMessages({
   ru: {
     welcome: 'Добро пожаловать в {app}!',
-    intro:
-      'Чтобы начать, задайте PIN-код для родительского режима. С ним менять задачи и награды и подтверждать выполненное сможете только вы — дети без вас ничего не изменят.',
+    intro: 'Чтобы начать, задайте PIN-код для родительского режима.',
+    abilitiesTitle: 'В родительском режиме вы можете:',
+    abilities: {
+      edit: 'добавлять и менять детей, задачи и награды',
+      approve: 'подтверждать выполненные задачи',
+      award: 'выдавать награды за баллы',
+      setup: 'настраивать серии и бонусы',
+    },
     alphaTitle: 'Это альфа-версия',
     alphaText:
       'Приложение работает только локально: все данные хранятся на этом устройстве и никуда не отправляются. Периодически делайте «Экспорт данных» в родительском режиме, чтобы не потерять информацию.',
@@ -14,8 +20,14 @@ export const onboardingPage = defineMessages({
   },
   en: {
     welcome: 'Welcome to {app}!',
-    intro:
-      "To get started, set a PIN for parent mode. With it, only you can change chores and rewards and approve what's done — kids can't change anything without you.",
+    intro: 'To get started, set a PIN for parent mode.',
+    abilitiesTitle: 'In parent mode you can:',
+    abilities: {
+      edit: 'add and edit kids, chores and rewards',
+      approve: 'approve finished chores',
+      award: 'give out rewards for points',
+      setup: 'set up streaks and bonuses',
+    },
     alphaTitle: 'This is an alpha version',
     alphaText:
       'The app works only locally: all data stays on this device and is never sent anywhere. Use “Export data” in parent mode now and then so you don’t lose anything.',
@@ -25,8 +37,14 @@ export const onboardingPage = defineMessages({
   },
   es: {
     welcome: '¡Te damos la bienvenida a {app}!',
-    intro:
-      'Para empezar, crea un PIN para el modo padres. Así solo tú podrás cambiar tareas y premios y aprobar lo que está hecho: los niños no podrán cambiar nada sin ti.',
+    intro: 'Para empezar, crea un PIN para el modo padres.',
+    abilitiesTitle: 'En el modo padres puedes:',
+    abilities: {
+      edit: 'añadir y editar niños, tareas y premios',
+      approve: 'aprobar las tareas hechas',
+      award: 'dar premios a cambio de puntos',
+      setup: 'configurar rachas y bonos',
+    },
     alphaTitle: 'Esta es una versión alfa',
     alphaText:
       'La app funciona solo en local: todos los datos se quedan en este dispositivo y no se envían a ningún sitio. Usa «Exportar datos» en el modo padres de vez en cuando para no perder nada.',
