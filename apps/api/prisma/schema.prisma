@@ -1,0 +1,24 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["core"]
+}
+
+model Outbox {
+  id         String    @id @db.Uuid
+  type       String
+  version    Int
+  familyId   String?   @map("family_id") @db.Uuid
+  payload    Json
+  occurredAt DateTime  @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  sentAt     DateTime? @map("sent_at") @db.Timestamptz(3)
+
+  @@index([sentAt, occurredAt])
+  @@map("outbox")
+  @@schema("core")
+}
