@@ -241,8 +241,8 @@ flowchart TB
 
 | Сервис | Образ | Порт на машине | Заметки |
 |---|---|---|---|
-| `postgres` | `docker.io/library/postgres:17` | `127.0.0.1:5432` | Том `pgdata`; скрипт при первом старте создаёт роли и схемы |
-| `valkey` | `docker.io/valkey/valkey:8` | `127.0.0.1:6379` | Пароль, AOF раз в секунду, `noeviction`; том `valkeydata` |
+| `postgres` | `docker.io/library/postgres:17-alpine` | `127.0.0.1:5432` | Том `pgdata`; скрипт при первом старте создаёт роли и схемы |
+| `valkey` | `docker.io/valkey/valkey:8-alpine` | `127.0.0.1:6380` | Пароль, AOF раз в секунду, `noeviction`; том `valkeydata`. На машине 6380: 6379 часто занят другим Redis |
 | `migrate` | сборка `apps/api` | — | Миграции `core` и `notifications`, затем выходит |
 | `api` | сборка `apps/api` | — | Стартует после `migrate` |
 | `outbox-relay` | сборка `apps/api` | — | Команда `relay` |
@@ -253,16 +253,22 @@ flowchart TB
 
 - `compose.yaml` в корне репозитория;
 - `infra/nginx/local.conf` — маршруты `/v1/notifications/*` и `/v1/*`;
-- `infra/postgres/init.sql` — роли `migrator`, `app_core`, `app_notifications` и схемы;
-- `.env.example` с локальными значениями; копия `.env` в git не попадает.
+- `infra/postgres/init.sh` — роли `migrator`, `app_core`, `app_notifications` и схемы; пароли берёт из
+  переменных окружения, поэтому скрипт годится и для VM; `migrator` получает право `CREATE` на
+  базу — без него Prisma не применяет миграцию со схемой;
+- `.env.example` с локальными значениями и портами на машине; копия `.env` в git не попадает.
+
+npm 11.19 в образе `node:24-alpine` не запускает install-скрипты пакетов без разрешения. Разрешения
+для Prisma и esbuild записаны в `allowScripts` корневого `package.json` с точной версией.
 
 Чтобы один и тот же файл работал в Docker и Podman:
 
 - образы записаны полным именем с реестром (`docker.io/...`): Podman не угадывает короткие имена;
 - только стандартные возможности Compose: сервисы, тома, сети, `depends_on`, `healthcheck`, без
   расширений Docker;
-- если установленная версия `podman compose` не дожидается завершения `migrate`, миграции
-  запускаются отдельной командой перед `up`.
+- `podman compose` вызывает docker-compose, поэтому условия в `depends_on` работают так же, как в
+  Docker. Если в другой установке он не дождётся `migrate`, миграции запускаются отдельной
+  командой перед `up`.
 
 Команды:
 
@@ -301,8 +307,9 @@ flowchart TB
 ## Последствия
 
 - Появляются `apps/api`, `apps/notifications`, `packages/contracts`, `compose.yaml`,
-  `infra/nginx/local.conf`, `infra/postgres/init.sql` и `.env.example`. Нынешнее приложение
-  переезжает в `apps/web` (ADR-001).
+  `infra/nginx/local.conf`, `infra/postgres/init.sh` и `.env.example`. Нынешнее приложение
+  переезжает в `apps/web` (ADR-001). Каркас сделан в ветке `feat/backend-0.6`, контур проверен в
+  Podman: событие из `outbox` доходит до `notifications`.
 - В `packages/contracts` переезжают схемы, общие для фронта и бэка. Схемы чтения IndexedDB
   остаются во фронте: они снисходительны к старым записям, а сервер принимает только текущий
   формат.
