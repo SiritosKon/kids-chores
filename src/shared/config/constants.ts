@@ -8,6 +8,10 @@ export const ROUTES = {
   task: '/tasks/:taskId',
   child: '/children/:childId',
   childReward: '/children/:childId/reward',
+  childStreak: '/children/:childId/streak',
+  spends: '/spends',
+  whatsNew: '/whats-new',
+  install: '/install',
 } as const;
 
 export const NEW_STAGE_ID = 'new';

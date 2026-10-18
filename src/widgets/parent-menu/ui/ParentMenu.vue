@@ -11,7 +11,7 @@
           </template>
           <template v-else>
             <q-item-label header>Родительский режим</q-item-label>
-            <q-item clickable v-close-popup data-tour="settings" @click="openSettings">
+            <q-item clickable v-close-popup data-tour="settings" @click="open(ROUTES.settings)">
               <q-item-section avatar><q-icon name="settings" /></q-item-section>
               <q-item-section>Настройки</q-item-section>
             </q-item>
@@ -23,7 +23,7 @@
               <q-item-section avatar><q-icon name="upload" /></q-item-section>
               <q-item-section>Импорт данных</q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="showSpends = true">
+            <q-item clickable v-close-popup @click="open(ROUTES.spends)">
               <q-item-section avatar><q-icon name="history" /></q-item-section>
               <q-item-section>История списаний</q-item-section>
             </q-item>
@@ -35,11 +35,11 @@
           </template>
 
           <q-separator />
-          <q-item clickable v-close-popup @click="openWhatsNew">
+          <q-item clickable v-close-popup @click="open(ROUTES.whatsNew)">
             <q-item-section avatar><q-icon name="auto_awesome" /></q-item-section>
             <q-item-section>Что нового</q-item-section>
           </q-item>
-          <q-item v-if="installable" clickable v-close-popup @click="showInstallGuide = true">
+          <q-item v-if="installable" clickable v-close-popup @click="open(ROUTES.install)">
             <q-item-section avatar><q-icon name="add_to_home_screen" /></q-item-section>
             <q-item-section>Как добавить на экран</q-item-section>
           </q-item>
@@ -49,8 +49,6 @@
 
     <input ref="fileInput" type="file" accept="application/json" style="display: none" @change="onFile" />
     <PinDialog v-model="showLogin" />
-    <SpendsDialog v-model="showSpends" />
-    <InstallGuideDialog v-model="showInstallGuide" />
   </div>
 </template>
 
@@ -63,9 +61,7 @@ import { ROUTES } from '@/shared/config/constants';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { PinDialog } from '@/features/parent-login';
-import { SpendsDialog } from '@/features/rollback-spend';
-import { InstallGuideDialog, canAddToHomeScreen } from '@/features/install-app';
-import { useWhatsNewStore } from '@/features/whats-new';
+import { canAddToHomeScreen } from '@/features/install-app';
 import { exportAll, importAll, downloadJson } from '@/features/backup';
 import { recalculateStreaks } from '@/features/track-streak';
 
@@ -75,17 +71,14 @@ const { active } = storeToRefs(parentSession);
 const settingsStore = useSettingsStore();
 const tourPending = computed(() => settingsStore.settings?.tourPending === true);
 const logout = parentSession.logout;
-const openWhatsNew = useWhatsNewStore().open;
 
 const showLogin = ref(false);
-const showSpends = ref(false);
-const showInstallGuide = ref(false);
 const installable = canAddToHomeScreen();
 
 const router = useRouter();
 
-const openSettings = (): void => {
-  void router.push(ROUTES.settings);
+const open = (path: string): void => {
+  void router.push(path);
 };
 
 const fileInput = ref<HTMLInputElement | null>(null);

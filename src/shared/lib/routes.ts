@@ -18,4 +18,7 @@ export const childGoalPath = (childId: string): string => `${childPath(childId)}
 export const childRewardPath = (childId: string): string =>
   ROUTES.childReward.replace(':childId', childId);
 
+export const childStreakPath = (childId: string): string =>
+  ROUTES.childStreak.replace(':childId', childId);
+
 export const routeDepth = (path: string): number => path.split('/').filter(Boolean).length;

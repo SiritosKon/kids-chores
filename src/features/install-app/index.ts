@@ -1,2 +1,2 @@
-export { default as InstallGuideDialog } from './ui/InstallGuideDialog.vue';
+export { default as InstallGuide } from './ui/InstallGuide.vue';
 export { canAddToHomeScreen } from './lib/platform';

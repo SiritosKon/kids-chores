@@ -40,7 +40,6 @@
         </q-page-container>
       </q-layout>
     </div>
-    <WhatsNewDialog v-model="whatsNewOpen" />
   </div>
 </template>
 
@@ -56,7 +55,6 @@ import { recordVersion } from '@/entities/app-version';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
-import { useWhatsNewStore, WhatsNewDialog } from '@/features/whats-new';
 import { useParentAutoLogout } from '@/features/parent-auto-logout';
 import { ParentMenu } from '@/widgets/parent-menu';
 import { OnboardingPage } from '@/pages/onboarding';
@@ -65,8 +63,6 @@ const $q = useQuasar();
 const persistence = isPersistenceAvailable();
 const { selectedDate } = storeToRefs(useSelectedDateStore());
 const { active: parentActive } = storeToRefs(useParentSessionStore());
-const whatsNew = useWhatsNewStore();
-const { isOpen: whatsNewOpen } = storeToRefs(whatsNew);
 const appVersion = __APP_VERSION__;
 const settingsStore = useSettingsStore();
 
@@ -95,7 +91,9 @@ onMounted(async () => {
   try {
     const { isNew, hadHistory } = await recordVersion(appVersion);
     if (isNew && hadHistory) {
-      window.__kidsWhatsNew = whatsNew.open;
+      window.__kidsWhatsNew = () => {
+        void router.push(ROUTES.whatsNew);
+      };
       $q.notify({
         html: true,
         message: `<span onclick="window.__kidsWhatsNew()" style="cursor:pointer;display:block">Обновлено до v${appVersion}</span>`,

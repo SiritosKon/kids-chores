@@ -1,1 +1,1 @@
-export { default as SpendsDialog } from './ui/SpendsDialog.vue';
+export { default as SpendsHistory } from './ui/SpendsHistory.vue';

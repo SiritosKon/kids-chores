@@ -19,8 +19,6 @@
         Добавить ребёнка
       </button>
     </div>
-    <WalletHistoryDialog v-model="historyOpen" :child-id="historyChildId" />
-    <StreakDialog v-model="streakOpen" :child-id="streakChildId" />
   </div>
 </template>
 
@@ -31,14 +29,12 @@ import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 import { NEW_CHILD_ID } from '@/shared/config/constants';
 import { DEFAULT_METER_FIGURE } from '@/shared/ui/constants';
-import { childPath, childGoalPath } from '@/shared/lib/routes';
+import { childPath, childGoalPath, childStreakPath } from '@/shared/lib/routes';
 import { useChildrenStore, childPhotoUrl, setChildGoal, type Child } from '@/entities/child';
 import { useRewardsStore, getVariantPhotos, type RewardVariant } from '@/entities/reward';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
 import { useStreakStore } from '@/entities/streak';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { WalletHistoryDialog } from '@/features/wallet-history';
-import { StreakDialog } from '@/features/streak-details';
 import { useChooseVariant, usePendingChoicesStore } from '@/features/choose-reward-variant';
 import { useAwardReward } from '@/features/award-reward';
 import GoalMeter from './GoalMeter.vue';
@@ -110,25 +106,17 @@ const meterEntries = computed<MeterEntry[]>(() =>
   })
 );
 
-const historyOpen = ref(false);
-const historyChildId = ref<string | null>(null);
-
-const openHistory = (childId: string): void => {
-  historyChildId.value = childId;
-  historyOpen.value = true;
-};
-
-const streakOpen = ref(false);
-const streakChildId = ref<string | null>(null);
-
-const openStreak = (childId: string): void => {
-  streakChildId.value = childId;
-  streakOpen.value = true;
-};
-
 const chooseGift = (childId: string): Promise<void> => chooseInTurn(pendingChoices.pendingOf(childId));
 
 const router = useRouter();
+
+const openHistory = (childId: string): void => {
+  void router.push(childPath(childId));
+};
+
+const openStreak = (childId: string): void => {
+  void router.push(childStreakPath(childId));
+};
 
 const openEditor = (childId: string | null): void => {
   void router.push(childPath(childId ?? NEW_CHILD_ID));
