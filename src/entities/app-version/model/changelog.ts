@@ -40,19 +40,19 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     notes: {
       ru: [
         'Приложение теперь называется Little Big Deals',
-        'Три языка: русский, английский и испанский. Язык меняется в меню, пункт с глобусом',
+        'Три языка: русский, английский и испанский. Язык меняется внизу меню, у значка глобуса',
         'На новом устройстве язык выбирается по языку системы, у текущих установок остаётся русский',
         'Даты, календарь и «Что нового» — тоже на выбранном языке',
       ],
       en: [
         'The app is now called Little Big Deals',
-        'Three languages: Russian, English and Spanish. Switch it in the menu under the globe icon',
+        'Three languages: Russian, English and Spanish. Switch it at the bottom of the menu, by the globe icon',
         'A new device picks the system language; existing installs stay in Russian',
         "Dates, the calendar and What's new follow the chosen language too",
       ],
       es: [
         'La app ahora se llama Little Big Deals',
-        'Tres idiomas: ruso, inglés y español. Se cambia en el menú, en la opción con el globo',
+        'Tres idiomas: ruso, inglés y español. Se cambia abajo en el menú, junto al icono del globo',
         'En un dispositivo nuevo se usa el idioma del sistema; las instalaciones actuales siguen en ruso',
         'Las fechas, el calendario y las Novedades también siguen el idioma elegido',
       ],
@@ -65,14 +65,17 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       ru: [
         'Меню теперь — боковая панель слева: кнопка ☰ в шапке',
         'В меню появился пункт «Главная», текущая страница подсвечена',
+        'Версия приложения — внизу меню, нажатие на неё открывает «Что нового»',
       ],
       en: [
         'The menu is now a side panel on the left: tap ☰ in the header',
         'The menu has a Home item, and the current page is highlighted',
+        "The app version is at the bottom of the menu; tap it for What's new",
       ],
       es: [
         'El menú ahora es un panel lateral a la izquierda: toca ☰ en la cabecera',
         'El menú tiene la opción «Inicio» y la página actual aparece resaltada',
+        'La versión de la app está abajo en el menú; tócala para ver las Novedades',
       ],
     },
   },

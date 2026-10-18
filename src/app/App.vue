@@ -18,7 +18,7 @@
             <div class="col">
               <div class="text-h5 text-weight-bold">{{ APP_NAME }}</div>
               <div class="ios-subtitle">
-                {{ dateLabel }} · v{{ appVersion }}
+                {{ dateLabel }}
               </div>
             </div>
             <div class="row items-center no-wrap q-gutter-sm">
