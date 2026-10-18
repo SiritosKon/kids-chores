@@ -8,7 +8,7 @@
 |---|---|---|
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
 | `pages` | Экраны целиком | `home`, `onboarding`, `settings`, `reward`, `task`, `child`, `spends`, `whats-new`, `install` |
-| `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `parent-menu` |
+| `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `side-menu` |
 | `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout` |
 | `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session` |
 | `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets` |
@@ -35,6 +35,10 @@
 отдельные страницы, не модалки (`/settings`, `/settings/stage/:stageId`,
 `/settings/stage/:stageId/reward`, `/settings/pin`), и открываются только в родительском
 режиме.
+
+Меню — боковая панель слева (`widgets/side-menu`), открывается кнопкой ☰ в шапке и ложится поверх
+экрана на любой ширине. В ней «Главная», вход в родрежим или его пункты, «Что нового» и
+инструкция по установке; пункт текущей страницы подсвечен.
 
 Направление перехода выставляет роутер по вложенности адреса: глубже — страница выезжает
 справа, выше — возвращается слева. Обе страницы на время перехода лежат в одной ячейке сетки

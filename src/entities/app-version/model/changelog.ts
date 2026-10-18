@@ -2,6 +2,14 @@ import type { ChangelogEntry } from './types';
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '0.5.5',
+    date: '2026-10-18',
+    notes: [
+      'Меню теперь — боковая панель слева: кнопка ☰ в шапке',
+      'В меню появился пункт «Главная», текущая страница подсвечена',
+    ],
+  },
+  {
     version: '0.5.4',
     date: '2026-10-18',
     notes: [

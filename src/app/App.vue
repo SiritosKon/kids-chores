@@ -4,6 +4,17 @@
       <q-layout view="hHh lpR fFf" container style="height: 100%">
         <q-header class="bg-black text-white">
           <q-toolbar class="q-py-md items-start">
+            <q-btn
+              v-if="!needsSetup"
+              flat
+              round
+              dense
+              icon="menu"
+              aria-label="Меню"
+              data-tour="parent-menu"
+              class="q-mr-sm q-mt-xs"
+              @click="menuOpen = true"
+            />
             <div class="col">
               <div class="text-h5 text-weight-bold">Домашние дела детей</div>
               <div class="ios-subtitle">
@@ -18,10 +29,11 @@
                 label="Родительский контроль"
                 data-tour="parent-badge"
               />
-              <ParentMenu v-if="!needsSetup" />
             </div>
           </q-toolbar>
         </q-header>
+
+        <SideMenu v-if="!needsSetup" v-model="menuOpen" />
 
         <q-page-container>
           <q-banner v-if="!persistence" class="bg-warning text-black">
@@ -44,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
@@ -56,7 +68,7 @@ import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
 import { useParentAutoLogout } from '@/features/parent-auto-logout';
-import { ParentMenu } from '@/widgets/parent-menu';
+import { SideMenu } from '@/widgets/side-menu';
 import { OnboardingPage } from '@/pages/onboarding';
 
 const $q = useQuasar();
@@ -65,6 +77,7 @@ const { selectedDate } = storeToRefs(useSelectedDateStore());
 const { active: parentActive } = storeToRefs(useParentSessionStore());
 const appVersion = __APP_VERSION__;
 const settingsStore = useSettingsStore();
+const menuOpen = ref(false);
 
 useParentAutoLogout();
 
