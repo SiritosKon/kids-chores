@@ -4,7 +4,7 @@ export const onboardingPage = defineMessages({
   ru: {
     welcome: 'Добро пожаловать в {app}!',
     intro:
-      'Сзади — пример: ребёнок, задачи и награды. Придумайте PIN для родительского режима, а потом мы покажем, как поменять всё под себя.',
+      'В родительском режиме вы настраиваете детей, задачи и награды и подтверждаете сделанное. PIN-код нужен, чтобы дети не заходили туда сами.',
     alphaTitle: 'Это альфа-версия',
     alphaText:
       'Приложение работает только локально: все данные хранятся на этом устройстве и никуда не отправляются. Периодически делайте «Экспорт данных» в родительском режиме, чтобы не потерять информацию.',
@@ -15,7 +15,7 @@ export const onboardingPage = defineMessages({
   en: {
     welcome: 'Welcome to {app}!',
     intro:
-      "Behind this window is an example: a kid, chores and rewards. Choose a PIN for parent mode, then we'll show you how to make it your own.",
+      "In parent mode you set up kids, chores and rewards and approve what's done. The PIN keeps kids from getting in on their own.",
     alphaTitle: 'This is an alpha version',
     alphaText:
       'The app works only locally: all data stays on this device and is never sent anywhere. Use “Export data” in parent mode now and then so you don’t lose anything.',
@@ -26,7 +26,7 @@ export const onboardingPage = defineMessages({
   es: {
     welcome: '¡Te damos la bienvenida a {app}!',
     intro:
-      'Detrás hay un ejemplo: un niño, tareas y premios. Elige un PIN para el modo padres y luego te enseñamos a adaptarlo todo.',
+      'En el modo padres configuras niños, tareas y premios y apruebas lo que está hecho. El PIN evita que los niños entren por su cuenta.',
     alphaTitle: 'Esta es una versión alfa',
     alphaText:
       'La app funciona solo en local: todos los datos se quedan en este dispositivo y no se envían a ningún sitio. Usa «Exportar datos» en el modo padres de vez en cuando para no perder nada.',
