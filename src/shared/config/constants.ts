@@ -13,6 +13,7 @@ export const ROUTES = {
   child: '/children/:childId',
   childReward: '/children/:childId/reward',
   childStreak: '/children/:childId/streak',
+  childWallet: '/children/:childId/wallet',
   spends: '/spends',
   whatsNew: '/whats-new',
   install: '/install',

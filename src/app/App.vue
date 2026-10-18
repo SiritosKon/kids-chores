@@ -28,6 +28,16 @@
                 text-color="black"
                 :label="t('app.parentBadge')"
               />
+              <q-btn
+                v-if="parentActive && !tourPending"
+                flat
+                round
+                dense
+                icon="logout"
+                color="orange"
+                :aria-label="t('sideMenu.logout')"
+                @click="confirmLogout"
+              />
             </div>
           </q-toolbar>
         </q-header>
@@ -69,6 +79,7 @@ import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
 import { useParentAutoLogout } from '@/features/parent-auto-logout';
+import { useLogout } from '@/features/parent-login';
 import { SideMenu } from '@/widgets/side-menu';
 import { OnboardingDialog } from '@/pages/onboarding';
 
@@ -80,6 +91,8 @@ const { active: parentActive } = storeToRefs(useParentSessionStore());
 const appVersion = __APP_VERSION__;
 const settingsStore = useSettingsStore();
 const menuOpen = ref(false);
+const confirmLogout = useLogout();
+const tourPending = computed(() => settingsStore.settings?.tourPending === true);
 
 useParentAutoLogout();
 

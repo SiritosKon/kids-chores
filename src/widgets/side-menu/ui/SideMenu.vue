@@ -115,7 +115,7 @@ import { ROUTES, APP_NAME } from '@/shared/config/constants';
 import { applyLocale, currentLocale, LOCALE_NAMES, LOCALE_OPTIONS, type Locale } from '@/shared/i18n';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
-import { PinDialog } from '@/features/parent-login';
+import { PinDialog, useLogout } from '@/features/parent-login';
 import { canAddToHomeScreen } from '@/features/install-app';
 import { exportAll, importAll, downloadJson } from '@/features/backup';
 import { recalculateStreaks } from '@/features/track-streak';
@@ -157,9 +157,11 @@ const login = (): void => {
   showLogin.value = true;
 };
 
+const confirmLogout = useLogout();
+
 const logout = (): void => {
   close();
-  parentSession.logout();
+  confirmLogout();
 };
 
 const pickLocale = async (picked: Locale): Promise<void> => {

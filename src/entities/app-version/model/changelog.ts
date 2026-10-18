@@ -66,16 +66,19 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'Меню теперь — боковая панель слева: кнопка ☰ в шапке',
         'В меню появился пункт «Главная», текущая страница подсвечена',
         'Версия приложения — внизу меню, нажатие на неё открывает «Что нового»',
+        'Рядом с меткой родительского режима — кнопка выхода; перед выходом приложение спрашивает подтверждение',
       ],
       en: [
         'The menu is now a side panel on the left: tap ☰ in the header',
         'The menu has a Home item, and the current page is highlighted',
         "The app version is at the bottom of the menu; tap it for What's new",
+        'A leave button sits next to the parent mode badge, and leaving asks for confirmation',
       ],
       es: [
         'El menú ahora es un panel lateral a la izquierda: toca ☰ en la cabecera',
         'El menú tiene la opción «Inicio» y la página actual aparece resaltada',
         'La versión de la app está abajo en el menú; tócala para ver las Novedades',
+        'Junto a la etiqueta del modo padres hay un botón para salir, y antes de salir se pide confirmación',
       ],
     },
   },
@@ -84,18 +87,15 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     date: '2026-10-18',
     notes: {
       ru: [
-        'Тап по копилке открывает карточку ребёнка: сверху ребёнок, ниже баланс и все начисления и покупки по дням',
-        'В родительском режиме в той же карточке можно поменять имя, фото, фигурку и цель',
+        'Тап по копилке открывает кошелёк ребёнка: баланс и все начисления и покупки по дням',
         'Серия ребёнка, история списаний, «Что нового» и «Как добавить на экран» открываются отдельными страницами вместо окон',
       ],
       en: [
-        "Tapping the piggy bank opens the kid's card: the kid on top, then the balance and every earning and purchase by day",
-        'In parent mode, the same card lets you change the name, photo, figure and goal',
+        "Tapping the piggy bank opens the kid's wallet: the balance and every earning and purchase by day",
         "The kid's streak, spending history, “What's new” and “Add to Home Screen” open as pages instead of pop-ups",
       ],
       es: [
-        'Al tocar la alcancía se abre la ficha del niño: arriba el niño y debajo el saldo con todo lo ganado y gastado por días',
-        'En el modo padres, en la misma ficha puedes cambiar el nombre, la foto, la figura y la meta',
+        'Al tocar la alcancía se abre el monedero del niño: el saldo y todo lo ganado y gastado por días',
         'La racha del niño, el historial de gastos, «Novedades» y «Añadir a la pantalla de inicio» se abren como páginas en lugar de ventanas',
       ],
     },

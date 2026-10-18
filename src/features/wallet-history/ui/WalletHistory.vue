@@ -1,7 +1,7 @@
 <template>
   <section class="ios-card">
     <div class="row items-center q-px-md q-py-sm">
-      <div class="text-weight-medium">{{ t('walletHistory.title') }}</div>
+      <div class="text-weight-medium">{{ t('walletHistory.balance') }}</div>
       <q-space />
       <div class="text-weight-bold text-primary">
         <q-icon name="savings" size="18px" class="q-mr-xs" />{{ t('common.pointsShort', total) }}

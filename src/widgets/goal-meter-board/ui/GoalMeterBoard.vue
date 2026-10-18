@@ -30,7 +30,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { NEW_CHILD_ID } from '@/shared/config/constants';
 import { DEFAULT_METER_FIGURE } from '@/shared/ui/constants';
-import { childPath, childGoalPath, childStreakPath } from '@/shared/lib/routes';
+import { childPath, childGoalPath, childStreakPath, childWalletPath } from '@/shared/lib/routes';
 import { useChildrenStore, childPhotoUrl, setChildGoal, type Child } from '@/entities/child';
 import { useRewardsStore, getVariantPhotos, type RewardVariant } from '@/entities/reward';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
@@ -113,7 +113,7 @@ const chooseGift = (childId: string): Promise<void> => chooseInTurn(pendingChoic
 const router = useRouter();
 
 const openHistory = (childId: string): void => {
-  void router.push(childPath(childId));
+  void router.push(childWalletPath(childId));
 };
 
 const openStreak = (childId: string): void => {

@@ -21,4 +21,7 @@ export const childRewardPath = (childId: string): string =>
 export const childStreakPath = (childId: string): string =>
   ROUTES.childStreak.replace(':childId', childId);
 
+export const childWalletPath = (childId: string): string =>
+  ROUTES.childWallet.replace(':childId', childId);
+
 export const routeDepth = (path: string): number => path.split('/').filter(Boolean).length;

@@ -2,6 +2,9 @@ import { defineMessages } from '../lib';
 
 export const parentLogin = defineMessages({
   ru: {
+    logoutTitle: 'Выйти из родительского режима?',
+    logoutMessage: 'Чтобы снова менять задачи и награды и подтверждать сделанное, понадобится PIN.',
+    logoutOk: 'Выйти',
     title: 'Родительский режим',
     resetTitle: 'Сброс PIN',
     forgot: 'Забыли PIN?',
@@ -15,6 +18,9 @@ export const parentLogin = defineMessages({
     pinChanged: 'PIN изменён, родительский режим включён',
   },
   en: {
+    logoutTitle: 'Leave parent mode?',
+    logoutMessage: "To change chores and rewards or approve what's done again, you'll need the PIN.",
+    logoutOk: 'Leave',
     title: 'Parent mode',
     resetTitle: 'Reset PIN',
     forgot: 'Forgot PIN?',
@@ -28,6 +34,9 @@ export const parentLogin = defineMessages({
     pinChanged: 'PIN changed, parent mode is on',
   },
   es: {
+    logoutTitle: '¿Salir del modo padres?',
+    logoutMessage: 'Para volver a cambiar tareas y premios o aprobar lo hecho, necesitarás el PIN.',
+    logoutOk: 'Salir',
     title: 'Modo padres',
     resetTitle: 'Restablecer PIN',
     forgot: '¿Olvidaste el PIN?',

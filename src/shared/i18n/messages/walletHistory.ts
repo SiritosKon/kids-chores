@@ -2,17 +2,17 @@ import { defineMessages } from '../lib';
 
 export const walletHistory = defineMessages({
   ru: {
-    title: 'Кошелёк',
+    balance: 'Баланс',
     prize: 'приз',
     empty: 'Пока пусто.',
   },
   en: {
-    title: 'Wallet',
+    balance: 'Balance',
     prize: 'prize',
     empty: 'Nothing here yet.',
   },
   es: {
-    title: 'Monedero',
+    balance: 'Saldo',
     prize: 'premio',
     empty: 'Aún no hay nada.',
   },
