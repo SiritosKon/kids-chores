@@ -2,6 +2,24 @@ import type { ChangelogEntry } from './types';
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '0.6.0',
+    date: '2026-10-18',
+    notes: {
+      ru: [
+        'Выпуск 0.6: приложение теперь Little Big Deals и говорит на русском, английском и испанском',
+        'Боковое меню, отдельные страницы вместо окон, кошелёк ребёнка и понятный первый запуск с примером — подробно в версиях 0.5.2–0.5.8 ниже',
+      ],
+      en: [
+        'Release 0.6: the app is now Little Big Deals and speaks Russian, English and Spanish',
+        'A side menu, pages instead of pop-ups, a kid wallet and a clear first launch with an example — details in versions 0.5.2–0.5.8 below',
+      ],
+      es: [
+        'Versión 0.6: la app ahora se llama Little Big Deals y habla ruso, inglés y español',
+        'Menú lateral, páginas en lugar de ventanas, monedero del niño y un primer inicio claro con un ejemplo: detalles en las versiones 0.5.2–0.5.8 más abajo',
+      ],
+    },
+  },
+  {
     version: '0.5.8',
     date: '2026-10-18',
     notes: {
