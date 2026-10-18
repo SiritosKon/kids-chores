@@ -64,6 +64,6 @@
     </g>
     <path d="M32.0 15.0 L38.7 19.8 L36.1 27.7 L27.9 27.7 L25.3 19.8 Z" fill="#FF9F0A" stroke="#1b1b1b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
     <circle cx="32" cy="22" r="19" fill="none" stroke="#1b1b1b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></g>
-    <text x="1032" y="1981" text-anchor="middle" font-family="-apple-system, 'SF Pro Rounded', 'SF Pro Display', Helvetica, Arial, sans-serif" font-size="150" font-weight="800" fill="#ffffff">Домашние дела</text>
-    <text x="1032" y="2102.6" text-anchor="middle" font-family="-apple-system, 'SF Pro Rounded', 'SF Pro Display', Helvetica, Arial, sans-serif" font-size="64" font-weight="500" fill="#8e8e93">дела → баллы → награды</text>
+    <text x="1032" y="1981" text-anchor="middle" font-family="-apple-system, 'SF Pro Rounded', 'SF Pro Display', Helvetica, Arial, sans-serif" font-size="150" font-weight="800" fill="#ffffff">Little Big Deals</text>
+    <text x="1032" y="2102.6" text-anchor="middle" font-family="-apple-system, 'SF Pro Rounded', 'SF Pro Display', Helvetica, Arial, sans-serif" font-size="64" font-weight="500" fill="#8e8e93">tasks → points → rewards</text>
   </svg>

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from './types';
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '0.5.3',
+    date: '2026-10-18',
+    notes: [
+      'Новое название на экране загрузки — Little Big Deals',
+      'На iPad в горизонтальном положении экран загрузки больше не растянут. Чтобы увидеть, переустановите иконку на экран «Домой»',
+      'Иконка во вкладке браузера видна и там, где браузер не понимает SVG-иконки',
+    ],
+  },
+  {
     version: '0.5.2',
     date: '2026-10-18',
     notes: [
