@@ -23,13 +23,13 @@
           class="goal-meter__streak"
           role="button"
           tabindex="0"
-          :aria-label="`Серия: ${entry.streak}`"
+          :aria-label="t('goalMeterBoard.streakAria', { count: entry.streak })"
           @click="emit('open-streak')"
           @keyup.enter="emit('open-streak')"
         >
           <span class="goal-meter__flame">🔥</span>
           <span class="goal-meter__streak-count">{{ entry.streak }}</span>
-          <span class="goal-meter__streak-label">{{ streakLabel }} подряд</span>
+          <span class="goal-meter__streak-label">{{ t('goalMeterBoard.streakLabel', entry.streak) }}</span>
         </span>
         <q-btn
           v-if="entry.pendingChoices > 0"
@@ -39,7 +39,7 @@
           no-caps
           color="deep-orange"
           class="goal-meter__choice"
-          label="🎁 Выбери подарок"
+          :label="t('goalMeterBoard.chooseGift')"
           @click="emit('choose-gift')"
         />
         <q-space />
@@ -66,7 +66,7 @@
         </div>
         <div class="goal-meter__goal-body">
           <div class="goal-meter__goal-head">
-            <span class="ellipsis">Цель: {{ entry.goal.name }}</span>
+            <span class="ellipsis">{{ t('goalMeterBoard.goal', { name: entry.goal.name }) }}</span>
             <span class="goal-meter__goal-count">{{ entry.goal.saved }} / {{ entry.goal.price }}</span>
           </div>
           <div class="goal-meter__goal-track">
@@ -84,7 +84,7 @@
           no-caps
           color="positive"
           class="goal-meter__claim"
-          label="Получить"
+          :label="t('goalMeterBoard.claim')"
           @click="emit('claim-goal')"
         />
         <q-btn
@@ -95,7 +95,7 @@
           size="sm"
           icon="close"
           color="grey-6"
-          aria-label="Убрать цель"
+          :aria-label="t('goalMeterBoard.removeGoal')"
           @click="emit('remove-goal')"
         />
       </div>
@@ -106,7 +106,7 @@
         @click="emit('add-goal')"
       >
         <q-icon name="add" size="16px" />
-        Добавить цель
+        {{ t('goalMeterBoard.addGoal') }}
       </button>
     </div>
   </div>
@@ -114,7 +114,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { pluralize } from '@/shared/lib/plural';
+import { useI18n } from 'vue-i18n';
 import MeterFigure from '@/shared/ui/MeterFigure.vue';
 import { isStreakShown } from '@/entities/streak';
 import { BALL_DEGREES_PER_PERCENT } from './constants';
@@ -133,13 +133,13 @@ const emit = defineEmits<{
   edit: [];
 }>();
 
+const { t } = useI18n();
+
 const edit = (): void => {
   if (props.editable) {
     emit('edit');
   }
 };
-
-const streakLabel = computed(() => pluralize(props.entry.streak, ['день', 'дня', 'дней']));
 
 const pct = computed(() => Math.min(100, Math.round(props.entry.ratio * 100)));
 const carLeft = computed(() => `calc(23px + (100% - 46px) * ${pct.value / 100})`);

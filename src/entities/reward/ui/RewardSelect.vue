@@ -29,10 +29,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import type { QSelect } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { useRewardsStore } from '../model/store';
 import { rewardColor } from '../lib/tier';
-import { rewardPriceLabel } from '../lib/visibility';
-import { REWARD_VISIBILITY_LABELS } from '../lib/constants';
+import { rewardPriceLabel, rewardVisibilityLabel } from '../lib/visibility';
 import type { RewardVisibility } from '../model/types';
 import { NEW_REWARD_COLOR, NEW_REWARD_OPTION } from './constants';
 import type { RewardOption } from './types';
@@ -48,6 +48,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ 'update:modelValue': [rewardId: string | null]; create: [] }>();
 
+const { t } = useI18n();
 const rewardsStore = useRewardsStore();
 const field = ref<QSelect | null>(null);
 
@@ -57,11 +58,11 @@ const options = computed<RewardOption[]>(() => [
     .map((reward) => ({
       value: reward.id,
       label: `${reward.name} · ${rewardPriceLabel(reward.points)}`,
-      ...(reward.visibility === 'shop' ? {} : { caption: REWARD_VISIBILITY_LABELS[reward.visibility] }),
+      ...(reward.visibility === 'shop' ? {} : { caption: rewardVisibilityLabel(reward.visibility) }),
       icon: reward.icon,
       color: rewardColor(reward),
     })),
-  { value: NEW_REWARD_OPTION, label: 'Новая награда', icon: 'add', color: NEW_REWARD_COLOR },
+  { value: NEW_REWARD_OPTION, label: t('rewardEntity.newReward'), icon: 'add', color: NEW_REWARD_COLOR },
 ]);
 
 const pick = (value: string | null): void => {

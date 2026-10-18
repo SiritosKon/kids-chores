@@ -1,5 +1,5 @@
 export const SURPRISE = {
-  label: 'Сюрприз',
+  label: 'streakDetails.surprise',
   icon: 'redeem',
   color: '#BF5AF2',
 } as const;

@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="text-caption text-grey-5">{{ label }}</div>
+    <div class="text-caption text-grey-5">{{ label ?? t('childEntity.forWhom') }}</div>
     <q-checkbox
       :model-value="allState"
-      label="Все дети"
+      :label="t('childEntity.allChildren')"
       color="primary"
       @update:model-value="emit('update:modelValue', allState === true ? [] : null)"
     />
@@ -18,20 +18,22 @@
       />
     </div>
     <div v-if="modelValue !== null && modelValue.length === 0" class="text-negative text-caption">
-      Отметьте хотя бы одного ребёнка
+      {{ t('childEntity.pickOne') }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useChildrenStore } from '../model/store';
 
 const props = withDefaults(defineProps<{ modelValue: readonly string[] | null; label?: string }>(), {
-  label: 'Для кого',
+  label: undefined,
 });
 const emit = defineEmits<{ 'update:modelValue': [childIds: string[] | null] }>();
 
+const { t } = useI18n();
 const childrenStore = useChildrenStore();
 
 const allState = computed<boolean | null>(() => {

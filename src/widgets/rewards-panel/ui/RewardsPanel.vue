@@ -1,10 +1,15 @@
 <template>
-  <q-expansion-item v-model="expanded" icon="emoji_events" label="Награды" header-class="text-weight-medium">
+  <q-expansion-item
+    v-model="expanded"
+    icon="emoji_events"
+    :label="t('rewardsPanel.title')"
+    header-class="text-weight-medium"
+  >
     <div v-if="!ready" class="q-pa-md">
       <q-skeleton type="text" width="60%" />
     </div>
     <div v-else-if="rewards.length === 0 && !parentActive" class="q-pa-md text-grey-5">
-      Наград пока нет. Добавьте их в родительском режиме.
+      {{ t('rewardsPanel.empty') }}
     </div>
     <q-list v-else separator>
       <q-item v-for="reward in rewards" :key="reward.id" :clickable="parentActive" @click="openEditor(reward)">
@@ -21,7 +26,7 @@
           <q-item-label caption>
             {{ rewardPriceLabel(reward.points) }}
             <template v-if="parentActive && reward.visibility !== 'shop'">
-              · {{ REWARD_VISIBILITY_LABELS[reward.visibility] }}
+              · {{ rewardVisibilityLabel(reward.visibility) }}
             </template>
           </q-item-label>
         </q-item-section>
@@ -29,7 +34,7 @@
           <q-btn-dropdown
             :color="anyCanAfford(reward) ? 'primary' : 'grey-8'"
             :text-color="anyCanAfford(reward) ? 'white' : 'grey-5'"
-            label="Наградить"
+            :label="t('rewardsPanel.award')"
             no-caps
             rounded
             unelevated
@@ -53,7 +58,7 @@
                 </q-item-section>
                 <q-item-section>
                   <q-item-label>{{ child.name }}</q-item-label>
-                  <q-item-label caption>Баланс: {{ wallet.balanceOf(child.id) }} б.</q-item-label>
+                  <q-item-label caption>{{ t('rewardsPanel.balance', wallet.balanceOf(child.id)) }}</q-item-label>
                 </q-item-section>
               </q-item>
             </q-list>
@@ -64,7 +69,7 @@
         <q-item-section>
           <button type="button" class="add-tile" data-tour="add-reward" @click="openEditor(null)">
             <q-icon name="add" size="22px" />
-            Добавить награду
+            {{ t('rewardsPanel.addReward') }}
           </button>
         </q-item-section>
       </q-item>
@@ -76,6 +81,7 @@
 import { ref, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { NEW_REWARD_ID } from '@/shared/config/constants';
 import { rewardPath } from '@/shared/lib/routes';
 import { useChildrenStore, childPhotoUrl, type Child } from '@/entities/child';
@@ -83,13 +89,14 @@ import {
   useRewardsStore,
   rewardColor,
   rewardPriceLabel,
-  REWARD_VISIBILITY_LABELS,
+  rewardVisibilityLabel,
   type Reward,
 } from '@/entities/reward';
 import { useWalletStore } from '@/entities/wallet';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useAwardReward } from '@/features/award-reward';
 
+const { t } = useI18n();
 const childrenStore = useChildrenStore();
 const rewardsStore = useRewardsStore();
 const wallet = useWalletStore();

@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md settings-page">
-    <PageHeader title="Новая награда" :back-to="backTo" />
+    <PageHeader :title="t('settingsPage.newReward')" :back-to="backTo" />
     <section class="ios-card q-pa-md">
       <RewardEditForm visibility="streak" @created="pick" @cancel="back(null)" />
     </section>
@@ -10,6 +10,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { NEW_STAGE_ID } from '@/shared/config/constants';
 import { stagePath } from '@/shared/lib/routes';
 import { useGoBack } from '@/shared/lib/useGoBack';
@@ -18,6 +19,7 @@ import type { Reward } from '@/entities/reward';
 import { useStageDraftStore } from '@/features/edit-settings';
 import { RewardEditForm } from '@/features/edit-reward';
 
+const { t } = useI18n();
 const route = useRoute();
 const goBack = useGoBack();
 const draftStore = useStageDraftStore();

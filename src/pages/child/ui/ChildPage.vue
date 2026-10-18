@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md settings-page">
-    <PageHeader :title="child ? 'Ребёнок' : 'Новый ребёнок'" :back-to="ROUTES.home" />
+    <PageHeader :title="child ? t('childPage.child') : t('childPage.newChild')" :back-to="ROUTES.home" />
     <section v-if="childrenStore.loaded" class="ios-card q-pa-md">
       <ChildEditForm
         :key="childId"
@@ -17,6 +17,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { ROUTES, NEW_CHILD_ID, GOAL_QUERY_KEY } from '@/shared/config/constants';
 import { childRewardPath } from '@/shared/lib/routes';
 import { useGoBack } from '@/shared/lib/useGoBack';
@@ -27,6 +28,7 @@ import { ChildEditForm } from '@/features/edit-child';
 const route = useRoute();
 const router = useRouter();
 const goBack = useGoBack();
+const { t } = useI18n();
 const childrenStore = useChildrenStore();
 
 const childId = computed(() => String(route.params.childId ?? NEW_CHILD_ID));
@@ -38,9 +40,9 @@ const child = computed(() =>
 );
 
 watch(
-  () => childrenStore.loaded,
-  (loaded) => {
-    if (loaded && childId.value !== NEW_CHILD_ID && !child.value) {
+  () => childrenStore.loaded && childId.value !== NEW_CHILD_ID && !child.value,
+  (missing) => {
+    if (missing) {
       void router.replace(ROUTES.home);
     }
   },

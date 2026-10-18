@@ -8,22 +8,25 @@
       class="figure-picker__tile"
       :class="{ 'figure-picker__tile--active': figure === modelValue }"
       :aria-checked="figure === modelValue"
-      :aria-label="METER_FIGURE_LABELS[figure]"
+      :aria-label="t(METER_FIGURE_LABELS[figure])"
       @click="emit('update:modelValue', figure)"
     >
       <MeterFigure :kind="figure" :color="color" :size="44" />
-      <span class="figure-picker__label">{{ METER_FIGURE_LABELS[figure] }}</span>
+      <span class="figure-picker__label">{{ t(METER_FIGURE_LABELS[figure]) }}</span>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import MeterFigure from './MeterFigure.vue';
 import { METER_FIGURES, METER_FIGURE_LABELS } from './constants';
 import type { MeterFigureKind } from './types';
 
 defineProps<{ modelValue: MeterFigureKind; color: string }>();
 const emit = defineEmits<{ 'update:modelValue': [figure: MeterFigureKind] }>();
+
+const { t } = useI18n();
 </script>
 
 <style scoped>

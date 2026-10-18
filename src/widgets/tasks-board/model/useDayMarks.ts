@@ -1,6 +1,7 @@
 import { ref, computed, watch, onMounted, type Ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { celebrate, celebrateStreak } from '@/shared/lib/confetti';
+import { i18n } from '@/shared/i18n';
 import { useChildrenStore, type Child } from '@/entities/child';
 import {
   useTasksStore,
@@ -137,7 +138,7 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
 
     grantedAwards.value = await recalculateStreaks();
     await load();
-    $q.notify({ type: 'positive', message: 'Сохранено' });
+    $q.notify({ type: 'positive', message: i18n.global.t('tasksBoard.saved') });
     if (!parentSession.active) {
       if (grantedAwards.value.length > 0) {
         celebrateStreak();

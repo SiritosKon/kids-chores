@@ -1,0 +1,43 @@
+import { defineMessages } from '../lib';
+
+export const editChild = defineMessages({
+  ru: {
+    uploadPhoto: 'Загрузить фото',
+    removePhoto: 'Убрать фото',
+    name: 'Имя',
+    figure: 'Фигурка на копилке',
+    goal: 'Цель — на что копит',
+    goalHint: 'Под копилкой появится полоса до цели',
+    variant: 'Какой вариант',
+    variantHint: 'Не выбран — ребёнок выберет при получении',
+    photoFailed: 'Не получилось открыть фото',
+    removeTitle: 'Удалить ребёнка',
+    removeMessage: '{name} пропадёт с экрана. Отметки и покупки останутся в истории и в экспорте.',
+  },
+  en: {
+    uploadPhoto: 'Upload photo',
+    removePhoto: 'Remove photo',
+    name: 'Name',
+    figure: 'Piggy bank figure',
+    goal: 'Goal — what they’re saving for',
+    goalHint: 'A bar to the goal appears under the piggy bank',
+    variant: 'Which option',
+    variantHint: 'Not chosen — the kid picks when they get it',
+    photoFailed: 'Couldn’t open the photo',
+    removeTitle: 'Remove child',
+    removeMessage: '{name} will disappear from the screen. Marks and purchases stay in the history and the export.',
+  },
+  es: {
+    uploadPhoto: 'Subir foto',
+    removePhoto: 'Quitar foto',
+    name: 'Nombre',
+    figure: 'Figura de la alcancía',
+    goal: 'Meta: para qué ahorra',
+    goalHint: 'Bajo la alcancía aparecerá una barra hasta la meta',
+    variant: 'Qué opción',
+    variantHint: 'Sin elegir: el niño elegirá al recibirla',
+    photoFailed: 'No se pudo abrir la foto',
+    removeTitle: 'Eliminar niño',
+    removeMessage: '{name} desaparecerá de la pantalla. Las marcas y las compras se quedan en el historial y en la exportación.',
+  },
+});

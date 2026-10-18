@@ -13,7 +13,7 @@ const SOURCES = {
 };
 const BACKDROP = [0, 0, 0];
 
-const BASE_PATH = '/kids-chores/';
+const BASE_PATH = '/';
 
 const DEVICES = [
   [375, 667, 2],
@@ -37,9 +37,18 @@ const DEVICES = [
   [1032, 1376, 2],
 ];
 
+const TABLET_MIN_WIDTH = 744;
+
 const SCREENS = DEVICES.flatMap(([width, height, ratio]) => [
-  { width, height, ratio, orientation: 'portrait', pixels: [width * ratio, height * ratio] },
-  { width, height, ratio, orientation: 'landscape', pixels: [height * ratio, width * ratio] },
+  {
+    width,
+    height,
+    ratio,
+    orientation: 'portrait',
+    pixels: [width * ratio, height * ratio],
+    squeezed: width >= TABLET_MIN_WIDTH,
+  },
+  { width, height, ratio, orientation: 'landscape', pixels: [height * ratio, width * ratio], squeezed: false },
 ]);
 
 const chunk = (type, data) => {
@@ -170,10 +179,7 @@ const resize = (source, width, height) => {
   return out;
 };
 
-const compose = (art, width, height) => {
-  const scale = Math.min(width / art.width, height / art.height, 1);
-  const artWidth = Math.round(art.width * scale);
-  const artHeight = Math.round(art.height * scale);
+const place = (art, width, height, artWidth, artHeight) => {
   const scaled = resize(art, artWidth, artHeight);
   const left = Math.round((width - artWidth) / 2);
   const top = Math.round((height - artHeight) / 2);
@@ -190,6 +196,18 @@ const compose = (art, width, height) => {
   }
 
   return encodePng(width, height, canvas);
+};
+
+const compose = (art, width, height) => {
+  const scale = Math.min(width / art.width, height / art.height, 1);
+  return place(art, width, height, Math.round(art.width * scale), Math.round(art.height * scale));
+};
+
+const squeeze = (art, width, height) => {
+  const scale = Math.min(height / art.width, width / art.height, 1);
+  const artWidth = Math.min(width, Math.round((art.width * scale * width) / height));
+  const artHeight = Math.min(height, Math.round((art.height * scale * height) / width));
+  return place(art, width, height, artWidth, artHeight);
 };
 
 const fileName = ({ pixels: [width, height] }) => `${width}x${height}.png`;
@@ -215,7 +233,8 @@ mkdirSync(splashDir, { recursive: true });
 
 for (const screen of SCREENS) {
   const [width, height] = screen.pixels;
-  writeFileSync(join(splashDir, fileName(screen)), compose(art[screen.orientation], width, height));
+  const image = screen.squeezed ? squeeze(art.landscape, width, height) : compose(art[screen.orientation], width, height);
+  writeFileSync(join(splashDir, fileName(screen)), image);
 }
 
 writeLinks();

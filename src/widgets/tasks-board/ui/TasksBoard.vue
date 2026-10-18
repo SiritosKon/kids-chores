@@ -7,11 +7,11 @@
     </div>
 
     <div v-else-if="children.length === 0 && !parentActive" class="ios-card board-stub text-grey-5">
-      Детей пока нет. Добавьте ребёнка в родительском режиме.
+      {{ t('tasksBoard.noChildren') }}
     </div>
 
     <div v-else-if="!hasRows && !parentActive" class="ios-card board-stub text-grey-5">
-      Задач пока нет. Добавьте задачи в родительском режиме.
+      {{ t('tasksBoard.noTasks') }}
     </div>
 
     <div v-else class="ios-card">
@@ -37,7 +37,7 @@
             {{ task.name }}
             <q-icon v-if="parentActive" name="edit" size="14px" color="grey-5" class="q-ml-xs" />
           </div>
-          <div class="task-points">{{ task.points }} б.</div>
+          <div class="task-points">{{ t('common.pointsShort', task.points) }}</div>
         </div>
         <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
           <q-checkbox
@@ -49,7 +49,7 @@
             unchecked-icon="radio_button_unchecked"
             @update:model-value="toggle(child.id, task.id, $event)"
           />
-          <span v-else class="tasks-col__none" aria-label="Не для этого ребёнка">—</span>
+          <span v-else class="tasks-col__none" :aria-label="t('tasksBoard.notForChild')">—</span>
         </div>
       </div>
 
@@ -58,8 +58,8 @@
           <q-icon :name="BONUS_ROW.icon" size="20px" color="white" />
         </div>
         <div class="task-info">
-          <div>{{ BONUS_ROW.name }}</div>
-          <div class="task-points">+{{ bonus.points }} б. за все задачи дня</div>
+          <div>{{ bonusName }}</div>
+          <div class="task-points">{{ t('tasksBoard.bonusHint', bonus.points) }}</div>
         </div>
         <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
           <q-checkbox
@@ -72,7 +72,7 @@
         </div>
       </div>
       <template v-if="quests.length > 0">
-        <div class="quests-head">Квесты</div>
+        <div class="quests-head">{{ t('tasksBoard.quests') }}</div>
         <div v-for="quest in quests" :key="quest.id" class="task-row">
           <div class="task-tile" :style="{ background: quest.color }">
             <q-icon :name="quest.icon" size="20px" color="white" />
@@ -83,7 +83,7 @@
               <q-icon v-if="parentActive" name="edit" size="14px" color="grey-5" class="q-ml-xs" />
             </div>
             <div class="task-points">
-              +{{ quest.points }} б. · {{ questDeadlineLabel(questDeadline(quest), selectedDate) }}
+              +{{ t('common.pointsShort', quest.points) }} · {{ questDeadlineLabel(questDeadline(quest), selectedDate) }}
             </div>
           </div>
           <div v-for="(child, index) in children" :key="child.id" class="tasks-col">
@@ -103,7 +103,7 @@
               :color="checkColor(index)"
               checked-icon="check_circle"
             />
-            <span v-else class="tasks-col__none" aria-label="Не для этого ребёнка">—</span>
+            <span v-else class="tasks-col__none" :aria-label="t('tasksBoard.notForChild')">—</span>
           </div>
         </div>
       </template>
@@ -122,7 +122,7 @@
             {{ task.name }}
             <q-icon name="edit" size="14px" color="grey-5" class="q-ml-xs" />
           </div>
-          <div class="task-points">выключена</div>
+          <div class="task-points">{{ t('tasksBoard.switchedOff') }}</div>
         </div>
       </div>
 
@@ -130,18 +130,27 @@
         <div class="add-row">
           <button type="button" class="add-tile" data-tour="add-task" @click="openEditor(null)">
             <q-icon name="add" size="22px" />
-            Добавить задачу
+            {{ t('tasksBoard.addTask') }}
           </button>
           <button type="button" class="add-tile" @click="openQuestEditor">
             <q-icon name="flag" size="22px" />
-            Добавить квест
+            {{ t('tasksBoard.addQuest') }}
           </button>
         </div>
       </div>
     </div>
 
     <div v-if="ready && children.length > 0 && hasRows" class="row justify-end q-mt-md">
-      <q-btn color="primary" rounded unelevated icon="check" label="Принять" class="text-weight-bold" :disable="!dirty" @click="accept" />
+      <q-btn
+        color="primary"
+        rounded
+        unelevated
+        icon="check"
+        :label="t('tasksBoard.accept')"
+        class="text-weight-bold"
+        :disable="!dirty"
+        @click="accept"
+      />
     </div>
 
     <StreakAwardDialog
@@ -156,10 +165,11 @@
 import { computed, toRef } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { NEW_TASK_ID } from '@/shared/config/constants';
 import { taskPath, newQuestPath } from '@/shared/lib/routes';
 import { useChildrenStore } from '@/entities/child';
-import { useTasksStore, questDeadline, type Task } from '@/entities/task';
+import { useTasksStore, questDeadline, reservedTaskName, BONUS_TASK_ID, type Task } from '@/entities/task';
 import { useRewardsStore } from '@/entities/reward';
 import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
@@ -171,6 +181,7 @@ import { questDeadlineLabel } from '../lib/questDeadline';
 
 const props = defineProps<{ selectedDate: string }>();
 
+const { t } = useI18n();
 const childrenStore = useChildrenStore();
 const tasksStore = useTasksStore();
 const settingsStore = useSettingsStore();
@@ -206,6 +217,8 @@ const closeAwards = async (): Promise<void> => {
   clearAwards();
   await chooseInTurn(awards);
 };
+
+const bonusName = computed(() => reservedTaskName(BONUS_TASK_ID) ?? '');
 
 const hasRows = computed(() => regularTasks.value.length > 0 || quests.value.length > 0);
 
@@ -325,5 +338,28 @@ const openQuestEditor = (): void => {
   text-align: center;
   font-size: 13px;
   font-weight: 600;
+}
+
+.tasks-head .tasks-col {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .tasks-head {
+    padding: 8px 12px;
+  }
+
+  .task-row {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .tasks-col {
+    width: 44px;
+    font-size: 11px;
+  }
 }
 </style>

@@ -1,1 +1,1 @@
-export { default as WalletHistoryDialog } from './ui/WalletHistoryDialog.vue';
+export { default as WalletHistory } from './ui/WalletHistory.vue';

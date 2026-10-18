@@ -1,2 +1,1 @@
-export { useWhatsNewStore } from './model/store';
-export { default as WhatsNewDialog } from './ui/WhatsNewDialog.vue';
+export { default as WhatsNewList } from './ui/WhatsNewList.vue';

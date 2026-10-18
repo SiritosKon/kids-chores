@@ -4,56 +4,56 @@
       <div class="task-preview" :style="{ background: color }">
         <q-icon :name="icon" size="26px" color="white" />
       </div>
-      <q-input v-model="name" class="col" label="Название" autofocus maxlength="40" />
+      <q-input v-model="name" class="col" :label="t('editTask.name')" autofocus maxlength="40" />
     </div>
 
     <q-input
       v-model.number="points"
       type="number"
       inputmode="numeric"
-      label="Баллы за выполнение"
+      :label="t('editTask.points')"
       :min="1"
-      :hint="task ? 'Уже начисленное не изменится' : undefined"
+      :hint="task ? t('editTask.pointsKept') : undefined"
     />
 
-    <q-toggle v-if="!task" v-model="isQuest" label="Разовый квест" color="primary" />
+    <q-toggle v-if="!task" v-model="isQuest" :label="t('editTask.oneOffQuest')" color="primary" />
     <template v-if="isQuest">
       <q-select
         v-model="questTerm"
-        :options="QUEST_TERM_OPTIONS"
-        label="Срок"
+        :options="termOptions"
+        :label="t('editTask.term')"
         emit-value
         map-options
         :hint="questError ? undefined : questHint"
       />
       <div v-if="questTerm === 'custom'" class="form-row">
-        <q-input v-model="customDates.from" type="date" label="Начало" stack-label class="col" />
-        <q-input v-model="customDates.lastDay" type="date" label="Конец" stack-label class="col" />
+        <q-input v-model="customDates.from" type="date" :label="t('editTask.start')" stack-label class="col" />
+        <q-input v-model="customDates.lastDay" type="date" :label="t('editTask.end')" stack-label class="col" />
       </div>
       <div v-if="questError" class="text-negative text-caption">{{ questError }}</div>
     </template>
-    <q-toggle v-if="task && !isQuest" v-model="active" label="Задача включена" color="primary" />
+    <q-toggle v-if="task && !isQuest" v-model="active" :label="t('editTask.enabled')" color="primary" />
 
     <ChildrenPicker v-model="childIds" />
     <div v-if="task && !isQuest" class="text-caption text-grey-5">
-      Правка действует с сегодняшнего дня, прошлые серии не изменятся
+      {{ t('editTask.editsFromToday') }}
     </div>
 
     <div>
-      <div class="text-caption text-grey-5 q-mb-sm">Иконка</div>
+      <div class="text-caption text-grey-5 q-mb-sm">{{ t('editTask.icon') }}</div>
       <IconPicker v-model="icon" :color="color" />
     </div>
 
     <div>
-      <div class="text-caption text-grey-5 q-mb-sm">Цвет</div>
+      <div class="text-caption text-grey-5 q-mb-sm">{{ t('editTask.color') }}</div>
       <ColorPicker v-model="color" />
     </div>
 
     <div class="row items-center q-gutter-sm">
-      <q-btn v-if="task" flat no-caps color="negative" icon="delete" label="Удалить" @click="remove" />
+      <q-btn v-if="task" flat no-caps color="negative" icon="delete" :label="t('common.delete')" @click="remove" />
       <q-space />
-      <q-btn flat no-caps label="Отмена" @click="emit('cancel')" />
-      <q-btn unelevated no-caps color="primary" label="Сохранить" :disable="!canSave" @click="save" />
+      <q-btn flat no-caps :label="t('common.cancel')" @click="emit('cancel')" />
+      <q-btn unelevated no-caps color="primary" :label="t('common.save')" :disable="!canSave" @click="save" />
     </div>
   </div>
 </template>
@@ -61,6 +61,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { todayKey, formatDayKeyLong } from '@/shared/lib/date';
 import ColorPicker from '@/shared/ui/ColorPicker.vue';
 import IconPicker from '@/shared/ui/IconPicker.vue';
@@ -88,6 +89,11 @@ const props = withDefaults(defineProps<{ task?: Task | null; asQuest?: boolean }
 const emit = defineEmits<{ done: []; cancel: [] }>();
 
 const $q = useQuasar();
+const { t } = useI18n();
+
+const termOptions = computed(() =>
+  QUEST_TERM_OPTIONS.map((option) => ({ value: option.value, label: t(option.labelKey) }))
+);
 
 const name = ref('');
 const points = ref(1);
@@ -105,8 +111,8 @@ const questError = computed(() => (isQuest.value ? questDatesError(chosenDates.v
 
 const questHint = computed(() => {
   const { from, lastDay } = chosenDates.value;
-  const start = from > todayKey() ? `Начнётся: ${formatDayKeyLong(from)}. ` : '';
-  return `${start}Последний день — ${formatDayKeyLong(lastDay)}. Не успел — квест сгорает. В серию и бонус за день не входит`;
+  const dates = { from: formatDayKeyLong(from), lastDay: formatDayKeyLong(lastDay) };
+  return from > todayKey() ? t('editTask.questHintLater', dates) : t('editTask.questHint', dates);
 });
 
 const canSave = computed(
@@ -159,12 +165,12 @@ const remove = (): void => {
     return;
   }
   $q.dialog({
-    title: task.quest ? 'Удалить квест' : 'Удалить задачу',
+    title: task.quest ? t('editTask.removeQuestTitle') : t('editTask.removeTaskTitle'),
     message: task.quest
-      ? `«${task.name}» пропадёт с доски. Начисленные баллы останутся.`
-      : `«${task.name}» пропадёт из списка. Начисленные баллы и прошлые серии не изменятся.`,
-    cancel: { flat: true, noCaps: true, label: 'Отмена' },
-    ok: { flat: true, noCaps: true, color: 'negative', label: 'Удалить' },
+      ? t('editTask.removeQuestMessage', { name: task.name })
+      : t('editTask.removeTaskMessage', { name: task.name }),
+    cancel: { flat: true, noCaps: true, label: t('common.cancel') },
+    ok: { flat: true, noCaps: true, color: 'negative', label: t('common.delete') },
     persistent: true,
   }).onOk(async () => {
     await archiveTask(task.id, todayKey());

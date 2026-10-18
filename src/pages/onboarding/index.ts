@@ -1,1 +1,1 @@
-export { default as OnboardingPage } from './ui/OnboardingPage.vue';
+export { default as OnboardingDialog } from './ui/OnboardingDialog.vue';

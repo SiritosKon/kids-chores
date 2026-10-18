@@ -1,1 +1,1 @@
-export { default as StreakDialog } from './ui/StreakDialog.vue';
+export { default as StreakDetails } from './ui/StreakDetails.vue';

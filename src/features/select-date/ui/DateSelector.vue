@@ -1,8 +1,15 @@
 <template>
   <div class="row items-center no-wrap q-gutter-xs">
-    <q-btn round flat dense icon="event" color="primary" aria-label="Выбрать дату">
+    <q-btn round flat dense icon="event" color="primary" :aria-label="t('selectDate.pick')">
       <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-        <q-date :model-value="modelValue" mask="YYYY-MM-DD" :options="dateOptions" @update:model-value="onPick" />
+        <q-date
+          :model-value="modelValue"
+          mask="YYYY-MM-DD"
+          :options="dateOptions"
+          :locale="calendar"
+          :first-day-of-week="firstDay"
+          @update:model-value="onPick"
+        />
       </q-popup-proxy>
     </q-btn>
   </div>
@@ -11,13 +18,19 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
+import { calendarLocale, firstDayOfWeek } from '@/shared/i18n';
 import { weekDayKeys } from '@/shared/lib/week';
 import { useParentSessionStore } from '@/entities/parent-session';
 
 defineProps<{ modelValue: string }>();
 const emit = defineEmits<{ 'update:modelValue': [dayKey: string] }>();
 
+const { t } = useI18n();
 const { active: parentActive } = storeToRefs(useParentSessionStore());
+
+const calendar = computed(() => calendarLocale());
+const firstDay = computed(() => firstDayOfWeek());
 
 const weekSlashKeys = computed(
   () => new Set(weekDayKeys(Date.now()).map((key) => key.replace(/-/g, '/')))

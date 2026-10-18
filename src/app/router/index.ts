@@ -6,7 +6,10 @@ import { HomePage } from '@/pages/home';
 import { SettingsPage, StreakStagePage, StageRewardPage, PinPage } from '@/pages/settings';
 import { RewardPage } from '@/pages/reward';
 import { TaskPage } from '@/pages/task';
-import { ChildPage, ChildRewardPage } from '@/pages/child';
+import { ChildPage, ChildRewardPage, ChildStreakPage, ChildWalletPage } from '@/pages/child';
+import { SpendsPage } from '@/pages/spends';
+import { WhatsNewPage } from '@/pages/whats-new';
+import { InstallPage } from '@/pages/install';
 import { BACK_TRANSITION, FORWARD_TRANSITION } from './constants';
 
 const parentOnly = { parentOnly: true };
@@ -23,6 +26,11 @@ export const router = createRouter({
     { path: ROUTES.task, component: TaskPage, meta: parentOnly },
     { path: ROUTES.child, component: ChildPage, meta: parentOnly },
     { path: ROUTES.childReward, component: ChildRewardPage, meta: parentOnly },
+    { path: ROUTES.childStreak, component: ChildStreakPage },
+    { path: ROUTES.childWallet, component: ChildWalletPage },
+    { path: ROUTES.spends, component: SpendsPage, meta: parentOnly },
+    { path: ROUTES.whatsNew, component: WhatsNewPage },
+    { path: ROUTES.install, component: InstallPage },
     { path: '/:rest(.*)*', redirect: ROUTES.home },
   ],
 });

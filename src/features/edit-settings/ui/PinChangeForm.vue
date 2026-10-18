@@ -1,6 +1,6 @@
 <template>
   <div class="q-py-lg">
-    <div class="text-center text-grey-5 q-mb-lg">{{ PIN_STEP_TITLES[pinStep] }}</div>
+    <div class="text-center text-grey-5 q-mb-lg">{{ t(PIN_STEP_TITLES[pinStep]) }}</div>
     <PinInput :key="pinStep" v-model="pin" :length="PARENT_PIN_LENGTH" :error="pinError" @complete="onPin" />
   </div>
 </template>
@@ -8,6 +8,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
 import { useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
 import { PIN_STEP_TITLES } from '../model/constants';
@@ -16,6 +17,7 @@ import type { PinStep } from '../model/types';
 const emit = defineEmits<{ done: [] }>();
 
 const $q = useQuasar();
+const { t } = useI18n();
 const settingsStore = useSettingsStore();
 
 const pinStep = ref<PinStep>('current');
@@ -45,7 +47,7 @@ const onPin = async (value: string): Promise<void> => {
     pinStep.value = 'repeat';
   } else if (value === nextPin.value) {
     await settingsStore.update({ parentPin: value });
-    $q.notify({ type: 'positive', message: 'PIN изменён' });
+    $q.notify({ type: 'positive', message: t('editSettings.pinChanged') });
     emit('done');
     return;
   } else {

@@ -1,5 +1,6 @@
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 import { useQuasar } from 'quasar';
+import { i18n } from '@/shared/i18n';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { ACTIVITY_EVENTS, PARENT_IDLE_LIMIT_MS } from './constants';
@@ -35,7 +36,7 @@ export const useParentAutoLogout = () => {
       return;
     }
     parentSession.logout();
-    $q.notify({ icon: 'lock', color: 'dark', message: 'Родительский режим закрыт: долго не было действий' });
+    $q.notify({ icon: 'lock', color: 'dark', message: i18n.global.t('parentAutoLogout.locked') });
   };
 
   const onVisibility = (): void => {

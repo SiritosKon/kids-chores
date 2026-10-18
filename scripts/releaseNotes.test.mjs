@@ -5,35 +5,64 @@ const SOURCE = `export const CHANGELOG = [
   {
     version: '0.3.0',
     date: '2026-09-27',
-    notes: ['Инструкция «Как добавить на экран»'],
+    notes: {
+      ru: ['Инструкция «Как добавить на экран»'],
+      en: ["An “Add to Home Screen” guide [beta]"],
+      es: ['Guía «Añadir a la pantalla de inicio»'],
+    },
   },
   {
     version: '0.2.8',
     date: '2026-09-26',
-    notes: [
-      'Редакторы в родительском режиме',
-      'Огонёк со второго дня',
-    ],
+    notes: {
+      ru: [
+        'Редакторы в родительском режиме',
+        'Огонёк со второго дня',
+      ],
+      en: ['Editors in parent mode', "The flame from the second day"],
+      es: ['Editores en el modo padres', 'La llama desde el segundo día'],
+    },
   },
   {
     version: '0.2.7',
     date: '2026-09-19',
-    notes: ['Экран загрузки'],
+    notes: {
+      ru: ['Экран загрузки'],
+      en: ['Loading screen'],
+      es: ['Pantalla de carga'],
+    },
   },
   {
     version: '0.2.0',
     date: '2026-09-10',
-    notes: ['Переход на TypeScript'],
+    notes: {
+      ru: ['Переход на TypeScript'],
+      en: ['Move to TypeScript'],
+      es: ['Paso a TypeScript'],
+    },
   },
   {
     version: '0.1.8',
     date: '2026-09-01',
-    notes: ['Мороженое'],
+    notes: {
+      ru: ['Мороженое'],
+      en: ['Ice cream'],
+      es: ['Helado'],
+    },
   },
 ];`;
 
 const entries = parseChangelog(SOURCE);
 const versions = (version) => releaseEntries(entries, version).map((entry) => entry.version);
+
+describe('parseChangelog', () => {
+  it('takes the Russian notes only', () => {
+    expect(entries.find((entry) => entry.version === '0.2.8')?.notes).toEqual([
+      'Редакторы в родительском режиме',
+      'Огонёк со второго дня',
+    ]);
+  });
+});
 
 describe('isReleaseVersion', () => {
   it('releases minor and major versions only', () => {

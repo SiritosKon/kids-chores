@@ -30,12 +30,12 @@ export default defineConfig({
     VitePWA({
       selfDestroying: !enablePwa,
       registerType: 'autoUpdate',
-      includeAssets: ['apple-touch-icon.png', 'favicon.svg', 'favicon.png', 'splash/*.png'],
+      includeAssets: ['apple-touch-icon.png', 'favicon.ico', 'favicon.svg', 'favicon.png', 'splash/*.png'],
       manifest: {
-        name: 'Домашние дела детей',
-        short_name: 'Дела детей',
-        description: 'Трекер домашних дел для детей',
-        lang: 'ru',
+        name: 'Little Big Deals',
+        short_name: 'LBD',
+        description: 'Chores, points and rewards for kids',
+        lang: 'en',
         theme_color: '#F57C00',
         background_color: '#000000',
         display: 'standalone',

@@ -6,7 +6,7 @@
         <MeterFigure v-else :kind="draft.figure" :color="draft.carColor" :size="52" />
       </q-avatar>
       <div class="column items-start">
-        <q-btn flat dense no-caps color="primary" icon="photo_camera" label="Загрузить фото" @click="pickPhoto" />
+        <q-btn flat dense no-caps color="primary" icon="photo_camera" :label="t('editChild.uploadPhoto')" @click="pickPhoto" />
         <q-btn
           v-if="draft.photo"
           flat
@@ -14,24 +14,24 @@
           no-caps
           color="grey-5"
           icon="hide_image"
-          label="Убрать фото"
+          :label="t('editChild.removePhoto')"
           @click="draft.photo = ''"
         />
       </div>
     </div>
 
-    <q-input v-model="draft.name" label="Имя" :autofocus="!openGoal" maxlength="30" />
+    <q-input v-model="draft.name" :label="t('editChild.name')" :autofocus="!openGoal" maxlength="30" />
 
     <div>
-      <div class="text-caption text-grey-5 q-mb-sm">Фигурка на копилке</div>
+      <div class="text-caption text-grey-5 q-mb-sm">{{ t('editChild.figure') }}</div>
       <FigurePicker v-model="draft.figure" :color="draft.carColor" />
     </div>
 
     <RewardSelect
       ref="goalSelect"
       :model-value="draft.goalRewardId"
-      label="Цель — на что копит"
-      hint="Под копилкой появится полоса до цели"
+      :label="t('editChild.goal')"
+      :hint="t('editChild.goalHint')"
       :visibilities="GOAL_VISIBILITIES"
       @update:model-value="pickGoal"
       @create="emit('create-reward')"
@@ -40,18 +40,18 @@
       v-if="variantOptions.length > 0"
       v-model="draft.goalVariantId"
       :options="variantOptions"
-      label="Какой вариант"
+      :label="t('editChild.variant')"
       emit-value
       map-options
       clearable
-      hint="Не выбран — ребёнок выберет при получении"
+      :hint="t('editChild.variantHint')"
     />
 
     <div class="row items-center q-gutter-sm">
-      <q-btn v-if="child" flat no-caps color="negative" icon="delete" label="Удалить" @click="remove" />
+      <q-btn v-if="child" flat no-caps color="negative" icon="delete" :label="t('common.delete')" @click="remove" />
       <q-space />
-      <q-btn flat no-caps label="Отмена" @click="emit('cancel')" />
-      <q-btn unelevated no-caps color="primary" label="Сохранить" :disable="!canSave" @click="save" />
+      <q-btn flat no-caps :label="t('common.cancel')" @click="emit('cancel')" />
+      <q-btn unelevated no-caps color="primary" :label="t('common.save')" :disable="!canSave" @click="save" />
     </div>
     <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="onPhoto" />
   </div>
@@ -60,6 +60,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { NEW_CHILD_ID } from '@/shared/config/constants';
 import MeterFigure from '@/shared/ui/MeterFigure.vue';
@@ -85,6 +86,7 @@ const props = withDefaults(defineProps<{ child?: Child | null; openGoal?: boolea
 const emit = defineEmits<{ done: []; cancel: []; 'create-reward': [] }>();
 
 const $q = useQuasar();
+const { t } = useI18n();
 const childrenStore = useChildrenStore();
 const rewardsStore = useRewardsStore();
 const formStore = useChildFormStore();
@@ -145,7 +147,7 @@ const onPhoto = async (): Promise<void> => {
   try {
     draft.value.photo = await resizePhoto(file, PHOTO_SIZE, 'square');
   } catch {
-    $q.notify({ type: 'negative', message: 'Не получилось открыть фото' });
+    $q.notify({ type: 'negative', message: t('editChild.photoFailed') });
   } finally {
     input.value = '';
   }
@@ -173,10 +175,10 @@ const remove = (): void => {
     return;
   }
   $q.dialog({
-    title: 'Удалить ребёнка',
-    message: `${child.name} пропадёт с экрана. Отметки и покупки останутся в истории и в экспорте.`,
-    cancel: { flat: true, noCaps: true, label: 'Отмена' },
-    ok: { flat: true, noCaps: true, color: 'negative', label: 'Удалить' },
+    title: t('editChild.removeTitle'),
+    message: t('editChild.removeMessage', { name: child.name }),
+    cancel: { flat: true, noCaps: true, label: t('common.cancel') },
+    ok: { flat: true, noCaps: true, color: 'negative', label: t('common.delete') },
     persistent: true,
   }).onOk(async () => {
     await archiveChild(child.id);

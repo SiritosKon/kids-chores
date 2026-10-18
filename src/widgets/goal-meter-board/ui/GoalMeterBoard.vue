@@ -16,11 +16,9 @@
     <div v-if="parentActive" class="goal-meter-board__add">
       <button type="button" class="add-tile" data-tour="add-child" @click="openEditor(null)">
         <q-icon name="add" size="22px" />
-        Добавить ребёнка
+        {{ t('goalMeterBoard.addChild') }}
       </button>
     </div>
-    <WalletHistoryDialog v-model="historyOpen" :child-id="historyChildId" />
-    <StreakDialog v-model="streakOpen" :child-id="streakChildId" />
   </div>
 </template>
 
@@ -29,22 +27,22 @@ import { ref, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { NEW_CHILD_ID } from '@/shared/config/constants';
 import { DEFAULT_METER_FIGURE } from '@/shared/ui/constants';
-import { childPath, childGoalPath } from '@/shared/lib/routes';
+import { childPath, childGoalPath, childStreakPath, childWalletPath } from '@/shared/lib/routes';
 import { useChildrenStore, childPhotoUrl, setChildGoal, type Child } from '@/entities/child';
 import { useRewardsStore, getVariantPhotos, type RewardVariant } from '@/entities/reward';
 import { useWalletStore, piggyMax } from '@/entities/wallet';
 import { useStreakStore } from '@/entities/streak';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { WalletHistoryDialog } from '@/features/wallet-history';
-import { StreakDialog } from '@/features/streak-details';
 import { useChooseVariant, usePendingChoicesStore } from '@/features/choose-reward-variant';
 import { useAwardReward } from '@/features/award-reward';
 import GoalMeter from './GoalMeter.vue';
 import { goalEntry } from '../lib/goal';
 import type { GoalEntry, MeterEntry } from '../model/types';
 
+const { t } = useI18n();
 const wallet = useWalletStore();
 const childrenStore = useChildrenStore();
 const streakStore = useStreakStore();
@@ -110,25 +108,17 @@ const meterEntries = computed<MeterEntry[]>(() =>
   })
 );
 
-const historyOpen = ref(false);
-const historyChildId = ref<string | null>(null);
-
-const openHistory = (childId: string): void => {
-  historyChildId.value = childId;
-  historyOpen.value = true;
-};
-
-const streakOpen = ref(false);
-const streakChildId = ref<string | null>(null);
-
-const openStreak = (childId: string): void => {
-  streakChildId.value = childId;
-  streakOpen.value = true;
-};
-
 const chooseGift = (childId: string): Promise<void> => chooseInTurn(pendingChoices.pendingOf(childId));
 
 const router = useRouter();
+
+const openHistory = (childId: string): void => {
+  void router.push(childWalletPath(childId));
+};
+
+const openStreak = (childId: string): void => {
+  void router.push(childStreakPath(childId));
+};
 
 const openEditor = (childId: string | null): void => {
   void router.push(childPath(childId ?? NEW_CHILD_ID));
@@ -145,10 +135,13 @@ const removeGoal = (childId: string): void => {
     return;
   }
   $q.dialog({
-    title: 'Убрать цель',
-    message: `${child.name} больше не копит на «${reward?.name ?? 'цель'}». Баллы останутся в копилке.`,
-    cancel: { flat: true, noCaps: true, label: 'Отмена' },
-    ok: { flat: true, noCaps: true, color: 'negative', label: 'Убрать' },
+    title: t('goalMeterBoard.removeGoal'),
+    message: t('goalMeterBoard.removeGoalMessage', {
+      child: child.name,
+      goal: reward?.name ?? t('goalMeterBoard.goalFallback'),
+    }),
+    cancel: { flat: true, noCaps: true, label: t('common.cancel') },
+    ok: { flat: true, noCaps: true, color: 'negative', label: t('common.remove') },
     persistent: true,
   }).onOk(() => setChildGoal(child.id, undefined));
 };
