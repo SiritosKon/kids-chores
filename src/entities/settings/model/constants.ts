@@ -14,4 +14,4 @@ export const NO_BONUS: BonusSettings = { enabled: false, points: 0 };
 
 export const NO_STREAK: StreakSettings = { enabled: false, milestones: [] };
 
-export const INITIAL_BONUS: BonusSettings = { enabled: false, points: 1 };
+export const INITIAL_BONUS: BonusSettings = { enabled: true, points: 2 };

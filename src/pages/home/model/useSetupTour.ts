@@ -99,7 +99,7 @@ export const useSetupTour = () => {
       prevBtnText: t('common.back'),
       doneBtnText: t('common.done'),
       popoverClass: 'setup-tour',
-      smoothScroll: true,
+      smoothScroll: false,
       allowKeyboardControl: false,
       overlayClickBehavior: () => undefined,
       onNextClick: next,

@@ -18,16 +18,19 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'Первый запуск: приложение сразу с примером — ребёнок, три задачи и три награды, всё можно поменять',
         'PIN родителя задаётся в окне поверх приложения, язык берётся с устройства',
         'Знакомство короче: четыре шага — дети, задачи, награды и меню',
+        'На новом устройстве сразу включён бонус: +2 балла, если отмечены все задачи дня',
       ],
       en: [
         'First launch: the app opens with an example — a kid, three chores and three rewards, all of them editable',
         'The parent PIN is set in a window over the app; the language comes from the device',
         'A shorter intro tour: four steps — kids, chores, rewards and the menu',
+        'A new device starts with the daily bonus on: +2 points when every chore of the day is ticked',
       ],
       es: [
         'Primer inicio: la app se abre con un ejemplo, un niño, tres tareas y tres premios, y todo se puede cambiar',
         'El PIN de padres se crea en una ventana sobre la app; el idioma se toma del dispositivo',
         'Un recorrido más corto: cuatro pasos, niños, tareas, premios y el menú',
+        'En un dispositivo nuevo el bono diario ya está activado: +2 puntos si se marcan todas las tareas del día',
       ],
     },
   },
@@ -37,19 +40,19 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     notes: {
       ru: [
         'Приложение теперь называется Little Big Deals',
-        'Три языка: русский, английский и испанский. Язык меняется внизу меню',
+        'Три языка: русский, английский и испанский. Язык меняется в меню, пункт с глобусом',
         'На новом устройстве язык выбирается по языку системы, у текущих установок остаётся русский',
         'Даты, календарь и «Что нового» — тоже на выбранном языке',
       ],
       en: [
         'The app is now called Little Big Deals',
-        'Three languages: Russian, English and Spanish. Switch at the bottom of the menu',
+        'Three languages: Russian, English and Spanish. Switch it in the menu under the globe icon',
         'A new device picks the system language; existing installs stay in Russian',
         "Dates, the calendar and What's new follow the chosen language too",
       ],
       es: [
         'La app ahora se llama Little Big Deals',
-        'Tres idiomas: ruso, inglés y español. Se cambia al final del menú',
+        'Tres idiomas: ruso, inglés y español. Se cambia en el menú, en la opción con el globo',
         'En un dispositivo nuevo se usa el idioma del sistema; las instalaciones actuales siguen en ruso',
         'Las fechas, el calendario y las Novedades también siguen el idioma elegido',
       ],

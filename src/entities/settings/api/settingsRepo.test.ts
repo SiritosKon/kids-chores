@@ -12,12 +12,12 @@ beforeEach(async () => {
 });
 
 describe('setupParentPin', () => {
-  it('creates settings with the tour pending on a fresh device', async () => {
+  it('creates settings with the tour pending and the daily bonus on for a fresh device', async () => {
     await setupParentPin('246810', 'es');
 
     expect(await getSettings()).toMatchObject({
       parentPin: '246810',
-      bonus: { enabled: false },
+      bonus: { enabled: true, points: 2 },
       streak: { enabled: false, milestones: [] },
       tourPending: true,
       locale: 'es',

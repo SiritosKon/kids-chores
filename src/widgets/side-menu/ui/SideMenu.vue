@@ -71,11 +71,29 @@
         <q-item-section>{{ t('sideMenu.install') }}</q-item-section>
       </q-item>
 
-      <q-separator spaced />
-      <q-item-label header>{{ t('sideMenu.language') }}</q-item-label>
-      <div class="q-px-md q-pb-md">
-        <LanguageToggle :model-value="locale" @update:model-value="pickLocale" />
-      </div>
+      <q-item clickable>
+        <q-item-section avatar><q-icon name="language" /></q-item-section>
+        <q-item-section>{{ t('sideMenu.language') }}</q-item-section>
+        <q-item-section side>{{ LOCALE_NAMES[current] }}</q-item-section>
+        <q-menu anchor="bottom right" self="top right" class="bg-grey-9">
+          <q-list style="min-width: 180px">
+            <q-item
+              v-for="option in LOCALE_OPTIONS"
+              :key="option.value"
+              v-close-popup
+              clickable
+              :active="option.value === current"
+              active-class="side-menu__active"
+              @click="pickLocale(option.value)"
+            >
+              <q-item-section>{{ option.label }}</q-item-section>
+              <q-item-section v-if="option.value === current" side>
+                <q-icon name="check" color="primary" />
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-item>
     </q-list>
   </q-drawer>
 
@@ -90,8 +108,7 @@ import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { ROUTES, APP_NAME } from '@/shared/config/constants';
-import { applyLocale, type Locale } from '@/shared/i18n';
-import LanguageToggle from '@/shared/ui/LanguageToggle.vue';
+import { applyLocale, currentLocale, LOCALE_NAMES, LOCALE_OPTIONS, type Locale } from '@/shared/i18n';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { PinDialog } from '@/features/parent-login';
@@ -103,7 +120,7 @@ defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
 const $q = useQuasar();
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const parentSession = useParentSessionStore();
 const { active } = storeToRefs(parentSession);
 const settingsStore = useSettingsStore();
@@ -112,6 +129,7 @@ const tourPending = computed(() => settingsStore.settings?.tourPending === true)
 const appVersion = __APP_VERSION__;
 const iconUrl = `${import.meta.env.BASE_URL}favicon.svg`;
 const showLogin = ref(false);
+const current = computed(() => currentLocale());
 const installable = canAddToHomeScreen();
 
 const route = useRoute();
