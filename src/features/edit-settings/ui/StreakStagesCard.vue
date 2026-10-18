@@ -4,10 +4,9 @@
       :model-value="settingsStore.streak.enabled"
       :label="t('editSettings.streakToggle')"
       color="primary"
-      data-tour="settings-streak-toggle"
       @update:model-value="toggle"
     />
-    <div v-if="settingsStore.streak.enabled" data-tour="settings-streak">
+    <div v-if="settingsStore.streak.enabled">
       <div class="text-caption text-grey-5 q-mb-sm">
         {{ t('editSettings.streakHelp') }}
       </div>

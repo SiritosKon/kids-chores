@@ -2,7 +2,7 @@ import { computed, nextTick, onBeforeUnmount, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import { driver, type Driver } from 'driver.js';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { ROUTES } from '@/shared/config/constants';
 import { useChildrenStore } from '@/entities/child';
 import { useTasksStore } from '@/entities/task';
@@ -22,15 +22,10 @@ export const useSetupTour = () => {
   const rewardsStore = useRewardsStore();
   const settingsStore = useSettingsStore();
   const parentSession = useParentSessionStore();
-  const router = useRouter();
   const route = useRoute();
-  const onSettings = (): boolean => route.path === ROUTES.settings;
 
   let tour: Driver | null = null;
-  let moving = false;
   let resumeAt = 0;
-
-  const isTourPath = (path: string): boolean => path === ROUTES.home || path === ROUTES.settings;
 
   const isMet = (requirement: TourRequirement | undefined): boolean => {
     if (requirement === 'child') {
@@ -54,37 +49,18 @@ export const useSetupTour = () => {
 
   const finish = async (): Promise<void> => {
     stop();
-    if (onSettings()) {
-      await router.push(ROUTES.home);
-    }
     await settingsStore.update({ tourPending: false });
   };
 
-  const isSkipped = (index: number): boolean =>
-    TOUR_STEPS[index]?.needsStreak === true && !settingsStore.streak.enabled;
-
-  const goTo = async (requested: number): Promise<void> => {
-    if (!tour || moving) {
+  const goTo = async (index: number): Promise<void> => {
+    if (!tour) {
       return;
     }
-    const direction = requested >= activeIndex() ? 1 : -1;
-    let index = requested;
-    while (isSkipped(index)) {
-      index += direction;
-    }
-    const target = TOUR_STEPS[index];
-    if (!target) {
+    if (index >= TOUR_STEPS.length) {
       await finish();
       return;
     }
-    moving = true;
-    const wantsSettings = target.inSettings === true;
-    if (wantsSettings !== onSettings()) {
-      await router.push(wantsSettings ? ROUTES.settings : ROUTES.home);
-      await wait(TOUR_DIALOG_DELAY_MS);
-    }
-    tour?.moveTo(index);
-    moving = false;
+    tour.moveTo(Math.max(0, index));
   };
 
   const activeIndex = (): number => tour?.getActiveIndex() ?? 0;
@@ -164,27 +140,17 @@ export const useSetupTour = () => {
     }
   );
 
-  watch(
-    () => settingsStore.streak.enabled,
-    async (enabled) => {
-      const step = TOUR_STEPS[activeIndex()];
-      if (tour && enabled && step?.unlocksStreak) {
-        await wait(TOUR_DIALOG_DELAY_MS);
-        await goTo(activeIndex() + 1);
-      }
-    }
-  );
 
   watch(
     () => route.path,
     async (path) => {
-      if (!shouldRun.value || moving) {
+      if (!shouldRun.value) {
         return;
       }
-      if (!isTourPath(path) && tour) {
+      if (path !== ROUTES.home && tour) {
         resumeAt = activeIndex();
         stop();
-      } else if (isTourPath(path) && !tour) {
+      } else if (path === ROUTES.home && !tour) {
         await wait(TOUR_DIALOG_DELAY_MS);
         start(resumeAt);
       }

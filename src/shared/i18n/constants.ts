@@ -12,6 +12,8 @@ export const LOCALE_CACHE_KEY = 'kids-chores:locale';
 
 export const LOCALE_NAMES = { ru: 'Русский', en: 'English', es: 'Español' } as const;
 
+export const LOCALE_OPTIONS = SUPPORTED_LOCALES.map((value) => ({ value, label: LOCALE_NAMES[value] }));
+
 export const DATE_LOCALES = { ru: 'ru-RU', en: 'en-US', es: 'es-ES' } as const;
 
 export const QUASAR_LANGS = { ru: langRu, en: langEn, es: langEs } as const;

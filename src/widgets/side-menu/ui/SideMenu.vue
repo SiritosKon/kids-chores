@@ -32,7 +32,6 @@
           clickable
           :active="isAt(ROUTES.settings)"
           active-class="side-menu__active"
-          data-tour="settings"
           @click="open(ROUTES.settings)"
         >
           <q-item-section avatar><q-icon name="settings" /></q-item-section>
@@ -75,17 +74,7 @@
       <q-separator spaced />
       <q-item-label header>{{ t('sideMenu.language') }}</q-item-label>
       <div class="q-px-md q-pb-md">
-        <q-btn-toggle
-          :model-value="locale"
-          spread
-          no-caps
-          unelevated
-          color="grey-9"
-          toggle-color="primary"
-          toggle-text-color="black"
-          :options="localeOptions"
-          @update:model-value="pickLocale"
-        />
+        <LanguageToggle :model-value="locale" @update:model-value="pickLocale" />
       </div>
     </q-list>
   </q-drawer>
@@ -101,7 +90,8 @@ import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { ROUTES, APP_NAME } from '@/shared/config/constants';
-import { applyLocale, localeSchema, LOCALE_NAMES, SUPPORTED_LOCALES } from '@/shared/i18n';
+import { applyLocale, type Locale } from '@/shared/i18n';
+import LanguageToggle from '@/shared/ui/LanguageToggle.vue';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { PinDialog } from '@/features/parent-login';
@@ -122,7 +112,6 @@ const tourPending = computed(() => settingsStore.settings?.tourPending === true)
 const appVersion = __APP_VERSION__;
 const iconUrl = `${import.meta.env.BASE_URL}favicon.svg`;
 const showLogin = ref(false);
-const localeOptions = SUPPORTED_LOCALES.map((value) => ({ value, label: LOCALE_NAMES[value] }));
 const installable = canAddToHomeScreen();
 
 const route = useRoute();
@@ -151,11 +140,7 @@ const logout = (): void => {
   parentSession.logout();
 };
 
-const pickLocale = async (value: unknown): Promise<void> => {
-  const picked = localeSchema.safeParse(value).data;
-  if (!picked) {
-    return;
-  }
+const pickLocale = async (picked: Locale): Promise<void> => {
   if (settingsStore.settings) {
     await settingsStore.update({ locale: picked });
   } else {

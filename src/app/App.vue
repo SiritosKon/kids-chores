@@ -27,7 +27,6 @@
                 color="orange"
                 text-color="black"
                 :label="t('app.parentBadge')"
-                data-tour="parent-badge"
               />
             </div>
           </q-toolbar>
@@ -39,8 +38,7 @@
           <q-banner v-if="!persistence" class="bg-warning text-black">
             {{ t('app.storageUnavailable') }}
           </q-banner>
-          <OnboardingPage v-if="needsSetup" />
-          <div v-else-if="settingsStore.loaded" class="page-stack">
+          <div v-if="settingsStore.loaded" class="page-stack">
             <router-view v-slot="{ Component, route }">
               <transition :name="route.meta.transition" mode="out-in">
                 <keep-alive include="HomePage">
@@ -51,6 +49,7 @@
           </div>
         </q-page-container>
       </q-layout>
+      <OnboardingDialog v-if="needsSetup" />
     </div>
   </div>
 </template>
@@ -71,7 +70,7 @@ import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
 import { useParentAutoLogout } from '@/features/parent-auto-logout';
 import { SideMenu } from '@/widgets/side-menu';
-import { OnboardingPage } from '@/pages/onboarding';
+import { OnboardingDialog } from '@/pages/onboarding';
 
 const $q = useQuasar();
 const { t } = useI18n();

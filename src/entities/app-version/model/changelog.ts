@@ -2,6 +2,27 @@ import type { ChangelogEntry } from './types';
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '0.5.7',
+    date: '2026-10-18',
+    notes: {
+      ru: [
+        'Первый запуск: приложение сразу с примером — ребёнок, пять задач и четыре награды, всё можно поменять',
+        'PIN родителя задаётся в окне поверх приложения, там же выбирается язык',
+        'Знакомство короче: четыре шага — дети, задачи, награды и меню',
+      ],
+      en: [
+        'First launch: the app opens with an example — a kid, five chores and four rewards, all of them editable',
+        'The parent PIN is set in a window over the app, where you also pick the language',
+        'A shorter intro tour: four steps — kids, chores, rewards and the menu',
+      ],
+      es: [
+        'Primer inicio: la app se abre con un ejemplo, un niño, cinco tareas y cuatro premios, y todo se puede cambiar',
+        'El PIN de padres se crea en una ventana sobre la app, donde también eliges el idioma',
+        'Un recorrido más corto: cuatro pasos, niños, tareas, premios y el menú',
+      ],
+    },
+  },
+  {
     version: '0.5.6',
     date: '2026-10-18',
     notes: {

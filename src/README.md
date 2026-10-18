@@ -9,7 +9,7 @@
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
 | `pages` | Экраны целиком | `home`, `onboarding`, `settings`, `reward`, `task`, `child`, `spends`, `whats-new`, `install` |
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `side-menu` |
-| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout` |
+| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets` |
 | `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session` |
 | `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets`, `i18n` |
 
@@ -53,12 +53,25 @@ IndexedDB шёл на нужном языке. Переключатель — в
 языках одинаковое и не переводится. Имена детей, задач и наград — данные пользователя, их тоже
 не переводим.
 
+## Первый запуск
+
+Пустая база и нет PIN — приложение сразу показывает главную, а поверх неё окно
+`OnboardingDialog` (`pages/onboarding`), которое нельзя закрыть: приветствие, выбор языка и PIN
+дважды. При открытии окна `features/starter-presets` заполняет пустую базу примером на языке
+приложения: ребёнок, пять задач и четыре награды из магазина. Пресеты создаются, только если
+детей, задач и наград нет совсем, поэтому существующие данные не трогаются. Сменили язык в окне —
+пресеты переименовываются на новый язык, пока окно открыто.
+
+После PIN включается родрежим и идёт знакомство (`useSetupTour`) — четыре шага по главной: дети,
+задачи, награды, меню. Ушли с главной — знакомство встаёт на паузу и продолжается с того же шага
+по возвращении. Пока оно идёт, пункт выхода из родрежима скрыт.
+
 ## Экраны и маршруты
 
 Экраны переключает `vue-router` с hash-историей (`/#/settings`): на GitHub Pages не нужна
 настройка сервера, системная кнопка «Назад» работает. Пути — в `shared/config/constants.ts`,
-таблица маршрутов — в `app/router`. Главная живёт в `keep-alive`: знакомство с приложением
-запускается на ней и переживает переход на страницу настроек. Настройки и всё внутри них —
+таблица маршрутов — в `app/router`. Главная живёт в `keep-alive`, чтобы знакомство с
+приложением, которое идёт на ней, не сбрасывалось. Настройки и всё внутри них —
 отдельные страницы, не модалки (`/settings`, `/settings/stage/:stageId`,
 `/settings/stage/:stageId/reward`, `/settings/pin`), и открываются только в родительском
 режиме.
@@ -75,9 +88,7 @@ IndexedDB шёл на нужном языке. Переключатель — в
 Награда тоже правится страницей (`/rewards/:rewardId`, `pages/reward`): форма `RewardEditForm`
 одна на главную и на «＋ Новая награда» из этапа, модалки редактора нет. Задача — так же:
 `/tasks/:taskId`, `pages/task`, форма `TaskEditForm`; после сохранения страница пересчитывает
-серию, потому что правка задачи меняет, какие дни закрыты. Знакомство с приложением идёт по
-главной и настройкам; ушли с них на другую страницу — знакомство встаёт на паузу и продолжается
-с того же шага по возвращении.
+серию, потому что правка задачи меняет, какие дни закрыты.
 
 Карточка ребёнка (`/children/:childId`, `pages/child`) — она же его кошелёк: на неё ведёт тап по
 копилке на главной. Сверху ребёнок, ниже баланс и операции по дням (`WalletHistory`). Ребёнок

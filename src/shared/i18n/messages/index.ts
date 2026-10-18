@@ -5,6 +5,7 @@ import { taskEntity } from './taskEntity';
 import { rewardEntity } from './rewardEntity';
 import { childEntity } from './childEntity';
 import { awardReward } from './awardReward';
+import { starterPresets } from './starterPresets';
 import { celebrateStreak } from './celebrateStreak';
 import { chooseRewardVariant } from './chooseRewardVariant';
 import { editChild } from './editChild';
@@ -41,6 +42,7 @@ export const messages = {
     rewardEntity: rewardEntity.ru,
     childEntity: childEntity.ru,
     awardReward: awardReward.ru,
+    starterPresets: starterPresets.ru,
     celebrateStreak: celebrateStreak.ru,
     chooseRewardVariant: chooseRewardVariant.ru,
     editChild: editChild.ru,
@@ -76,6 +78,7 @@ export const messages = {
     rewardEntity: rewardEntity.en,
     childEntity: childEntity.en,
     awardReward: awardReward.en,
+    starterPresets: starterPresets.en,
     celebrateStreak: celebrateStreak.en,
     chooseRewardVariant: chooseRewardVariant.en,
     editChild: editChild.en,
@@ -111,6 +114,7 @@ export const messages = {
     rewardEntity: rewardEntity.es,
     childEntity: childEntity.es,
     awardReward: awardReward.es,
+    starterPresets: starterPresets.es,
     celebrateStreak: celebrateStreak.es,
     chooseRewardVariant: chooseRewardVariant.es,
     editChild: editChild.es,

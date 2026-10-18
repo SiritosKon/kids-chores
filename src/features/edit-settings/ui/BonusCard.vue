@@ -1,5 +1,5 @@
 <template>
-  <div class="form-stack" data-tour="settings-bonus">
+  <div class="form-stack">
     <q-toggle
       :model-value="settingsStore.bonus.enabled"
       :label="t('editSettings.bonusToggle')"

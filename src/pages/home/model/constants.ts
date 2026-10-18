@@ -31,33 +31,4 @@ export const TOUR_STEPS: readonly TourStep[] = [
     descriptionKey: 'homePage.tour.menuText',
     side: 'bottom',
   },
-  {
-    element: '[data-tour="settings-streak-toggle"]',
-    titleKey: 'homePage.tour.streakTitle',
-    descriptionKey: 'homePage.tour.streakText',
-    side: 'bottom',
-    inSettings: true,
-    unlocksStreak: true,
-  },
-  {
-    element: '[data-tour="settings-streak"]',
-    titleKey: 'homePage.tour.streakSetupTitle',
-    descriptionKey: 'homePage.tour.streakSetupText',
-    side: 'top',
-    inSettings: true,
-    needsStreak: true,
-  },
-  {
-    element: '[data-tour="settings-bonus"]',
-    titleKey: 'homePage.tour.bonusTitle',
-    descriptionKey: 'homePage.tour.bonusText',
-    side: 'top',
-    inSettings: true,
-  },
-  {
-    element: '[data-tour="parent-badge"]',
-    titleKey: 'homePage.tour.parentModeTitle',
-    descriptionKey: 'homePage.tour.parentModeText',
-    side: 'bottom',
-  },
 ];
