@@ -3,7 +3,7 @@
     <GoalMeterBoard class="q-mb-lg" />
 
     <div class="row items-center q-mb-sm">
-      <div class="text-subtitle1 text-weight-bold">Задачи</div>
+      <div class="text-subtitle1 text-weight-bold">{{ t('homePage.tasks') }}</div>
       <q-space />
       <DateSelector v-model="selectedDate" />
     </div>
@@ -18,12 +18,14 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import { GoalMeterBoard } from '@/widgets/goal-meter-board';
 import { TasksBoard } from '@/widgets/tasks-board';
 import { RewardsPanel } from '@/widgets/rewards-panel';
 import { DateSelector, useSelectedDateStore } from '@/features/select-date';
 import { useSetupTour } from '../model/useSetupTour';
 
+const { t } = useI18n();
 const { selectedDate } = storeToRefs(useSelectedDateStore());
 
 useSetupTour();

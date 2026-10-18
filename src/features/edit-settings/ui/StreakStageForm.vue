@@ -4,14 +4,14 @@
       v-model.number="draft.days"
       type="number"
       inputmode="numeric"
-      label="Сколько дней подряд"
+      :label="t('editSettings.stageDays')"
       :min="STREAK_MIN_DAYS"
       :error="daysTaken"
-      error-message="У этих детей уже есть этап с таким числом дней"
+      :error-message="t('editSettings.stageDaysTaken')"
     />
     <RewardSelect
       :model-value="draft.rewardId"
-      label="Награда"
+      :label="t('editSettings.reward')"
       :visibilities="PRIZE_VISIBILITIES"
       @update:model-value="draft.rewardId = $event"
       @create="emit('create-reward')"
@@ -20,18 +20,18 @@
       v-model.number="draft.points"
       type="number"
       inputmode="numeric"
-      label="Баллы"
+      :label="t('editSettings.points')"
       :min="0"
-      hint="Приз выдаётся один раз за серию. Правка действует с сегодняшнего дня"
+      :hint="t('editSettings.stageHint')"
     />
-    <div v-if="!hasPrize" class="text-negative text-caption">Укажите награду или баллы</div>
+    <div v-if="!hasPrize" class="text-negative text-caption">{{ t('editSettings.prizeRequired') }}</div>
 
     <ChildrenPicker :model-value="chosenChildren ?? null" @update:model-value="chooseChildren" />
 
     <div class="row items-center q-mt-md">
-      <q-btn v-if="stage" flat no-caps color="negative" icon="delete" label="Удалить этап" @click="remove" />
+      <q-btn v-if="stage" flat no-caps color="negative" icon="delete" :label="t('editSettings.removeStage')" @click="remove" />
       <q-space />
-      <q-btn unelevated no-caps color="primary" label="Сохранить" :disable="!canSave" @click="save" />
+      <q-btn unelevated no-caps color="primary" :label="t('common.save')" :disable="!canSave" @click="save" />
     </div>
   </div>
 </template>
@@ -39,10 +39,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { todayKey } from '@/shared/lib/date';
-import { DAY_WORD_FORMS } from '@/shared/lib/constants';
-import { pluralize } from '@/shared/lib/plural';
 import { ChildrenPicker } from '@/entities/child';
 import { RewardSelect, PRIZE_VISIBILITIES } from '@/entities/reward';
 import {
@@ -60,6 +59,7 @@ const props = withDefaults(defineProps<{ stage?: StreakMilestone | null }>(), { 
 const emit = defineEmits<{ changed: []; 'create-reward': [] }>();
 
 const $q = useQuasar();
+const { t } = useI18n();
 const settingsStore = useSettingsStore();
 const { draft } = storeToRefs(useStageDraftStore());
 
@@ -113,10 +113,10 @@ const remove = (): void => {
     return;
   }
   $q.dialog({
-    title: 'Удалить этап',
-    message: `Этап «${stage.days} ${pluralize(stage.days, DAY_WORD_FORMS)} подряд» пропадёт. Уже выданные призы останутся в истории.`,
-    cancel: { flat: true, noCaps: true, label: 'Отмена' },
-    ok: { flat: true, noCaps: true, color: 'negative', label: 'Удалить' },
+    title: t('editSettings.removeStage'),
+    message: t('editSettings.removeStageMessage', { days: t('editSettings.stageDaysInRow', stage.days) }),
+    cancel: { flat: true, noCaps: true, label: t('common.cancel') },
+    ok: { flat: true, noCaps: true, color: 'negative', label: t('common.delete') },
     persistent: true,
   }).onOk(() => store(removeMilestone(settingsStore.streak.milestones, stage.id, todayKey())));
 };

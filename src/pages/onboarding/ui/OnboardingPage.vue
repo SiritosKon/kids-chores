@@ -2,26 +2,19 @@
   <q-page class="onboarding q-pa-lg">
     <div class="onboarding__intro">
       <div class="onboarding__emoji">🏁</div>
-      <div class="text-h5 text-weight-bold q-mb-sm">Добро пожаловать!</div>
-      <p class="text-grey-5">
-        Дети отмечают дела, копят баллы и обменивают их на награды. Настраивает всё родитель в
-        родительском режиме — он закрыт PIN-кодом из шести цифр.
-      </p>
+      <div class="text-h5 text-weight-bold q-mb-sm">{{ t('onboardingPage.welcome') }}</div>
+      <p class="text-grey-5">{{ t('onboardingPage.intro') }}</p>
       <div class="onboarding__alpha">
         <q-icon name="science" size="20px" class="onboarding__alpha-icon" />
         <div>
-          <div class="text-weight-bold">Это альфа-версия</div>
-          <div>
-            Приложение работает только локально: все данные хранятся на этом устройстве и никуда не
-            отправляются. Периодически делайте «Экспорт данных» в родительском режиме, чтобы не потерять
-            информацию.
-          </div>
+          <div class="text-weight-bold">{{ t('onboardingPage.alphaTitle') }}</div>
+          <div>{{ t('onboardingPage.alphaText') }}</div>
         </div>
       </div>
     </div>
 
     <div class="onboarding__pin">
-      <div class="text-center text-subtitle1 q-mb-lg">{{ PIN_SETUP_TITLES[step] }}</div>
+      <div class="text-center text-subtitle1 q-mb-lg">{{ t(PIN_SETUP_TITLE_KEYS[step]) }}</div>
       <PinInput :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="error" @complete="onPin" />
     </div>
   </q-page>
@@ -30,13 +23,16 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
 import { useParentSessionStore } from '@/entities/parent-session';
+import { currentLocale } from '@/shared/i18n';
 import { setupParentPin, PARENT_PIN_LENGTH } from '@/entities/settings';
-import { PIN_SETUP_TITLES } from '../model/constants';
+import { PIN_SETUP_TITLE_KEYS } from '../model/constants';
 import type { PinSetupStep } from '../model/types';
 
 const $q = useQuasar();
+const { t } = useI18n();
 const parentSession = useParentSessionStore();
 
 const step = ref<PinSetupStep>('choose');
@@ -58,10 +54,10 @@ const onPin = async (value: string): Promise<void> => {
       error.value = true;
       pin.value = '';
     });
-    $q.notify({ type: 'negative', message: 'PIN не совпал, попробуйте ещё раз' });
+    $q.notify({ type: 'negative', message: t('onboardingPage.pinMismatch') });
     return;
   }
-  await setupParentPin(value);
+  await setupParentPin(value, currentLocale());
   parentSession.unlock();
 };
 </script>

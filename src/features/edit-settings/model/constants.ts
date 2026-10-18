@@ -1,9 +1,9 @@
 import type { PinStep, StageDraft } from './types';
 
 export const PIN_STEP_TITLES: Readonly<Record<PinStep, string>> = {
-  current: 'Введите текущий PIN',
-  next: 'Придумайте новый PIN',
-  repeat: 'Повторите новый PIN',
+  current: 'editSettings.pinSteps.current',
+  next: 'editSettings.pinSteps.next',
+  repeat: 'editSettings.pinSteps.repeat',
 };
 
 export const STREAK_MIN_DAYS = 2;

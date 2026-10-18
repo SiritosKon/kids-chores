@@ -1,0 +1,96 @@
+import { defineMessages } from '../lib';
+
+export const homePage = defineMessages({
+  ru: {
+    tasks: 'Задачи',
+    tour: {
+      childrenTitle: 'Дети',
+      childrenText: 'Нажмите, чтобы добавить ребёнка: имя и фото. Остальных детей можно добавить потом так же.',
+      childrenHint: 'Добавьте хотя бы одного ребёнка',
+      tasksTitle: 'Задачи',
+      tasksText:
+        'Добавьте ежедневные дела и сколько баллов за каждое. Дети отмечают их галочками, родитель нажимает «Принять».',
+      tasksHint: 'Добавьте хотя бы одну задачу',
+      rewardsTitle: 'Награды',
+      rewardsText: 'Добавьте, на что дети тратят баллы: мультики, сладости, прогулки. Можно сделать и позже.',
+      menuTitle: 'Меню',
+      menuText: 'Здесь настройки, экспорт данных, язык и выход из родительского режима. Сейчас покажем настройки.',
+      streakTitle: 'Серия',
+      streakText:
+        'Награда за дни подряд, когда выполнены все задачи. Включите, чтобы настроить, или нажмите «Далее», если пока не нужно.',
+      streakSetupTitle: 'Настройка серии',
+      streakSetupText:
+        'Этапы серии: например, 7 дней — бабл-чай, 15 дней — набор Лего. Каждый этап даёт приз один раз за серию. Этапы можно добавить сейчас или после знакомства.',
+      bonusTitle: 'Бонус',
+      bonusText: 'Дополнительные баллы за день, в котором отмечены все задачи. Ниже — смена PIN. Всё сохраняется сразу.',
+      parentModeTitle: 'Родительский режим',
+      parentModeText: 'Пока горит эта метка, можно всё менять. Выйти — через меню, тогда дети увидят только свои дела.',
+      progress: '{current} из {total}',
+      skipTitle: 'Пропустить знакомство?',
+      skipText: 'Детей, задачи и награды можно добавить позже в родительском режиме.',
+      continue: 'Продолжить',
+      skip: 'Пропустить',
+    },
+  },
+  en: {
+    tasks: 'Tasks',
+    tour: {
+      childrenTitle: 'Children',
+      childrenText: 'Tap to add a child: a name and a photo. You can add the others the same way later.',
+      childrenHint: 'Add at least one child',
+      tasksTitle: 'Tasks',
+      tasksText: 'Add daily chores and how many points each one is worth. Kids tick them off, then you tap “Accept”.',
+      tasksHint: 'Add at least one task',
+      rewardsTitle: 'Rewards',
+      rewardsText: 'Add what kids spend their points on: cartoons, treats, outings. You can also do this later.',
+      menuTitle: 'Menu',
+      menuText: 'Settings, data export, language and leaving parent mode are all here. Now let’s look at the settings.',
+      streakTitle: 'Streak',
+      streakText:
+        'A reward for days in a row with every task done. Turn it on to set it up, or tap “Next” if you don’t need it yet.',
+      streakSetupTitle: 'Streak setup',
+      streakSetupText:
+        'Streak stages: for example, 7 days — bubble tea, 15 days — a LEGO set. Each stage gives its prize once per streak. Add stages now or after the tour.',
+      bonusTitle: 'Bonus',
+      bonusText: 'Extra points for a day with every task ticked. Below you can change the PIN. Everything saves right away.',
+      parentModeTitle: 'Parent mode',
+      parentModeText: 'While this badge is on, you can change anything. Leave through the menu, and kids will see only their chores.',
+      progress: '{current} of {total}',
+      skipTitle: 'Skip the tour?',
+      skipText: 'You can add children, tasks and rewards later in parent mode.',
+      continue: 'Continue',
+      skip: 'Skip',
+    },
+  },
+  es: {
+    tasks: 'Tareas',
+    tour: {
+      childrenTitle: 'Niños',
+      childrenText: 'Toca para añadir un niño: nombre y foto. Al resto puedes añadirlo igual más tarde.',
+      childrenHint: 'Añade al menos un niño',
+      tasksTitle: 'Tareas',
+      tasksText:
+        'Añade las tareas diarias y cuántos puntos vale cada una. Los niños las marcan y tú pulsas «Aceptar».',
+      tasksHint: 'Añade al menos una tarea',
+      rewardsTitle: 'Premios',
+      rewardsText: 'Añade en qué gastan los puntos: dibujos animados, dulces, paseos. También puedes hacerlo más tarde.',
+      menuTitle: 'Menú',
+      menuText: 'Aquí están los ajustes, la exportación de datos, el idioma y la salida del modo padres. Ahora te mostramos los ajustes.',
+      streakTitle: 'Racha',
+      streakText:
+        'Un premio por días seguidos con todas las tareas hechas. Actívala para configurarla o pulsa «Siguiente» si aún no la necesitas.',
+      streakSetupTitle: 'Configurar la racha',
+      streakSetupText:
+        'Etapas de la racha: por ejemplo, 7 días — un bubble tea, 15 días — un set de LEGO. Cada etapa da su premio una vez por racha. Puedes añadirlas ahora o después del recorrido.',
+      bonusTitle: 'Bono',
+      bonusText: 'Puntos extra por un día con todas las tareas marcadas. Abajo puedes cambiar el PIN. Todo se guarda al instante.',
+      parentModeTitle: 'Modo padres',
+      parentModeText: 'Mientras veas esta etiqueta, puedes cambiarlo todo. Sal desde el menú y los niños solo verán sus tareas.',
+      progress: '{current} de {total}',
+      skipTitle: '¿Saltar el recorrido?',
+      skipText: 'Puedes añadir niños, tareas y premios más tarde en el modo padres.',
+      continue: 'Continuar',
+      skip: 'Saltar',
+    },
+  },
+});

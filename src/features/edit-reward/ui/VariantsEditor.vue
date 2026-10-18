@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="text-caption text-grey-5">Варианты</div>
+    <div class="text-caption text-grey-5">{{ t('editReward.variants') }}</div>
     <div class="text-caption text-grey-6 q-mb-sm">
-      Ребёнок выберет один при получении. Цена у всех вариантов одна — цена награды. Порядок меняется перетаскиванием за ⋮⋮.
+      {{ t('editReward.variantsHelp') }}
     </div>
     <VueDraggable
       v-if="modelValue.length > 0"
@@ -13,11 +13,11 @@
       class="variants q-list q-list--separator"
     >
       <q-item v-for="(variant, index) in modelValue" :key="variant.key">
-        <q-item-section side class="variant-handle" aria-label="Перетащить">
+        <q-item-section side class="variant-handle" :aria-label="t('editReward.drag')">
           <q-icon name="drag_indicator" size="24px" color="grey-5" />
         </q-item-section>
         <q-item-section avatar>
-          <button type="button" class="variant-photo" :aria-label="`Фото: ${variant.name}`" @click="pickPhoto(index)">
+          <button type="button" class="variant-photo" :aria-label="t('editReward.variantPhoto', { name: variant.name })" @click="pickPhoto(index)">
             <img v-if="variant.photo" :src="variant.photo" alt="" />
             <q-icon v-else name="add_a_photo" size="22px" color="grey-5" />
           </button>
@@ -26,17 +26,17 @@
           <q-input
             :model-value="variant.name"
             dense
-            label="Название"
+            :label="t('editReward.variantName')"
             maxlength="40"
             @update:model-value="rename(index, String($event ?? ''))"
           />
         </q-item-section>
         <q-item-section side>
-          <q-btn flat round dense icon="delete" color="negative" aria-label="Удалить вариант" @click="remove(index)" />
+          <q-btn flat round dense icon="delete" color="negative" :aria-label="t('editReward.removeVariant')" @click="remove(index)" />
         </q-item-section>
       </q-item>
     </VueDraggable>
-    <q-btn flat no-caps color="primary" icon="add" label="Добавить вариант" class="q-mt-xs" @click="add" />
+    <q-btn flat no-caps color="primary" icon="add" :label="t('editReward.addVariant')" class="q-mt-xs" @click="add" />
     <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="onPhoto" />
   </div>
 </template>
@@ -44,6 +44,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { VueDraggable } from 'vue-draggable-plus';
 import { resizePhoto } from '@/shared/lib/resizePhoto';
 import { VARIANT_PHOTO_SIZE } from '../lib/constants';
@@ -53,6 +54,7 @@ const props = defineProps<{ modelValue: EditableVariant[] }>();
 const emit = defineEmits<{ 'update:modelValue': [variants: EditableVariant[]] }>();
 
 const $q = useQuasar();
+const { t } = useI18n();
 const fileInput = ref<HTMLInputElement | null>(null);
 const photoTarget = ref<number | null>(null);
 
@@ -99,7 +101,7 @@ const onPhoto = async (): Promise<void> => {
   try {
     replace(index, { photo: await resizePhoto(file, VARIANT_PHOTO_SIZE, 'fit') });
   } catch {
-    $q.notify({ type: 'negative', message: 'Не удалось открыть фото' });
+    $q.notify({ type: 'negative', message: t('editReward.photoFailed') });
   } finally {
     input.value = '';
   }

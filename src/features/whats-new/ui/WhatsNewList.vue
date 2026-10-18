@@ -6,14 +6,18 @@
         <span class="text-caption text-grey-6">{{ item.date }}</span>
       </div>
       <ul class="q-mt-xs q-mb-none">
-        <li v-for="(note, index) in item.notes" :key="index" class="text-body2">{{ note }}</li>
+        <li v-for="(note, index) in item.notes[locale]" :key="index" class="text-body2">{{ note }}</li>
       </ul>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { currentLocale } from '@/shared/i18n';
 import { CHANGELOG } from '@/entities/app-version';
+
+const locale = computed(() => currentLocale());
 </script>
 
 <style scoped>

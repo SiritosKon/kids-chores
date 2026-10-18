@@ -13,13 +13,14 @@ beforeEach(async () => {
 
 describe('setupParentPin', () => {
   it('creates settings with the tour pending on a fresh device', async () => {
-    await setupParentPin('246810');
+    await setupParentPin('246810', 'es');
 
     expect(await getSettings()).toMatchObject({
       parentPin: '246810',
       bonus: { enabled: false },
       streak: { enabled: false, milestones: [] },
       tourPending: true,
+      locale: 'es',
     });
   });
 
@@ -30,9 +31,10 @@ describe('setupParentPin', () => {
       bonus: { enabled: true, points: 2 },
       streak: { enabled: false, milestones: [] },
       tourPending: false,
+      locale: 'ru',
     });
 
-    await setupParentPin('246810');
+    await setupParentPin('246810', 'es');
 
     expect(await getSettings()).toMatchObject({
       parentPin: '246810',
@@ -50,6 +52,7 @@ describe('saveSettings', () => {
       bonus: { enabled: true, points: 1 },
       streak: { enabled: true, milestones: [{ id: 'week', days: 7, rewardId: 'bubble-tea' }] },
       tourPending: false,
+      locale: 'ru' as const,
     });
 
     await saveSettings({ ...settings, streak: { enabled: true, milestones: settings.streak.milestones } });

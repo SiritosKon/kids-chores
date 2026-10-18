@@ -3,23 +3,23 @@ import type { InstallSlide } from './types';
 export const INSTALL_SLIDES: readonly InstallSlide[] = [
   {
     icon: 'ios_share',
-    title: 'Нажмите «Поделиться»',
-    text: 'В Safari это квадрат со стрелкой вверх: на iPad — справа от адресной строки, на iPhone — внизу экрана. Если значка не видно, он спрятан в меню «•••».',
+    title: 'installApp.shareTitle',
+    text: 'installApp.shareText',
   },
   {
     icon: 'add_box',
-    title: 'Выберите «На экран „Домой“»',
-    text: 'Пункт находится в списке действий под контактами и приложениями. Если его не видно, пролистайте список вниз.',
+    title: 'installApp.addTitle',
+    text: 'installApp.addText',
   },
   {
     icon: 'check_circle',
-    title: 'Нажмите «Добавить»',
-    text: 'На экране «Домой» появится иконка с машинкой. Открывайте приложение с неё: оно запускается на весь экран и работает без интернета.',
+    title: 'installApp.confirmTitle',
+    text: 'installApp.confirmText',
   },
   {
     icon: 'sync_alt',
-    title: 'Перенесите данные',
-    text: 'У приложения на экране «Домой» своё хранилище: отметки из этой вкладки туда не попадут. Сделайте здесь «Экспорт данных» в родительском режиме, а в приложении — «Импорт». И не удаляйте иконку без экспорта — данные удалятся вместе с ней.',
+    title: 'installApp.moveTitle',
+    text: 'installApp.moveText',
     warning: true,
   },
 ];

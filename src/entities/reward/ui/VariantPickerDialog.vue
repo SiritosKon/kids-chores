@@ -2,12 +2,14 @@
   <q-dialog :ref="dialog.dialogRef" persistent @hide="dialog.onDialogHide">
     <q-card class="dialog--picker">
       <q-card-section class="row items-center no-wrap">
-        <q-btn v-if="picked" flat round dense icon="arrow_back" aria-label="Назад" @click="picked = null" />
+        <q-btn v-if="picked" flat round dense icon="arrow_back" :aria-label="t('common.back')" @click="picked = null" />
         <div class="col q-ml-xs">
-          <div class="text-h6 ellipsis">{{ picked ? 'Точно этот?' : `Выбери: ${rewardName}` }}</div>
+          <div class="text-h6 ellipsis">
+            {{ picked ? t('rewardEntity.picker.sure') : t('rewardEntity.picker.pick', { name: rewardName }) }}
+          </div>
           <div v-if="caption && !picked" class="text-caption text-grey-5">{{ caption }}</div>
         </div>
-        <q-btn flat round dense icon="close" aria-label="Закрыть" @click="dialog.onDialogCancel" />
+        <q-btn flat round dense icon="close" :aria-label="t('common.close')" @click="dialog.onDialogCancel" />
       </q-card-section>
       <q-separator />
 
@@ -18,8 +20,8 @@
         </button>
         <div class="text-h5 text-weight-bold q-mt-md">{{ picked.name }}</div>
         <div class="row q-gutter-md q-mt-lg justify-center">
-          <q-btn outline rounded no-caps color="grey-5" label="Выбрать другой" @click="picked = null" />
-          <q-btn unelevated rounded no-caps color="primary" label="Да, этот!" @click="confirm" />
+          <q-btn outline rounded no-caps color="grey-5" :label="t('rewardEntity.picker.other')" @click="picked = null" />
+          <q-btn unelevated rounded no-caps color="primary" :label="t('rewardEntity.picker.yes')" @click="confirm" />
         </div>
       </q-card-section>
 
@@ -30,7 +32,7 @@
             <q-icon v-else name="image" size="48px" color="grey-7" />
           </button>
           <div class="variant__name">{{ variant.name }}</div>
-          <q-btn unelevated rounded no-caps color="primary" label="Хочу этот" @click="picked = variant" />
+          <q-btn unelevated rounded no-caps color="primary" :label="t('rewardEntity.picker.want')" @click="picked = variant" />
         </div>
       </div>
     </q-card>
@@ -46,6 +48,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useDialogPluginComponent } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { getVariantPhotos } from '../api/variantsRepo';
 import type { RewardVariant } from '../model/types';
 
@@ -60,6 +63,7 @@ const props = withDefaults(
 defineEmits([...useDialogPluginComponent.emits]);
 
 const dialog = useDialogPluginComponent();
+const { t } = useI18n();
 
 const photos = ref(new Map<string, string>());
 const picked = ref<RewardVariant | null>(null);

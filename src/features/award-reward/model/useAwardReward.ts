@@ -1,4 +1,5 @@
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { celebrateReward } from '@/shared/lib/confetti';
 import type { Child } from '@/entities/child';
 import { useRewardsStore, VariantPickerDialog, type Reward, type VariantChoice } from '@/entities/reward';
@@ -7,6 +8,7 @@ import { useParentSessionStore } from '@/entities/parent-session';
 
 export const useAwardReward = () => {
   const $q = useQuasar();
+  const { t } = useI18n();
   const parentSession = useParentSessionStore();
   const rewardsStore = useRewardsStore();
 
@@ -14,9 +16,14 @@ export const useAwardReward = () => {
     new Promise((resolve) => {
       const title = choice ? `${reward.name} → ${choice.name}` : reward.name;
       $q.dialog({
-        title: 'Наградить',
-        message: `Выдать «${title}» для ${child.name} за ${reward.points} б.?`,
-        cancel: true,
+        title: t('awardReward.title'),
+        message: t('awardReward.confirm', {
+          reward: title,
+          child: child.name,
+          points: t('common.pointsShort', reward.points),
+        }),
+        cancel: { flat: true, noCaps: true, label: t('common.cancel') },
+        ok: { flat: true, noCaps: true, label: t('awardReward.give') },
         persistent: true,
       })
         .onOk(async () => {
@@ -26,7 +33,7 @@ export const useAwardReward = () => {
             reward.points,
             choice ? { variantId: choice.id, variantName: choice.name } : null
           );
-          $q.notify({ type: 'positive', message: `${child.name}: выдано «${title}»` });
+          $q.notify({ type: 'positive', message: t('awardReward.given', { child: child.name, reward: title }) });
           if (!parentSession.active) {
             celebrateReward(child.carColor);
           }

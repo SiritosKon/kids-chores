@@ -10,6 +10,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { ROUTES, NEW_TASK_ID, QUEST_QUERY_KEY } from '@/shared/config/constants';
 import { useGoBack } from '@/shared/lib/useGoBack';
 import PageHeader from '@/shared/ui/PageHeader.vue';
@@ -17,6 +18,7 @@ import { useTasksStore } from '@/entities/task';
 import { TaskEditForm } from '@/features/edit-task';
 import { recalculateStreaks } from '@/features/track-streak';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const goBack = useGoBack();
@@ -42,9 +44,9 @@ watch(
 
 const title = computed(() => {
   if (!task.value) {
-    return asQuest.value ? 'Новый квест' : 'Новая задача';
+    return asQuest.value ? t('taskPage.newQuest') : t('taskPage.newTask');
   }
-  return task.value.quest ? 'Квест' : 'Задача';
+  return task.value.quest ? t('taskPage.quest') : t('taskPage.task');
 });
 
 const close = (): void => {

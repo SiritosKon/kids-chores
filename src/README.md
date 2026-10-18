@@ -11,7 +11,7 @@
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `side-menu` |
 | `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout` |
 | `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session` |
-| `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets` |
+| `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets`, `i18n` |
 
 Сегменты внутри слайса: `ui` — вёрстка, `model` — состояние и логика, `api` — доступ к данным,
 `lib` — чистые помощники, `config` — настройки. Обязательных нет, берётся нужный.
@@ -25,6 +25,33 @@
 Доменное состояние — в `entities/*/model` (`wallet`, `parent-session`), состояние действий —
 в `features/*/model` (`select-date`, `edit-child`). Общей папки `stores/` нет намеренно: это
 группировка по техническому виду вместо группировки по смыслу.
+
+## Языки
+
+Интерфейс на русском, английском и испанском — `vue-i18n` в `shared/i18n`. Словари лежат в
+`shared/i18n/messages`, по файлу на слайс (`editTask.ts`, `homePage.ts`, у сущностей —
+`taskEntity.ts`), и в каждом файле три языка рядом. `defineMessages` выводит тип из русского
+словаря, поэтому лишний или пропущенный ключ в английском или испанском — ошибка типов. Общие
+слова и склонения — в `common.ts`.
+
+В компоненте строки берутся через `useI18n().t`, в модуле без компонента — через
+`i18n.global.t`. Ключ пишется только строковым литералом целиком (`'editTask.title'`):
+`keys.test.ts` находит такие ключи в коде и проверяет, что они есть в словаре. Склонения —
+формы через `|` и `t(key, count)`; для русского три формы, правило на `Intl.PluralRules`
+(`russianPlural`). Даты форматирует `dateLocale()`.
+
+Язык хранится в настройках (`settings.locale`). У строк настроек, записанных до 0.5.6, языка нет,
+и для них он русский. На новой установке язык берётся с устройства: первый из ru, en, es, иначе
+английский. Последний язык ещё и кешируется в `localStorage`, чтобы первый кадр до чтения
+IndexedDB шёл на нужном языке. Переключатель — внизу бокового меню.
+
+Языковой пакет Quasar ставится один раз при запуске: типы `Lang.set` не принимают пакеты из
+`quasar/lang`. Поэтому все `$q.dialog` получают подписи кнопок из словаря, а календарь —
+названия месяцев и дней через `Intl` (`calendarLocale`, `firstDayOfWeek`).
+
+Название приложения — Little Big Deals, коротко LBD (`APP_NAME`, `APP_SHORT_NAME`), на всех
+языках одинаковое и не переводится. Имена детей, задач и наград — данные пользователя, их тоже
+не переводим.
 
 ## Экраны и маршруты
 

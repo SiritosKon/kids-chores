@@ -8,7 +8,7 @@ const CHANGELOG_PATH = join(
   'src/entities/app-version/model/changelog.ts'
 );
 
-const ENTRY_PATTERN = /version:\s*'([^']+)',\s*date:\s*'([^']+)',\s*notes:\s*\[([\s\S]*?)\]/g;
+const ENTRY_PATTERN = /version:\s*'([^']+)',\s*date:\s*'([^']+)',\s*notes:\s*\{\s*ru:\s*\[([\s\S]*?)\]/g;
 const NOTE_PATTERN = /'((?:[^'\\]|\\.)*)'/g;
 
 export const parseVersion = (version) => {

@@ -3,7 +3,7 @@
     <div :key="group.day" class="day-group">
       <div class="day-group__header">
         <span class="day-group__date">{{ formatDayHeader(group.day, today) }}</span>
-        <span v-if="group.day === today" class="day-group__today">сегодня</span>
+        <span v-if="group.day === today" class="day-group__today">{{ t('common.today') }}</span>
         <q-space />
         <slot name="summary" :group="group" />
       </div>
@@ -15,6 +15,7 @@
 </template>
 
 <script setup lang="ts" generic="Item">
+import { useI18n } from 'vue-i18n';
 import { formatDayHeader, todayKey } from '@/shared/lib/date';
 import type { DayGroup } from '@/shared/lib/types';
 
@@ -32,6 +33,7 @@ defineSlots<{
   summary: (props: { group: DayGroup<Item> }) => unknown;
 }>();
 
+const { t } = useI18n();
 const today = todayKey();
 </script>
 

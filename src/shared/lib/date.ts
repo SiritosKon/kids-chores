@@ -1,5 +1,6 @@
 import { date } from 'quasar';
 import { z } from 'zod';
+import { dateLocale } from '@/shared/i18n';
 import { DAY_KEY_FORMAT, DAY_MS } from './constants';
 
 export const dayKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -12,7 +13,7 @@ export const shiftDayKey = (dayKey: string, days: number): string =>
   date.formatDate(date.addToDate(toDate(dayKey), { days }), DAY_KEY_FORMAT);
 
 export const formatDayKeyLong = (dayKey: string): string => {
-  return toDate(dayKey).toLocaleDateString('ru-RU', {
+  return toDate(dayKey).toLocaleDateString(dateLocale(), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -25,7 +26,7 @@ export const formatDayKeyNumeric = (dayKey: string): string => {
 };
 
 export const formatTimestampNumeric = (timestamp: number): string => {
-  return new Date(timestamp).toLocaleDateString('ru-RU', {
+  return new Date(timestamp).toLocaleDateString(dateLocale(), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -33,14 +34,14 @@ export const formatTimestampNumeric = (timestamp: number): string => {
 };
 
 export const formatTimestampShort = (timestamp: number): string => {
-  return new Date(timestamp).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+  return new Date(timestamp).toLocaleDateString(dateLocale(), { day: 'numeric', month: 'short' });
 };
 
 export const dayKeyOf = (timestamp: number): string => date.formatDate(timestamp, DAY_KEY_FORMAT);
 
 export const formatDayHeader = (dayKey: string, today: string = todayKey()): string => {
   const sameYear = dayKey.slice(0, 4) === today.slice(0, 4);
-  return toDate(dayKey).toLocaleDateString('ru-RU', {
+  return toDate(dayKey).toLocaleDateString(dateLocale(), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',

@@ -4,11 +4,11 @@ export type TourRequirement = 'child' | 'task';
 
 export interface TourStep {
   element: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   side: Side;
   requirement?: TourRequirement;
-  requirementHint?: string;
+  requirementHintKey?: string;
   inSettings?: boolean;
   unlocksStreak?: boolean;
   needsStreak?: boolean;

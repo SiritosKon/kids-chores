@@ -1,10 +1,10 @@
 <template>
   <section class="ios-card">
     <div class="row items-center q-px-md q-py-sm">
-      <div class="text-weight-medium">Кошелёк</div>
+      <div class="text-weight-medium">{{ t('walletHistory.title') }}</div>
       <q-space />
       <div class="text-weight-bold text-primary">
-        <q-icon name="savings" size="18px" class="q-mr-xs" />{{ total }} б.
+        <q-icon name="savings" size="18px" class="q-mr-xs" />{{ t('common.pointsShort', total) }}
       </div>
     </div>
     <q-separator />
@@ -23,20 +23,21 @@
             <q-item-label>{{ item.label }}</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <span v-if="item.amount === 0" class="text-orange">приз</span>
+            <span v-if="item.amount === 0" class="text-orange">{{ t('walletHistory.prize') }}</span>
             <span v-else :class="item.amount > 0 ? 'text-positive' : 'text-negative'">
-              {{ signed(item.amount) }} б.
+              {{ signedPoints(item.amount) }}
             </span>
           </q-item-section>
         </q-item>
       </template>
     </DayGroupedList>
-    <div v-else class="q-pa-md text-grey-5">Пока пусто.</div>
+    <div v-else class="q-pa-md text-grey-5">{{ t('walletHistory.empty') }}</div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { dayKeyOf } from '@/shared/lib/date';
 import { groupByDay } from '@/shared/lib/groupByDay';
 import DayGroupedList from '@/shared/ui/DayGroupedList.vue';
@@ -47,6 +48,7 @@ import type { LedgerItem } from './types';
 
 const props = defineProps<{ childId: string }>();
 
+const { t } = useI18n();
 const tasksStore = useTasksStore();
 const rewardsStore = useRewardsStore();
 
@@ -60,6 +62,9 @@ const groups = computed(() => groupByDay(ledger.value, (item) => item.day));
 const keyOf = (item: LedgerItem): string => item.id;
 
 const signed = (amount: number): string => (amount > 0 ? `+${amount}` : String(amount));
+
+const signedPoints = (amount: number): string =>
+  `${amount > 0 ? '+' : '-'}${t('common.pointsShort', Math.abs(amount))}`;
 
 const daySummary = (items: readonly LedgerItem[]): string => {
   const earned = items.filter((item) => item.amount > 0).reduce((sum, item) => sum + item.amount, 0);

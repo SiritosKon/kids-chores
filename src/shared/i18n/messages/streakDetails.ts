@@ -1,0 +1,43 @@
+import { defineMessages } from '../lib';
+
+export const streakDetails = defineMessages({
+  ru: {
+    inRow: 'день подряд | дня подряд | дней подряд',
+    best: 'рекорд',
+    remaining: 'ещё {n} день до {target} | ещё {n} дня до {target} | ещё {n} дней до {target}',
+    allDone: 'Все этапы серии пройдены. Серия прервётся — можно пройти их заново.',
+    stages: 'Этапы серии',
+    daysInRow: '{n} день подряд | {n} дня подряд | {n} дней подряд',
+    notStarted: 'Серия начнётся, как только все задачи дня будут выполнены.',
+    noReward: 'Без награды',
+    surprise: 'Сюрприз',
+    surpriseTarget: 'сюрприза 🎁',
+    quoted: '«{label}»',
+  },
+  en: {
+    inRow: 'day in a row | days in a row',
+    best: 'best',
+    remaining: '{n} more day to {target} | {n} more days to {target}',
+    allDone: 'All streak stages are done. When the streak breaks, they can be earned again.',
+    stages: 'Streak stages',
+    daysInRow: '{n} day in a row | {n} days in a row',
+    notStarted: 'The streak starts as soon as all of the day’s tasks are done.',
+    noReward: 'No reward',
+    surprise: 'Surprise',
+    surpriseTarget: 'the surprise 🎁',
+    quoted: '“{label}”',
+  },
+  es: {
+    inRow: 'día seguido | días seguidos',
+    best: 'récord',
+    remaining: 'falta {n} día para {target} | faltan {n} días para {target}',
+    allDone: 'Todas las etapas de la racha están completas. Cuando la racha se corte, se podrán ganar de nuevo.',
+    stages: 'Etapas de la racha',
+    daysInRow: '{n} día seguido | {n} días seguidos',
+    notStarted: 'La racha empieza en cuanto se completen todas las tareas del día.',
+    noReward: 'Sin premio',
+    surprise: 'Sorpresa',
+    surpriseTarget: 'la sorpresa 🎁',
+    quoted: '«{label}»',
+  },
+});

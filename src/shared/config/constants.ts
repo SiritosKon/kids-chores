@@ -1,3 +1,7 @@
+export const APP_NAME = 'Little Big Deals';
+
+export const APP_SHORT_NAME = 'LBD';
+
 export const ROUTES = {
   home: '/',
   settings: '/settings',

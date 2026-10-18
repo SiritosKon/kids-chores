@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md settings-page">
-    <PageHeader :title="child ? 'Ребёнок' : 'Новый ребёнок'" :back-to="ROUTES.home" />
+    <PageHeader :title="child ? t('childPage.child') : t('childPage.newChild')" :back-to="ROUTES.home" />
     <template v-if="childrenStore.loaded">
       <section v-if="parentActive" class="ios-card q-pa-md">
         <ChildEditForm
@@ -28,6 +28,7 @@
 import { computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { ROUTES, NEW_CHILD_ID, GOAL_QUERY_KEY } from '@/shared/config/constants';
 import { DEFAULT_METER_FIGURE } from '@/shared/ui/constants';
 import { childRewardPath } from '@/shared/lib/routes';
@@ -39,6 +40,7 @@ import { useParentSessionStore } from '@/entities/parent-session';
 import { ChildEditForm } from '@/features/edit-child';
 import { WalletHistory } from '@/features/wallet-history';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const goBack = useGoBack();

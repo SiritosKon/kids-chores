@@ -13,37 +13,42 @@
         :name="index"
         class="column no-wrap flex-center text-center"
       >
-        <div class="install-guide__step">Шаг {{ index + 1 }} из {{ INSTALL_SLIDES.length }}</div>
+        <div class="install-guide__step">
+          {{ t('installApp.step', { current: index + 1, total: INSTALL_SLIDES.length }) }}
+        </div>
         <div class="install-guide__icon" :class="{ 'install-guide__icon--warning': item.warning }">
           <q-icon :name="item.icon" size="44px" />
         </div>
-        <div class="text-subtitle1 text-weight-bold q-mt-md">{{ item.title }}</div>
-        <p class="install-guide__text">{{ item.text }}</p>
+        <div class="text-subtitle1 text-weight-bold q-mt-md">{{ t(item.title) }}</div>
+        <p class="install-guide__text">{{ t(item.text) }}</p>
       </q-carousel-slide>
     </q-carousel>
 
     <q-separator />
     <q-card-actions>
-      <q-btn v-if="slide > 0" flat no-caps icon="arrow_back" label="Назад" @click="slide -= 1" />
+      <q-btn v-if="slide > 0" flat no-caps icon="arrow_back" :label="t('common.back')" @click="slide -= 1" />
       <q-space />
       <q-btn
         v-if="slide < INSTALL_SLIDES.length - 1"
         unelevated
         no-caps
         color="primary"
-        label="Далее"
+        :label="t('common.next')"
         @click="slide += 1"
       />
-      <q-btn v-else unelevated no-caps color="primary" label="Понятно" @click="emit('done')" />
+      <q-btn v-else unelevated no-caps color="primary" :label="t('installApp.gotIt')" @click="emit('done')" />
     </q-card-actions>
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { INSTALL_SLIDES } from '../model/constants';
 
 const emit = defineEmits<{ done: [] }>();
+
+const { t } = useI18n();
 
 const slide = ref(0);
 </script>

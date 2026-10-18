@@ -4,12 +4,12 @@
       <div class="streak-flame">🔥</div>
       <div>
         <div class="streak-count">{{ current }}</div>
-        <div class="streak-caption">{{ daysLabel }} подряд</div>
+        <div class="streak-caption">{{ t('streakDetails.inRow', current) }}</div>
       </div>
       <q-space />
       <div v-if="best > 0" class="streak-best">
         <div class="streak-best__value">{{ best }}</div>
-        <div class="streak-caption">рекорд</div>
+        <div class="streak-caption">{{ t('streakDetails.best') }}</div>
       </div>
     </q-card-section>
 
@@ -19,17 +19,17 @@
       </div>
       <div class="streak-progress-row">
         <span class="streak-remaining">
-          ещё {{ progress.remaining }} {{ remainingLabel }} до {{ progressTarget }}
+          {{ t('streakDetails.remaining', { target: progressTarget }, progress.remaining) }}
         </span>
         <span class="streak-fraction">{{ progress.achieved }} / {{ progress.days }}</span>
       </div>
     </q-card-section>
     <q-card-section v-else-if="milestones.length > 0 && current > 0" class="q-pt-none streak-remaining">
-      Все этапы серии пройдены. Серия прервётся — можно пройти их заново.
+      {{ t('streakDetails.allDone') }}
     </q-card-section>
 
     <q-separator />
-    <q-item-label header>Этапы серии</q-item-label>
+    <q-item-label header>{{ t('streakDetails.stages') }}</q-item-label>
     <q-card-section class="q-pa-none q-pb-sm">
       <q-list separator>
         <q-item
@@ -45,7 +45,7 @@
           <q-item-section>
             <q-item-label>{{ rewardLabel(milestone) }}</q-item-label>
             <q-item-label caption>
-              {{ milestone.days }} {{ pluralize(milestone.days, DAY_WORD_FORMS) }} подряд
+              {{ t('streakDetails.daysInRow', milestone.days) }}
             </q-item-label>
           </q-item-section>
           <q-item-section v-if="isStageReached(current, milestone)" side>
@@ -56,15 +56,14 @@
     </q-card-section>
 
     <q-card-section v-if="current === 0" class="text-grey-5">
-      Серия начнётся, как только все задачи дня будут выполнены.
+      {{ t('streakDetails.notStarted') }}
     </q-card-section>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { DAY_WORD_FORMS } from '@/shared/lib/constants';
-import { pluralize } from '@/shared/lib/plural';
+import { useI18n } from 'vue-i18n';
 import { useRewardsStore, rewardColor } from '@/entities/reward';
 import { useSettingsStore, openMilestones, milestonesFor } from '@/entities/settings';
 import { useStreakStore, streakProgress, isStageReached, type StreakMilestoneInput } from '@/entities/streak';
@@ -73,6 +72,7 @@ import { SURPRISE } from './constants';
 
 const props = defineProps<{ childId: string }>();
 
+const { t } = useI18n();
 const rewardsStore = useRewardsStore();
 const settingsStore = useSettingsStore();
 const streakStore = useStreakStore();
@@ -84,9 +84,6 @@ const current = computed(() => state.value?.current ?? 0);
 const best = computed(() => state.value?.best ?? 0);
 const milestones = computed(() => openMilestones(milestonesFor(settingsStore.streak.milestones, props.childId)));
 const progress = computed(() => streakProgress(current.value, milestones.value));
-
-const daysLabel = computed(() => pluralize(current.value, DAY_WORD_FORMS));
-const remainingLabel = computed(() => pluralize(progress.value?.remaining ?? 0, DAY_WORD_FORMS));
 
 const isSurprise = (rewardId: string | undefined): boolean =>
   rewardId !== undefined && rewardsStore.byId(rewardId)?.visibility === 'hidden';
@@ -110,20 +107,22 @@ const milestoneColor = (milestone: StreakMilestoneInput): string => {
 
 const rewardLabel = (milestone: Pick<StreakMilestoneInput, 'rewardId' | 'points'>): string => {
   if (hidesSurprise(milestone.rewardId)) {
-    return SURPRISE.label;
+    return t(SURPRISE.label);
   }
   if (milestone.rewardId) {
     const name = rewardsStore.nameOf(milestone.rewardId);
-    return isSurprise(milestone.rewardId) ? `${name} · ${SURPRISE.label.toLowerCase()}` : name;
+    return isSurprise(milestone.rewardId) ? `${name} · ${t(SURPRISE.label).toLowerCase()}` : name;
   }
-  return milestone.points ? `${milestone.points} б.` : 'Без награды';
+  return milestone.points ? t('common.pointsShort', milestone.points) : t('streakDetails.noReward');
 };
 
 const progressTarget = computed(() => {
   if (!progress.value) {
     return '';
   }
-  return hidesSurprise(progress.value.rewardId) ? 'сюрприза 🎁' : `«${rewardLabel(progress.value)}»`;
+  return hidesSurprise(progress.value.rewardId)
+    ? t('streakDetails.surpriseTarget')
+    : t('streakDetails.quoted', { label: rewardLabel(progress.value) });
 });
 </script>
 

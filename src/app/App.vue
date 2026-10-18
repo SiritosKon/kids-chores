@@ -10,15 +10,15 @@
               round
               dense
               icon="menu"
-              aria-label="Меню"
+              :aria-label="t('common.menu')"
               data-tour="parent-menu"
               class="q-mr-sm q-mt-xs"
               @click="menuOpen = true"
             />
             <div class="col">
-              <div class="text-h5 text-weight-bold">Домашние дела детей</div>
+              <div class="text-h5 text-weight-bold">{{ APP_NAME }}</div>
               <div class="ios-subtitle">
-                <span class="text-capitalize">{{ dateLabel }}</span> · v{{ appVersion }}
+                {{ dateLabel }} · v{{ appVersion }}
               </div>
             </div>
             <div class="row items-center no-wrap q-gutter-sm">
@@ -26,7 +26,7 @@
                 v-if="parentActive"
                 color="orange"
                 text-color="black"
-                label="Родительский контроль"
+                :label="t('app.parentBadge')"
                 data-tour="parent-badge"
               />
             </div>
@@ -37,7 +37,7 @@
 
         <q-page-container>
           <q-banner v-if="!persistence" class="bg-warning text-black">
-            Хранилище недоступно — отметки не сохранятся между сессиями.
+            {{ t('app.storageUnavailable') }}
           </q-banner>
           <OnboardingPage v-if="needsSetup" />
           <div v-else-if="settingsStore.loaded" class="page-stack">
@@ -58,9 +58,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
-import { ROUTES } from '@/shared/config/constants';
+import { ROUTES, APP_NAME } from '@/shared/config/constants';
+import { applyLocale, currentLocale } from '@/shared/i18n';
 import { formatDayKeyLong } from '@/shared/lib/date';
 import { isPersistenceAvailable } from '@/shared/api/db';
 import { recordVersion } from '@/entities/app-version';
@@ -72,6 +74,7 @@ import { SideMenu } from '@/widgets/side-menu';
 import { OnboardingPage } from '@/pages/onboarding';
 
 const $q = useQuasar();
+const { t } = useI18n();
 const persistence = isPersistenceAvailable();
 const { selectedDate } = storeToRefs(useSelectedDateStore());
 const { active: parentActive } = storeToRefs(useParentSessionStore());
@@ -90,9 +93,18 @@ watch(parentActive, (active) => {
   }
 });
 
+watch(
+  () => settingsStore.settings?.locale,
+  (locale) => applyLocale(locale ?? currentLocale()),
+  { immediate: true }
+);
+
 const needsSetup = computed(() => settingsStore.loaded && !settingsStore.settings?.parentPin);
 
-const dateLabel = computed(() => formatDayKeyLong(selectedDate.value));
+const dateLabel = computed(() => {
+  const label = formatDayKeyLong(selectedDate.value);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+});
 
 declare global {
   interface Window {
@@ -109,7 +121,7 @@ onMounted(async () => {
       };
       $q.notify({
         html: true,
-        message: `<span onclick="window.__kidsWhatsNew()" style="cursor:pointer;display:block">Обновлено до v${appVersion}</span>`,
+        message: `<span onclick="window.__kidsWhatsNew()" style="cursor:pointer;display:block">${t('app.updated', { version: appVersion })}</span>`,
         icon: 'system_update',
         color: 'dark',
         textColor: 'white',

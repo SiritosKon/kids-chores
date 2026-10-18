@@ -2,7 +2,7 @@
   <div class="form-stack" data-tour="settings-bonus">
     <q-toggle
       :model-value="settingsStore.bonus.enabled"
-      label="Начислять бонус, когда отмечены все задачи дня"
+      :label="t('editSettings.bonusToggle')"
       color="primary"
       @update:model-value="toggle"
     />
@@ -11,10 +11,10 @@
       v-model.number="points"
       type="number"
       inputmode="numeric"
-      label="Размер бонуса"
+      :label="t('editSettings.bonusSize')"
       :min="1"
       :error="!isValid"
-      error-message="Не меньше 1 балла"
+      :error-message="t('editSettings.bonusMin')"
       @change="savePoints"
     />
   </div>
@@ -22,8 +22,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useSettingsStore } from '@/entities/settings';
 
+const { t } = useI18n();
 const settingsStore = useSettingsStore();
 
 const points = ref(settingsStore.bonus.points || 1);

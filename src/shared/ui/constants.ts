@@ -81,9 +81,9 @@ export const METER_FIGURES = ['truck', 'boat', 'plane', 'helicopter', 'ball'] as
 export const DEFAULT_METER_FIGURE = 'truck';
 
 export const METER_FIGURE_LABELS = {
-  truck: 'Машинка',
-  boat: 'Кораблик',
-  plane: 'Самолётик',
-  helicopter: 'Вертолётик',
-  ball: 'Мяч',
+  truck: 'shared.figures.truck',
+  boat: 'shared.figures.boat',
+  plane: 'shared.figures.plane',
+  helicopter: 'shared.figures.helicopter',
+  ball: 'shared.figures.ball',
 } as const;

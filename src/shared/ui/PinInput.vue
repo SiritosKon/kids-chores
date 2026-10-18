@@ -13,7 +13,7 @@
     autocapitalize="off"
     spellcheck="false"
     :maxlength="length"
-    label="PIN-код"
+    :label="t('shared.pinLabel')"
     autofocus
     @update:model-value="onInput"
   >
@@ -21,7 +21,7 @@
       <q-icon
         :name="visible ? 'visibility_off' : 'visibility'"
         class="cursor-pointer"
-        :aria-label="visible ? 'Скрыть PIN' : 'Показать PIN'"
+        :aria-label="visible ? t('shared.hidePin') : t('shared.showPin')"
         @click="visible = !visible"
       />
     </template>
@@ -31,12 +31,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import type { QInput } from 'quasar';
+import { useI18n } from 'vue-i18n';
 
 const props = withDefaults(defineProps<{ modelValue: string; length: number; error?: boolean }>(), {
   error: false,
 });
 const emit = defineEmits<{ 'update:modelValue': [value: string]; complete: [value: string] }>();
 
+const { t } = useI18n();
 const field = ref<QInput | null>(null);
 const visible = ref(false);
 

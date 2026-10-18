@@ -1,0 +1,43 @@
+import { defineMessages } from '../lib';
+
+export const parentLogin = defineMessages({
+  ru: {
+    title: 'Родительский режим',
+    resetTitle: 'Сброс PIN',
+    forgot: 'Забыли PIN?',
+    unlocked: 'Родительский режим включён',
+    checkStep: 'Проверка для взрослых',
+    nextStep: 'Придумайте новый PIN',
+    repeatStep: 'Повторите новый PIN',
+    question: 'Сколько будет {question}?',
+    answer: 'Ответ',
+    wrongAnswer: 'Неверно. Вот другой пример',
+    pinChanged: 'PIN изменён, родительский режим включён',
+  },
+  en: {
+    title: 'Parent mode',
+    resetTitle: 'Reset PIN',
+    forgot: 'Forgot PIN?',
+    unlocked: 'Parent mode is on',
+    checkStep: 'Grown-ups only',
+    nextStep: 'Choose a new PIN',
+    repeatStep: 'Repeat the new PIN',
+    question: 'What is {question}?',
+    answer: 'Answer',
+    wrongAnswer: "That's not right. Try this one",
+    pinChanged: 'PIN changed, parent mode is on',
+  },
+  es: {
+    title: 'Modo padres',
+    resetTitle: 'Restablecer PIN',
+    forgot: '¿Olvidaste el PIN?',
+    unlocked: 'Modo padres activado',
+    checkStep: 'Solo para adultos',
+    nextStep: 'Elige un PIN nuevo',
+    repeatStep: 'Repite el PIN nuevo',
+    question: '¿Cuánto es {question}?',
+    answer: 'Respuesta',
+    wrongAnswer: 'No es correcto. Prueba con esta',
+    pinChanged: 'PIN cambiado, modo padres activado',
+  },
+});

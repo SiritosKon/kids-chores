@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { dayKeySchema } from '@/shared/lib/date';
+import { localeSchema, LEGACY_LOCALE } from '@/shared/i18n';
 import { SETTINGS_ID, PIN_PATTERN, LEGACY_BONUS, LEGACY_STREAK } from './constants';
 import type { Settings } from './types';
 
@@ -33,6 +34,7 @@ export const settingsSchema = z.object({
   bonus: bonusSettingsSchema,
   streak: streakSettingsSchema,
   tourPending: z.boolean(),
+  locale: localeSchema,
 });
 
 export const storedSettingsSchema = z
@@ -43,6 +45,7 @@ export const storedSettingsSchema = z
     bonus: bonusSettingsSchema.default(LEGACY_BONUS),
     streak: streakSettingsSchema.default(LEGACY_STREAK),
     tourPending: z.boolean().default(false),
+    locale: localeSchema.optional(),
   })
   .transform((row): Settings => {
     const stored = row.parentPin ?? row.parentPassword ?? '';
@@ -52,5 +55,6 @@ export const storedSettingsSchema = z
       bonus: row.bonus,
       streak: row.streak,
       tourPending: row.tourPending,
+      locale: row.locale ?? LEGACY_LOCALE,
     };
   });

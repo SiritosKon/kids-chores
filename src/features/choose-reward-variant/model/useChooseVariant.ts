@@ -1,4 +1,5 @@
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { celebrateReward } from '@/shared/lib/confetti';
 import { useChildrenStore } from '@/entities/child';
 import { useRewardsStore, VariantPickerDialog, type VariantChoice } from '@/entities/reward';
@@ -7,6 +8,7 @@ import { useParentSessionStore } from '@/entities/parent-session';
 
 export const useChooseVariant = () => {
   const $q = useQuasar();
+  const { t } = useI18n();
   const rewardsStore = useRewardsStore();
   const childrenStore = useChildrenStore();
   const parentSession = useParentSessionStore();
@@ -23,12 +25,12 @@ export const useChooseVariant = () => {
         componentProps: {
           rewardName: rewardsStore.nameOf(spend.rewardId),
           variants,
-          caption: `${childrenStore.nameOf(spend.childId)} · приз за серию`,
+          caption: t('chooseRewardVariant.caption', { child: childrenStore.nameOf(spend.childId) }),
         },
       })
         .onOk(async (choice: VariantChoice) => {
           await chooseSpendVariant(spend.id, { variantId: choice.id, variantName: choice.name });
-          $q.notify({ type: 'positive', message: `Выбрано: ${choice.name}` });
+          $q.notify({ type: 'positive', message: t('chooseRewardVariant.chosen', { name: choice.name }) });
           if (!parentSession.active) {
             celebrateReward(childrenStore.byId(spend.childId)?.carColor);
           }

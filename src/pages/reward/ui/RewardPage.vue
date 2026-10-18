@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md settings-page">
-    <PageHeader :title="reward ? 'Награда' : 'Новая награда'" :back-to="ROUTES.home" />
+    <PageHeader :title="reward ? t('rewardPage.reward') : t('rewardPage.newReward')" :back-to="ROUTES.home" />
     <section v-if="rewardsStore.loaded" class="ios-card q-pa-md">
       <RewardEditForm :key="rewardId" :reward="reward" @done="close" @cancel="close" />
     </section>
@@ -10,12 +10,14 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { ROUTES, NEW_REWARD_ID } from '@/shared/config/constants';
 import { useGoBack } from '@/shared/lib/useGoBack';
 import PageHeader from '@/shared/ui/PageHeader.vue';
 import { useRewardsStore } from '@/entities/reward';
 import { RewardEditForm } from '@/features/edit-reward';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const goBack = useGoBack();

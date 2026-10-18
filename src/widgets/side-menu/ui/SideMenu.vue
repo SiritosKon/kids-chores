@@ -11,7 +11,7 @@
     <div class="side-menu__head">
       <img :src="iconUrl" alt="" class="side-menu__icon" />
       <div class="col">
-        <div class="text-subtitle1 text-weight-bold">Домашние дела детей</div>
+        <div class="text-subtitle1 text-weight-bold">{{ APP_NAME }}</div>
         <div class="ios-subtitle">v{{ appVersion }}</div>
       </div>
     </div>
@@ -19,15 +19,15 @@
     <q-list>
       <q-item clickable :active="isAt(ROUTES.home)" active-class="side-menu__active" @click="open(ROUTES.home)">
         <q-item-section avatar><q-icon name="home" /></q-item-section>
-        <q-item-section>Главная</q-item-section>
+        <q-item-section>{{ t('sideMenu.home') }}</q-item-section>
       </q-item>
 
       <q-item v-if="!active" clickable @click="login">
         <q-item-section avatar><q-icon name="lock" /></q-item-section>
-        <q-item-section>Родительский режим</q-item-section>
+        <q-item-section>{{ t('sideMenu.parentMode') }}</q-item-section>
       </q-item>
       <template v-else>
-        <q-item-label header>Родительский режим</q-item-label>
+        <q-item-label header>{{ t('sideMenu.parentMode') }}</q-item-label>
         <q-item
           clickable
           :active="isAt(ROUTES.settings)"
@@ -36,30 +36,30 @@
           @click="open(ROUTES.settings)"
         >
           <q-item-section avatar><q-icon name="settings" /></q-item-section>
-          <q-item-section>Настройки</q-item-section>
+          <q-item-section>{{ t('sideMenu.settings') }}</q-item-section>
         </q-item>
         <q-item clickable :active="isAt(ROUTES.spends)" active-class="side-menu__active" @click="open(ROUTES.spends)">
           <q-item-section avatar><q-icon name="history" /></q-item-section>
-          <q-item-section>История списаний</q-item-section>
+          <q-item-section>{{ t('sideMenu.spends') }}</q-item-section>
         </q-item>
         <q-item clickable @click="exportData">
           <q-item-section avatar><q-icon name="download" /></q-item-section>
-          <q-item-section>Экспорт данных</q-item-section>
+          <q-item-section>{{ t('sideMenu.exportData') }}</q-item-section>
         </q-item>
         <q-item clickable @click="pickFile">
           <q-item-section avatar><q-icon name="upload" /></q-item-section>
-          <q-item-section>Импорт данных</q-item-section>
+          <q-item-section>{{ t('sideMenu.importData') }}</q-item-section>
         </q-item>
         <q-item v-if="!tourPending" clickable @click="logout">
           <q-item-section avatar><q-icon name="logout" /></q-item-section>
-          <q-item-section>Выйти из режима</q-item-section>
+          <q-item-section>{{ t('sideMenu.logout') }}</q-item-section>
         </q-item>
       </template>
 
       <q-separator spaced />
       <q-item clickable :active="isAt(ROUTES.whatsNew)" active-class="side-menu__active" @click="open(ROUTES.whatsNew)">
         <q-item-section avatar><q-icon name="auto_awesome" /></q-item-section>
-        <q-item-section>Что нового</q-item-section>
+        <q-item-section>{{ t('sideMenu.whatsNew') }}</q-item-section>
       </q-item>
       <q-item
         v-if="installable"
@@ -69,8 +69,24 @@
         @click="open(ROUTES.install)"
       >
         <q-item-section avatar><q-icon name="add_to_home_screen" /></q-item-section>
-        <q-item-section>Как добавить на экран</q-item-section>
+        <q-item-section>{{ t('sideMenu.install') }}</q-item-section>
       </q-item>
+
+      <q-separator spaced />
+      <q-item-label header>{{ t('sideMenu.language') }}</q-item-label>
+      <div class="q-px-md q-pb-md">
+        <q-btn-toggle
+          :model-value="locale"
+          spread
+          no-caps
+          unelevated
+          color="grey-9"
+          toggle-color="primary"
+          toggle-text-color="black"
+          :options="localeOptions"
+          @update:model-value="pickLocale"
+        />
+      </div>
     </q-list>
   </q-drawer>
 
@@ -83,7 +99,9 @@ import { ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
-import { ROUTES } from '@/shared/config/constants';
+import { useI18n } from 'vue-i18n';
+import { ROUTES, APP_NAME } from '@/shared/config/constants';
+import { applyLocale, localeSchema, LOCALE_NAMES, SUPPORTED_LOCALES } from '@/shared/i18n';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { PinDialog } from '@/features/parent-login';
@@ -95,6 +113,7 @@ defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
 const $q = useQuasar();
+const { t, locale } = useI18n();
 const parentSession = useParentSessionStore();
 const { active } = storeToRefs(parentSession);
 const settingsStore = useSettingsStore();
@@ -103,6 +122,7 @@ const tourPending = computed(() => settingsStore.settings?.tourPending === true)
 const appVersion = __APP_VERSION__;
 const iconUrl = `${import.meta.env.BASE_URL}favicon.svg`;
 const showLogin = ref(false);
+const localeOptions = SUPPORTED_LOCALES.map((value) => ({ value, label: LOCALE_NAMES[value] }));
 const installable = canAddToHomeScreen();
 
 const route = useRoute();
@@ -131,6 +151,18 @@ const logout = (): void => {
   parentSession.logout();
 };
 
+const pickLocale = async (value: unknown): Promise<void> => {
+  const picked = localeSchema.safeParse(value).data;
+  if (!picked) {
+    return;
+  }
+  if (settingsStore.settings) {
+    await settingsStore.update({ locale: picked });
+  } else {
+    applyLocale(picked);
+  }
+};
+
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const exportData = async (): Promise<void> => {
@@ -153,10 +185,10 @@ const onFile = async (event: Event): Promise<void> => {
   try {
     await importAll(JSON.parse(await file.text()));
     await recalculateStreaks();
-    $q.notify({ type: 'positive', message: 'Импорт выполнен' });
+    $q.notify({ type: 'positive', message: t('sideMenu.imported') });
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    $q.notify({ type: 'negative', message: `Ошибка импорта: ${reason}` });
+    $q.notify({ type: 'negative', message: t('sideMenu.importFailed', { reason }) });
   } finally {
     input.value = '';
   }

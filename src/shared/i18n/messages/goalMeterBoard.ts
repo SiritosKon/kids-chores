@@ -1,0 +1,40 @@
+import { defineMessages } from '../lib';
+
+export const goalMeterBoard = defineMessages({
+  ru: {
+    streakAria: 'Серия: {count}',
+    streakLabel: 'день подряд | дня подряд | дней подряд',
+    chooseGift: '🎁 Выбери подарок',
+    goal: 'Цель: {name}',
+    claim: 'Получить',
+    removeGoal: 'Убрать цель',
+    addGoal: 'Добавить цель',
+    addChild: 'Добавить ребёнка',
+    removeGoalMessage: '{child} больше не копит на «{goal}». Баллы останутся в копилке.',
+    goalFallback: 'цель',
+  },
+  en: {
+    streakAria: 'Streak: {count}',
+    streakLabel: 'day in a row | days in a row',
+    chooseGift: '🎁 Pick a gift',
+    goal: 'Goal: {name}',
+    claim: 'Claim',
+    removeGoal: 'Remove goal',
+    addGoal: 'Add goal',
+    addChild: 'Add kid',
+    removeGoalMessage: '{child} will stop saving for “{goal}”. The points stay in the piggy bank.',
+    goalFallback: 'the goal',
+  },
+  es: {
+    streakAria: 'Racha: {count}',
+    streakLabel: 'día seguido | días seguidos',
+    chooseGift: '🎁 Elige un regalo',
+    goal: 'Meta: {name}',
+    claim: 'Canjear',
+    removeGoal: 'Quitar meta',
+    addGoal: 'Añadir meta',
+    addChild: 'Añadir niño',
+    removeGoalMessage: '{child} dejará de ahorrar para «{goal}». Los puntos se quedan en la alcancía.',
+    goalFallback: 'la meta',
+  },
+});
