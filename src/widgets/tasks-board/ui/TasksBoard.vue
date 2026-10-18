@@ -339,4 +339,27 @@ const openQuestEditor = (): void => {
   font-size: 13px;
   font-weight: 600;
 }
+
+.tasks-head .tasks-col {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .tasks-head {
+    padding: 8px 12px;
+  }
+
+  .task-row {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .tasks-col {
+    width: 44px;
+    font-size: 11px;
+  }
+}
 </style>

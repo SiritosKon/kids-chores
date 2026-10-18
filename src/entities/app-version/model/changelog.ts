@@ -2,6 +2,15 @@ import type { ChangelogEntry } from './types';
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '0.5.8',
+    date: '2026-10-18',
+    notes: {
+      ru: ['На телефоне колонки детей на доске задач уже, и названия задач больше не ломаются по слову на строку'],
+      en: ["On phones the kids' columns on the task board are narrower, so chore names no longer break one word per line"],
+      es: ['En el móvil las columnas de los niños en el tablero son más estrechas y los nombres de las tareas ya no se parten palabra por palabra'],
+    },
+  },
+  {
     version: '0.5.7',
     date: '2026-10-18',
     notes: {
