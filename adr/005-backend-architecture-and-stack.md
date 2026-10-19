@@ -26,7 +26,7 @@
 | База | PostgreSQL | Главная копия данных, Row-Level Security, восстановление на момент времени |
 | Работа с базой | Prisma и Prisma Migrate | Типы из схемы, понятные миграции; политики RLS — SQL в тех же миграциях |
 | Сессии, события, очереди | Valkey: ключи с TTL, Streams, BullMQ | Брокер с первого дня, лицензия без условий |
-| Вход | `openid-client` для Google, свои адаптеры для Яндекс ID и VK ID | Храним только хеш идентификатора, без email и профиля |
+| Вход | `openid-client` для Google и Apple, свои адаптеры для Яндекс ID и VK ID, `@simplewebauthn/server` для Face ID | Храним только хеш идентификатора и открытый ключ passkey, без email и профиля (ADR-008) |
 | Логи | pino, JSON в stdout | Без персональных данных: id вместо имён, без IP |
 | Тесты | vitest, интеграционные — на настоящем Postgres из Compose | Как во фронте; изоляцию семей проверяем на живой базе |
 
@@ -86,7 +86,7 @@ modules/tasks/
 
 | Модуль | Отвечает за | HTTP |
 |---|---|---|
-| Identity | Аккаунты провайдеров, сессии, устройства | `/v1/auth/*`, `/v1/me` |
+| Identity | Аккаунты провайдеров, passkey, сессии, устройства, dev-вход | `/v1/auth/*`, `/v1/me`, `/v1/dev/login` |
 | Family | Семья, часовой пояс, членство | через Sync |
 | Children | Дети, цели | через Sync |
 | Tasks | Задачи, квесты, периоды активности | через Sync |
@@ -101,11 +101,13 @@ modules/tasks/
 
 | Метод и путь | Что делает |
 |---|---|
-| `GET /v1/meta` | Версия сервера, `minClientVersion`, коммит |
+| `GET /v1/meta` | Версия сервера, `minClientVersion`, коммит, включённые способы входа, включён ли dev-вход |
 | `GET /v1/auth/:provider/start` | Начало входа: редирект к провайдеру с PKCE |
 | `GET /v1/auth/:provider/callback` | Возврат от провайдера: найти или создать аккаунт, поставить cookie |
+| `POST /v1/auth/passkey/*`, `DELETE /v1/auth/passkey/:id` | Face ID: создать passkey, войти или проверить, отключить (ADR-008) |
 | `POST /v1/auth/logout` | Выход: удалить сессию |
-| `GET /v1/me` | Текущая семья и устройство |
+| `GET /v1/me` | Текущий пользователь, семья и устройство |
+| `POST /v1/dev/login` | Только при `DEV_LOGIN=true`: вход по имени без провайдера |
 | `POST /v1/sync/push` | Пачка изменений: онлайн — одно, после офлайна — вся очередь |
 | `GET /v1/sync/pull?since=N` | Изменения семьи с номера `N` |
 | `GET /v1/sync/snapshot` | Всё состояние семьи — для нового устройства |
@@ -203,10 +205,13 @@ packages/contracts/
 | `MIGRATOR_DATABASE_URL` | `migrate` | Подключение роли `migrator` |
 | `VALKEY_URL` | все | Подключение к Valkey с паролем |
 | `PUBLIC_ORIGIN` | `api` | Адрес фронта для проверки `Origin` и редиректов после входа |
-| `REGION` | все | `eu` или `ru`: какие провайдеры входа включены |
-| `AUTH_PEPPER` | `api` | Секрет для хеша идентификатора провайдера |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `api` | Вход в EU |
-| `YANDEX_CLIENT_ID`, `YANDEX_CLIENT_SECRET`, `VK_CLIENT_ID`, `VK_CLIENT_SECRET` | `api` | Вход в RU |
+| `REGION` | все | Контур: `eu` или `ru` |
+| `AUTH_PROVIDERS` | `api` | Включённые способы входа через запятую: `google`, `yandex`, `vk`, `apple` |
+| `AUTH_PEPPER` | `api` | Секрет для хеша идентификатора провайдера; не меняется никогда |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `api` | Вход через Google |
+| `YANDEX_CLIENT_ID`, `YANDEX_CLIENT_SECRET`, `VK_CLIENT_ID`, `VK_CLIENT_SECRET` | `api` | Вход через Яндекс ID и VK ID |
+| `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | `api` | Вход через Apple: из ключа `api` подписывает секрет клиента |
+| `WEBAUTHN_RP_ID` | `api` | Домен, к которому привязаны passkey; локально `localhost` |
 | `MIN_CLIENT_VERSION` | `api` | Минимальная версия PWA |
 | `DEV_LOGIN` | `api` | `true` только локально: вход без провайдера |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | `notifications` | Web Push, позже |
@@ -291,8 +296,9 @@ npm 11.19 в образе `node:24-alpine` не запускает install-ск�
 - **Фронт с горячей перезагрузкой** — `npm run dev -w apps/web`; Vite проксирует `/v1` на
   `http://localhost:8080`, поэтому фронт и API для браузера остаются на одном адресе.
 - **Вход без провайдера.** Локально у провайдеров нет зарегистрированного приложения, поэтому при
-  `DEV_LOGIN=true` есть `POST /v1/dev/login`: создаёт тестовую семью и сессию. Если `DEV_LOGIN`
-  включён вместе с `NODE_ENV=production`, `api` отказывается стартовать.
+  `DEV_LOGIN=true` есть `POST /v1/dev/login` с именем: одно имя — одна и та же тестовая семья,
+  разные имена — разные семьи. Если `DEV_LOGIN` включён вместе с `NODE_ENV=production`, `api`
+  отказывается стартовать. Face ID (passkey) работает на `localhost` без провайдера.
 
 ## Рассмотренные варианты
 
@@ -316,4 +322,5 @@ npm 11.19 в образе `node:24-alpine` не запускает install-ск�
 - Каждая таблица семьи получает политику RLS в миграции, и для каждой есть тест, что чужая семья
   её не видит.
 - Для локального запуска нужны Docker или Podman и Node той же версии, что в CI.
-- Вход через провайдеров проверяется только на домене с HTTPS. Локально работает `DEV_LOGIN`.
+- Вход через провайдеров и всё на iPad проверяется только по HTTPS: на домене контура или через
+  туннель. Локально работают `DEV_LOGIN` и passkey в браузере на машине.
