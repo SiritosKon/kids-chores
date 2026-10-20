@@ -104,6 +104,8 @@ flowchart TB
 
 - Сессия хранится в Valkey: `userId`, `familyId`, `deviceId`, время создания. id сессии — 32
   случайных байта; в cookie лежит сам id, в Valkey ключом — его хеш.
+- Сессию читает и `notifications` (ADR-010): формат ключа и способ хеширования описаны в
+  `packages/contracts`. Продлевает срок только `api`.
 - Cookie `httpOnly; Secure; SameSite=Lax`, только для `/v1`. В локальном контуре
   (`DEV_LOGIN=true`) без `Secure`: приложение открыто по `http://localhost`.
 - Срок — 30 дней, продлевается при каждом запросе. Планшет, которым пользуются, не
@@ -147,11 +149,15 @@ flowchart TB
 ### 7. Защита API
 
 - **Сессия.** Guard читает cookie, находит сессию в Valkey и передаёт `userId`, `familyId` и
-  `deviceId` дальше. Нет сессии — `401`. Без сессии открыты только `/v1/meta`, `/v1/auth/*` и
-  `/v1/dev/login`.
+  `deviceId` дальше. Нет сессии — `401`. Без сессии открыты только `/v1/meta`, `/v1/changelog`, `/v1/auth/*`
+  и `/v1/dev/login`.
 - **`Origin`.** Изменяющие запросы принимаются только с `PUBLIC_ORIGIN`, иначе `403`. Вместе с
   `SameSite=Lax` это защита от подделки запросов с чужих сайтов.
-- **Версия клиента.** `X-App-Version` ниже `MIN_CLIENT_VERSION` — `426`.
+- **Версия клиента.** `X-App-Version` ниже `MIN_CLIENT_VERSION` или заголовка нет — `426`.
+  Исключения — в ADR-002.
+- **CORS.** На домене контура API живёт на `api.<домен>`, приложение — на `app.<домен>`. `api`
+  разрешает запросы с cookie только с `PUBLIC_ORIGIN`, фронт шлёт их с `credentials: 'include'`.
+  Локально всё на одном адресе, CORS не нужен.
 - **Лимиты.** Счётчики в Valkey с коротким сроком: для входа и passkey — по IP, для остального — по
   сессии. В постоянные логи IP не попадает.
 - **Заголовки.** CSP, HSTS, `X-Content-Type-Options` и `Referrer-Policy` ставит nginx. Точный CSP
@@ -174,6 +180,7 @@ flowchart TB
 | `POST /v1/auth/handoff`, `POST /v1/auth/handoff/redeem` | Передача входа кодом на iOS — если проверка на iPad покажет, что она нужна |
 | `POST /v1/auth/logout` | Удалить сессию |
 | `GET /v1/me` | Пользователь, семья, устройство, есть ли passkey |
+| `DELETE /v1/me` | Удалить аккаунт, а с ним и семью (ADR-009) |
 | `POST /v1/dev/login` | Только при `DEV_LOGIN=true`, раздел 9 |
 
 ### 9. Локально

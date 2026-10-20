@@ -35,9 +35,9 @@
 | Процесс | Образ | Что делает |
 |---|---|---|
 | `api` | `apps/api` | HTTP API на порту 3000: вход, синхронизация, бэкап, meta |
-| `outbox-relay` | `apps/api`, команда `relay` | Раз в секунду забирает неотправленные события из `outbox`, кладёт в Stream `events`, помечает отправленными |
+| `outbox-relay` | `apps/api`, команда `relay` | Забирает неотправленные события из `outbox` пачками до 100, кладёт в Stream `events`, помечает отправленными; пока есть что отправлять — сразу следующую пачку, иначе пауза в секунду (ADR-006) |
 | `notifications` | `apps/notifications` | В одном процессе: читатель событий своей группой, обработчик задач BullMQ и HTTP на порту 3001 для `/v1/notifications/*` |
-| `migrate` | `apps/api` | Разовый запуск перед деплоем: миграции схем `core` и `notifications` |
+| `migrate` | `apps/api` | Разовый запуск перед деплоем: миграции схем `core` и `notifications`, затем записи ченджлога в базу (ADR-002) |
 
 ### 3. Структура `apps/api`
 
@@ -56,11 +56,12 @@ apps/api/
       database/            Prisma Client и транзакция с family_id
       valkey/              подключение к Valkey
       outbox/              запись событий и цикл relay
+      storage/             S3: подписанные ссылки на загрузку и удаление файлов
       http/                guards: сессия, Origin, X-App-Version, лимит запросов
       logger/              pino
     modules/
       identity/  family/  children/  tasks/  rewards/
-      ledger/  settings/  sync/  backup/  meta/
+      ledger/  settings/  sync/  backup/  media/  meta/
   test/                    интеграционные тесты
 ```
 
@@ -86,33 +87,37 @@ modules/tasks/
 
 | Модуль | Отвечает за | HTTP |
 |---|---|---|
-| Identity | Аккаунты провайдеров, passkey, сессии, устройства, dev-вход | `/v1/auth/*`, `/v1/me`, `/v1/dev/login` |
-| Family | Семья, часовой пояс, членство | через Sync |
+| Identity | Аккаунты провайдеров, passkey, сессии, устройства, dev-вход, удаление аккаунта | `/v1/auth/*`, `/v1/me`, `/v1/dev/login` |
+| Family | Семья, часовой пояс, членство, удаление семьи | через Sync, `DELETE /v1/family` |
 | Children | Дети, цели | через Sync |
 | Tasks | Задачи, квесты, периоды активности | через Sync |
 | Rewards | Награды, варианты, видимость | через Sync |
 | Ledger | Отметки и покупки со снимками цены | через Sync |
-| Settings | Бонус, этапы серии, язык | через Sync |
+| Settings | Бонус, этапы серии, хеш PIN. Язык — настройка устройства, на сервер не едет (ADR-003) | через Sync |
 | Sync | Приём изменений, защита от повторов, выдача изменений по номеру | `/v1/sync/*` |
-| Backup | Первая выгрузка с устройства, экспорт | `/v1/backup/*` |
-| Meta | Версия сервера, `minClientVersion`, коммит | `/v1/meta` |
+| Backup | Экспорт данных семьи в формате бэкапа | `/v1/backup/export` |
+| Media | Подписанные ссылки на загрузку картинок вариантов, очистка непривязанных файлов (ADR-009) | `/v1/images` |
+| Meta | Версия сервера, `minClientVersion`, коммит, ченджлог (ADR-002) | `/v1/meta`, `/v1/changelog` |
 
 ### 4. HTTP API первой версии
 
 | Метод и путь | Что делает |
 |---|---|
 | `GET /v1/meta` | Версия сервера, `minClientVersion`, коммит, включённые способы входа, включён ли dev-вход |
+| `GET /v1/changelog` | Ченджлог на трёх языках, без сессии (ADR-002) |
 | `GET /v1/auth/:provider/start` | Начало входа: редирект к провайдеру с PKCE |
 | `GET /v1/auth/:provider/callback` | Возврат от провайдера: найти или создать аккаунт, поставить cookie |
 | `POST /v1/auth/passkey/*`, `DELETE /v1/auth/passkey/:id` | Face ID: создать passkey, войти или проверить, отключить (ADR-008) |
 | `POST /v1/auth/logout` | Выход: удалить сессию |
 | `GET /v1/me` | Текущий пользователь, семья и устройство |
+| `DELETE /v1/me` | Удалить аккаунт, а с ним и семью (ADR-009) |
+| `DELETE /v1/family` | Удалить семью и все её данные (ADR-009) |
 | `POST /v1/dev/login` | Только при `DEV_LOGIN=true`: вход по имени без провайдера |
 | `POST /v1/sync/push` | Пачка изменений: онлайн — одно, после офлайна — вся очередь |
 | `GET /v1/sync/pull?since=N` | Изменения семьи с номера `N` |
 | `GET /v1/sync/snapshot` | Всё состояние семьи — для нового устройства |
-| `POST /v1/backup/import` | Первая выгрузка устройства в формате нынешнего бэкапа |
-| `GET /v1/backup/export` | Экспорт в том же формате |
+| `GET /v1/backup/export` | Экспорт данных семьи в формате бэкапа |
+| `POST /v1/images` | Подписанная ссылка на загрузку одной картинки варианта (ADR-009) |
 
 Все записи идут через `POST /v1/sync/push` — и онлайн, и после офлайна. Путь один, поэтому защита
 от повторов, нумерация и разбор конфликтов работают одинаково. Sync по типу изменения вызывает
@@ -204,7 +209,7 @@ packages/contracts/
 | `DATABASE_URL` | `api`, `notifications` | Подключение своей роли к Postgres |
 | `MIGRATOR_DATABASE_URL` | `migrate` | Подключение роли `migrator` |
 | `VALKEY_URL` | все | Подключение к Valkey с паролем |
-| `PUBLIC_ORIGIN` | `api` | Адрес фронта для проверки `Origin` и редиректов после входа |
+| `PUBLIC_ORIGIN` | `api`, `notifications` | Адрес фронта для проверки `Origin`, CORS и редиректов после входа |
 | `REGION` | все | Контур: `eu` или `ru` |
 | `AUTH_PROVIDERS` | `api` | Включённые способы входа через запятую: `google`, `yandex`, `vk`, `apple` |
 | `AUTH_PEPPER` | `api` | Секрет для хеша идентификатора провайдера; не меняется никогда |
@@ -212,9 +217,10 @@ packages/contracts/
 | `YANDEX_CLIENT_ID`, `YANDEX_CLIENT_SECRET`, `VK_CLIENT_ID`, `VK_CLIENT_SECRET` | `api` | Вход через Яндекс ID и VK ID |
 | `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | `api` | Вход через Apple: из ключа `api` подписывает секрет клиента |
 | `WEBAUTHN_RP_ID` | `api` | Домен, к которому привязаны passkey; локально `localhost` |
-| `MIN_CLIENT_VERSION` | `api` | Минимальная версия PWA |
+| `MIN_CLIENT_VERSION` | `api`, `notifications` | Минимальная версия PWA |
 | `DEV_LOGIN` | `api` | `true` только локально: вход без провайдера |
-| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | `notifications` | Web Push, позже |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | `notifications` | Web Push, позже (ADR-010) |
+| `S3_ENDPOINT`, `S3_PUBLIC_URL`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | `api` | Объектное хранилище картинок вариантов (ADR-009) |
 
 ### 9. Локальное окружение
 
@@ -231,13 +237,16 @@ flowchart TB
   migrate["migrate<br/>разовый запуск"]
   db[("postgres :5432")]
   kv[("valkey :6379")]
+  s3[("seaweedfs<br/>бакет media")]
 
   dev --> web
   web -->|"/v1/notifications/*"| notify
   web -->|"/v1/*"| api
+  web -->|"/media/*"| s3
   migrate --> db
   api --> db
   api --> kv
+  api --> s3
   relay --> db
   relay --> kv
   kv --> notify
@@ -251,13 +260,14 @@ flowchart TB
 | `migrate` | сборка `apps/api` | — | Миграции `core` и `notifications`, затем выходит |
 | `api` | сборка `apps/api` | — | Стартует после `migrate` |
 | `outbox-relay` | сборка `apps/api` | — | Команда `relay` |
-| `notifications` | сборка `apps/notifications` | — | — |
+| `notifications` | сборка `apps/notifications` | — | Позже — своя роль в Postgres и ключи VAPID (ADR-010) |
+| `seaweedfs` | `docker.io/chrislusf/seaweedfs` | — | S3-совместимое хранилище картинок вариантов, бакет `media`, том `mediadata` (ADR-009) |
 | `web` | сборка `apps/web` | `127.0.0.1:8080` | nginx отдаёт собранную PWA и проксирует `/v1` — фронт и API на одном адресе, cookie работают как на проде |
 
 Файлы:
 
 - `compose.yaml` в корне репозитория;
-- `infra/nginx/local.conf` — маршруты `/v1/notifications/*` и `/v1/*`;
+- `infra/nginx/local.conf` — маршруты `/v1/notifications/*`, `/v1/*` и `/media/*`;
 - `infra/postgres/init.sh` — роли `migrator`, `app_core`, `app_notifications` и схемы; пароли берёт из
   переменных окружения, поэтому скрипт годится и для VM; `migrator` получает право `CREATE` на
   базу — без него Prisma не применяет миграцию со схемой;
