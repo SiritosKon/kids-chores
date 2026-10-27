@@ -2,6 +2,15 @@ import type { ChangelogEntry } from './types';
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '0.6.1',
+    date: '2026-10-27',
+    notes: {
+      ru: ['На широком экране меню выезжает от края экрана, а поля по бокам чёрные, а не серые'],
+      en: ['On wide screens the menu slides in from the screen edge, and the side margins are black instead of grey'],
+      es: ['En pantallas anchas el menú sale desde el borde de la pantalla y los márgenes laterales son negros, no grises'],
+    },
+  },
+  {
     version: '0.6.0',
     date: '2026-10-18',
     notes: {
