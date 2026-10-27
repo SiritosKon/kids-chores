@@ -1,11 +1,19 @@
 import { z } from 'zod';
-import { SYNC_FIELD_PATTERN, SYNC_KINDS, SYNC_PULL_LIMIT, SYNC_PUSH_LIMIT } from '../constants.js';
+import {
+  SYNC_FIELD_PATTERN,
+  SYNC_FIELDS_LIMIT,
+  SYNC_KINDS,
+  SYNC_PULL_LIMIT,
+  SYNC_PUSH_LIMIT,
+} from '../constants.js';
 
 const changeNumber = z.number().int().nonnegative();
 
 export const syncKindSchema = z.enum(SYNC_KINDS);
 
-export const syncFieldsSchema = z.record(z.string().regex(SYNC_FIELD_PATTERN), z.json());
+export const syncFieldsSchema = z
+  .record(z.string().regex(SYNC_FIELD_PATTERN), z.json())
+  .refine((fields) => Object.keys(fields).length <= SYNC_FIELDS_LIMIT);
 
 export const syncMutationSchema = z.object({
   mutationId: z.uuid(),
@@ -23,6 +31,7 @@ export const syncPushRequestSchema = z.object({
 
 export const syncPushResponseSchema = z.object({
   applied: z.number().int().nonnegative(),
+  rejected: z.array(z.uuid()),
   lastChangeNumber: changeNumber,
 });
 

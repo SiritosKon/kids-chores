@@ -10,6 +10,8 @@ export {
   SYNC_PUSH_LIMIT,
   SYNC_PULL_LIMIT,
   SYNC_FIELD_PATTERN,
+  SYNC_FIELDS_LIMIT,
+  SYNC_RECORD_BYTES,
 } from './constants.js';
 export type { Region, AuthProvider } from './types.js';
 export {

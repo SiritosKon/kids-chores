@@ -1,4 +1,4 @@
-import type { SyncFields, SyncMutation } from '@kids-chores/contracts';
+import { SYNC_FIELDS_LIMIT, SYNC_RECORD_BYTES, type SyncFields, type SyncMutation } from '@kids-chores/contracts';
 import { DELETED_FIELD } from './constants';
 import type { FieldChangedAt, StoredRecord } from './types';
 
@@ -34,3 +34,8 @@ export const deletedAt = (record: StoredRecord): Date | null => {
   const at = record.fieldChangedAt[DELETED_FIELD];
   return record.deleted && at !== undefined ? new Date(at) : null;
 };
+
+export const fitsLimits = (record: StoredRecord): boolean =>
+  Object.keys(record.data).length <= SYNC_FIELDS_LIMIT &&
+  Object.keys(record.fieldChangedAt).length <= SYNC_FIELDS_LIMIT + 1 &&
+  Buffer.byteLength(JSON.stringify(record.data)) <= SYNC_RECORD_BYTES;

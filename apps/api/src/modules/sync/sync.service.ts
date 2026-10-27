@@ -13,7 +13,7 @@ import type { FamilyRecord } from '../../generated/prisma/client';
 import { PrismaService } from '../../platform/database';
 import { OutboxService } from '../../platform/outbox';
 import { FAMILY_CHANGED_EVENT, FAMILY_CHANGED_VERSION } from './constants';
-import { deletedAt, mergeRecord } from './lib';
+import { deletedAt, fitsLimits, mergeRecord } from './lib';
 import { fieldChangedAtSchema, storedRecordSchema } from './schema';
 import type { StoredRecord } from './types';
 
@@ -42,6 +42,7 @@ export class SyncService {
         SELECT last_change_number FROM core.families WHERE id = ${familyId}::uuid FOR UPDATE`;
       let changeNumber = Number(family?.last_change_number ?? 0);
       let applied = 0;
+      const rejected: string[] = [];
       const now = Date.now();
       for (const mutation of mutations) {
         const fresh = await tx.processedMutation.createMany({
@@ -54,6 +55,10 @@ export class SyncService {
         const key = { familyId, kind: mutation.kind, id: mutation.id };
         const current = await tx.familyRecord.findUnique({ where: { familyId_kind_id: key } });
         const merged = mergeRecord(current ? toStored(current) : null, mutation, now);
+        if (!fitsLimits(merged)) {
+          rejected.push(mutation.mutationId);
+          continue;
+        }
         changeNumber += 1;
         applied += 1;
         const row = {
@@ -77,7 +82,7 @@ export class SyncService {
           payload: { changeNumber, applied },
         });
       }
-      return { applied, lastChangeNumber: changeNumber };
+      return { applied, rejected, lastChangeNumber: changeNumber };
     });
   }
 

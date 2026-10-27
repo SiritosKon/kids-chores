@@ -95,7 +95,7 @@ describe('sync over HTTP', () => {
   it('gives another device of the family what one device pushed', async () => {
     const [tablet, phone] = await family();
     const pushed = await push(tablet, [put('children', 'c1', { name: 'Mia', order: 0 }, 100)]);
-    expect(pushed).toEqual({ applied: 1, lastChangeNumber: 1 });
+    expect(pushed).toEqual({ applied: 1, rejected: [], lastChangeNumber: 1 });
     const pulled = await pull(phone);
     expect(pulled).toEqual({
       records: [{ kind: 'children', id: 'c1', data: { name: 'Mia', order: 0 }, deleted: false, changeNumber: 1 }],
@@ -109,7 +109,7 @@ describe('sync over HTTP', () => {
     const [cookie] = await family();
     const mutation = put('completions', 'c1:t1:2026-10-27', { points: 2 }, 100);
     await push(cookie, [mutation]);
-    expect(await push(cookie, [mutation])).toEqual({ applied: 0, lastChangeNumber: 1 });
+    expect(await push(cookie, [mutation])).toEqual({ applied: 0, rejected: [], lastChangeNumber: 1 });
   });
 
   it('merges a record field by field by the time of the change', async () => {
@@ -150,11 +150,25 @@ describe('sync over HTTP', () => {
     expect((await pull(second)).records.map((record) => record.data)).toEqual([{ name: 'Second' }]);
   });
 
+  it('turns away a record that grows past the limits and keeps the rest of the push', async () => {
+    const [cookie] = await family();
+    const fields = (from: number): SyncFields =>
+      Object.fromEntries(Array.from({ length: 30 }, (_, index) => [`f${from + index}`, index]));
+    const first = put('tasks', 't1', fields(0), 100);
+    const second = put('tasks', 't1', fields(30), 200);
+    const huge = put('tasks', 't2', { name: 'x'.repeat(20_000) }, 100);
+    const fine = put('tasks', 't3', { name: 'Fine' }, 100);
+    const pushed = await push(cookie, [first, second, huge, fine]);
+    expect(pushed).toEqual({ applied: 2, rejected: [second.mutationId, huge.mutationId], lastChangeNumber: 2 });
+    expect((await pull(cookie)).records.map((record) => record.id)).toEqual(['t1', 't3']);
+  });
+
   it('rejects malformed changes', async () => {
     const [cookie] = await family();
     const bad = [
       { ...put('children', 'c1', { name: 'Mia' }, 100), kind: 'photos' },
       put('children', 'c1', { $deleted: false }, 100),
+      put('children', 'c1', Object.fromEntries(Array.from({ length: 41 }, (_, index) => [`f${index}`, index])), 100),
       { ...put('children', 'c1', { name: 'Mia' }, 100), mutationId: 'not-a-uuid' },
     ];
     for (const mutation of bad) {
