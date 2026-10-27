@@ -7,6 +7,7 @@ x-api-image: &api-image
   image: localhost/kids-chores-api:dev
 
 x-api-env: &api-env
+  NODE_ENV: development
   DATABASE_URL: postgresql://app_core:${APP_CORE_PASSWORD}@postgres:5432/kids_chores?schema=core
   VALKEY_URL: redis://:${VALKEY_PASSWORD}@valkey:6379
   REGION: ${REGION}
