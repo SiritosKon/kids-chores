@@ -91,7 +91,7 @@ describe('identity over HTTP', () => {
     const cookie = await devLogin(name);
     expect(meResponseSchema.parse((await me(cookie)).body).name).toBe(name);
 
-    const rename = (payload: unknown, headers: Record<string, string> = { origin, cookie }) =>
+    const rename = (payload: object, headers: Record<string, string> = { origin, cookie }) =>
       app.inject({ method: 'PATCH', url: '/v1/me', headers, payload });
 
     const renamed = await rename({ name: '  Мама  ' });
