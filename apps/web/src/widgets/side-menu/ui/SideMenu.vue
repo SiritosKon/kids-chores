@@ -1,11 +1,12 @@
 <template>
   <q-drawer
-    :model-value="modelValue"
+    :model-value="docked || modelValue"
     side="left"
-    behavior="mobile"
-    overlay
-    :width="290"
+    :behavior="docked ? 'desktop' : 'mobile'"
+    :overlay="!docked"
+    :width="MENU_WIDTH"
     class="side-menu bg-grey-10"
+    :class="{ 'side-menu--docked': docked }"
     @update:model-value="emit('update:modelValue', $event)"
   >
     <div class="side-menu__body">
@@ -31,7 +32,7 @@
         </q-card-section>
       </q-card>
 
-      <q-list class="side-menu__list">
+      <q-list class="side-menu__list" :data-tour="docked ? 'parent-menu' : undefined">
         <q-item clickable :active="isAt(ROUTES.home)" active-class="side-menu__active" @click="open(ROUTES.home)">
           <q-item-section avatar><q-icon name="home" /></q-item-section>
           <q-item-section>{{ t('sideMenu.home') }}</q-item-section>
@@ -152,8 +153,9 @@ import { canAddToHomeScreen } from '@/features/install-app';
 import { exportAll, importAll, downloadJson } from '@/features/backup';
 import { recalculateStreaks } from '@/features/track-streak';
 import { SyncStatus } from '@/features/sync';
+import { MENU_WIDTH } from '../model/constants';
 
-defineProps<{ modelValue: boolean }>();
+defineProps<{ modelValue: boolean; docked: boolean }>();
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
 const $q = useQuasar();
@@ -239,6 +241,10 @@ const onFile = async (event: Event): Promise<void> => {
 </script>
 
 <style scoped>
+.side-menu--docked {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .side-menu__body {
   display: flex;
   flex-direction: column;

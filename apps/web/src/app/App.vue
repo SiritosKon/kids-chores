@@ -1,11 +1,11 @@
 <template>
   <div class="app-viewport">
     <div class="app-frame">
-      <q-layout view="hHh lpR fFf" container style="height: 100%">
+      <q-layout :view="menuDocked ? 'lHh LpR lFf' : 'hHh lpR fFf'" container style="height: 100%">
         <q-header class="bg-black text-white">
-          <q-toolbar class="q-py-md items-start app-column">
+          <q-toolbar class="q-py-md items-start">
             <q-btn
-              v-if="!needsSetup"
+              v-if="!needsSetup && !menuDocked"
               flat
               round
               dense
@@ -16,10 +16,13 @@
               @click="menuOpen = true"
             />
             <div class="col">
-              <div class="text-h5 text-weight-bold">{{ APP_NAME }}</div>
-              <div class="ios-subtitle">
-                {{ dateLabel }}
-              </div>
+              <div v-if="menuDocked" class="text-h6 text-weight-bold">{{ dateLabel }}</div>
+              <template v-else>
+                <div class="text-h5 text-weight-bold">{{ APP_NAME }}</div>
+                <div class="ios-subtitle">
+                  {{ dateLabel }}
+                </div>
+              </template>
             </div>
             <div class="row items-center no-wrap q-gutter-sm">
               <q-badge
@@ -42,7 +45,7 @@
           </q-toolbar>
         </q-header>
 
-        <SideMenu v-if="!needsSetup" v-model="menuOpen" />
+        <SideMenu v-if="!needsSetup" v-model="menuOpen" :docked="menuDocked" />
 
         <q-page-container>
           <q-banner v-if="!persistence" class="bg-warning text-black">
@@ -83,7 +86,7 @@ import { useParentAutoLogout } from '@/features/parent-auto-logout';
 import { useLogout } from '@/features/parent-login';
 import { useSyncStore } from '@/features/sync';
 import { recalculateStreaks } from '@/features/track-streak';
-import { SideMenu } from '@/widgets/side-menu';
+import { SideMenu, useDockedMenu } from '@/widgets/side-menu';
 import { OnboardingDialog } from '@/pages/onboarding';
 
 const $q = useQuasar();
@@ -117,6 +120,8 @@ watch(
 );
 
 const needsSetup = computed(() => settingsStore.loaded && !settingsStore.settings?.parentPin);
+const docked = useDockedMenu();
+const menuDocked = computed(() => docked.value && !needsSetup.value);
 
 const dateLabel = computed(() => {
   const label = formatDayKeyLong(selectedDate.value);

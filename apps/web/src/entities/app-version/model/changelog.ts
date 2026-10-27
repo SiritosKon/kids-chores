@@ -10,6 +10,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'Дети, задачи, награды, отметки и покупки хранятся в аккаунте и сами переходят на другие устройства семьи. Без сети изменения копятся на устройстве и уходят, когда связь появится',
         'Вход необязателен: без него всё работает, как раньше, на одном устройстве. Фото детей и вариантов наград остаются на устройстве',
         'В знакомстве с приложением подсказки крупнее, у каждой есть кнопка «Пропустить», а нажатие мимо подсказки тоже предлагает пропустить знакомство',
+        'На широком экране меню всегда открыто слева, в нём название приложения. На узком меню открывается кнопкой, а шапка теперь от края до края',
         'Аккаунт заработает в опубликованном приложении, когда у него появится свой сервер. Пока его можно попробовать в локальной сборке',
       ],
       en: [
@@ -17,6 +18,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         "Kids, chores, rewards, marks and purchases are kept in the account and reach the family's other devices on their own. Offline, changes wait on the device and go out once there is a connection",
         'Signing in is optional: without it everything works as before on one device. Photos of kids and reward variants stay on the device',
         'The app tour has bigger tips, each with a Skip button, and tapping outside a tip also offers to skip the tour',
+        'On wide screens the menu stays open on the left with the app name in it. On narrow screens the menu opens with a button, and the top bar now runs edge to edge',
         'The account will work in the published app once it has its own server. For now you can try it in a local build',
       ],
       es: [
@@ -24,6 +26,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'Niños, tareas, premios, marcas y compras se guardan en la cuenta y llegan solos a los demás dispositivos de la familia. Sin conexión, los cambios esperan en el dispositivo y se envían cuando vuelve la conexión',
         'Iniciar sesión es opcional: sin ella todo funciona como antes en un solo dispositivo. Las fotos de los niños y de las variantes de premios se quedan en el dispositivo',
         'El recorrido por la app tiene consejos más grandes, cada uno con un botón Saltar, y tocar fuera de un consejo también ofrece saltar el recorrido',
+        'En pantallas anchas el menú queda abierto a la izquierda con el nombre de la app. En pantallas estrechas se abre con un botón, y la barra superior ahora va de borde a borde',
         'La cuenta funcionará en la app publicada cuando tenga su propio servidor. Por ahora puedes probarla en una versión local',
       ],
     },
