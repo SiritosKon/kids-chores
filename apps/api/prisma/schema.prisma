@@ -22,3 +22,92 @@ model Outbox {
   @@map("outbox")
   @@schema("core")
 }
+
+enum MembershipRole {
+  parent
+
+  @@map("membership_role")
+  @@schema("core")
+}
+
+model User {
+  id           String        @id @db.Uuid
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  authAccounts AuthAccount[]
+  passkeys     Passkey[]
+  memberships  Membership[]
+  devices      Device[]
+
+  @@map("users")
+  @@schema("core")
+}
+
+model AuthAccount {
+  id          String   @id @db.Uuid
+  provider    String
+  subjectHash String   @map("subject_hash")
+  userId      String   @map("user_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subjectHash])
+  @@index([userId])
+  @@map("auth_accounts")
+  @@schema("core")
+}
+
+model Passkey {
+  id         String    @id
+  userId     String    @map("user_id") @db.Uuid
+  publicKey  Bytes     @map("public_key")
+  counter    BigInt
+  transports String[]
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(3)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("passkeys")
+  @@schema("core")
+}
+
+model Family {
+  id               String       @id @db.Uuid
+  timeZone         String?      @map("time_zone")
+  lastChangeNumber BigInt       @default(0) @map("last_change_number")
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  memberships      Membership[]
+  devices          Device[]
+
+  @@map("families")
+  @@schema("core")
+}
+
+model Membership {
+  userId    String         @map("user_id") @db.Uuid
+  familyId  String         @map("family_id") @db.Uuid
+  role      MembershipRole @default(parent)
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family    Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, familyId])
+  @@index([familyId])
+  @@map("memberships")
+  @@schema("core")
+}
+
+model Device {
+  id         String   @id @db.Uuid
+  familyId   String   @map("family_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  family     Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@index([userId])
+  @@map("devices")
+  @@schema("core")
+}

@@ -18,6 +18,7 @@ const env = {
   VALKEY_URL: 'redis://:secret@localhost:6379',
   REGION: 'eu',
   PUBLIC_ORIGIN: 'http://localhost:8080',
+  AUTH_PEPPER: 'a-local-pepper-that-is-long-enough',
 };
 
 describe('readProductVersion', () => {
@@ -37,13 +38,41 @@ describe('loadConfig', () => {
       NODE_ENV: 'development',
       PORT: 3000,
       LOG_LEVEL: 'info',
+      APP_PATH: '/kids-chores/',
       MIN_CLIENT_VERSION: '0.0.0',
       GIT_COMMIT: 'local',
       APP_VERSION: '0.6.0',
+      AUTH_PROVIDERS: [],
+      DEV_LOGIN: false,
     });
   });
 
   it('refuses to start without a region it knows', () => {
     expect(() => loadConfig({ ...env, REGION: 'us' }, workspace().app)).toThrow();
+  });
+
+  it('reads the list of sign-in providers and treats empty keys as missing', () => {
+    const config = loadConfig(
+      { ...env, AUTH_PROVIDERS: ' google ', GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret', WEBAUTHN_RP_ID: '' },
+      workspace().app
+    );
+    expect(config.AUTH_PROVIDERS).toEqual(['google']);
+    expect(config.WEBAUTHN_RP_ID).toBeUndefined();
+  });
+
+  it('refuses google without its keys', () => {
+    expect(() => loadConfig({ ...env, AUTH_PROVIDERS: 'google', GOOGLE_CLIENT_ID: '' }, workspace().app)).toThrow();
+  });
+
+  it('refuses a provider it does not know', () => {
+    expect(() => loadConfig({ ...env, AUTH_PROVIDERS: 'myspace' }, workspace().app)).toThrow();
+  });
+
+  it('refuses dev login in production', () => {
+    expect(() => loadConfig({ ...env, NODE_ENV: 'production', DEV_LOGIN: 'true' }, workspace().app)).toThrow();
+  });
+
+  it('refuses a short pepper', () => {
+    expect(() => loadConfig({ ...env, AUTH_PEPPER: 'short' }, workspace().app)).toThrow();
   });
 });

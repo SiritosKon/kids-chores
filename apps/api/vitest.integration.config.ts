@@ -11,5 +11,14 @@ export default defineConfig({
   test: {
     include: ['src/**/*.int.test.ts'],
     fileParallelism: false,
+    env: {
+      LOG_LEVEL: 'silent',
+      DEV_LOGIN: 'true',
+      AUTH_PEPPER: 'integration-pepper-that-is-long-enough',
+      AUTH_PROVIDERS: 'google',
+      GOOGLE_CLIENT_ID: 'integration-client',
+      GOOGLE_CLIENT_SECRET: 'integration-secret',
+      WEBAUTHN_RP_ID: '',
+    },
   },
 });

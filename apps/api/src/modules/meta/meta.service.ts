@@ -12,6 +12,10 @@ export class MetaService {
       minClientVersion: this.config.MIN_CLIENT_VERSION,
       commit: this.config.GIT_COMMIT,
       region: this.config.REGION,
+      auth: {
+        providers: this.config.AUTH_PROVIDERS,
+        devLogin: this.config.DEV_LOGIN,
+      },
     };
   }
 }
