@@ -1,7 +1,7 @@
 import { computed, nextTick, onBeforeUnmount, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
-import { driver, type Driver } from 'driver.js';
+import { driver, type Driver, type PopoverDOM } from 'driver.js';
 import { useRoute } from 'vue-router';
 import { ROUTES } from '@/shared/config/constants';
 import { useChildrenStore } from '@/entities/child';
@@ -87,6 +87,15 @@ export const useSetupTour = () => {
     }).onOk(() => void finish());
   };
 
+  const addSkipButton = (popover: PopoverDOM): void => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'driver-popover-footer-btn setup-tour__skip';
+    button.textContent = t('homePage.tour.skip');
+    button.addEventListener('click', askToSkip);
+    popover.footer.insertBefore(button, popover.footerButtons);
+  };
+
   const start = (fromIndex = 0): void => {
     tour = driver({
       steps: TOUR_STEPS.map((step) => ({
@@ -99,9 +108,11 @@ export const useSetupTour = () => {
       prevBtnText: t('common.back'),
       doneBtnText: t('common.done'),
       popoverClass: 'setup-tour',
+      showButtons: ['next', 'previous'],
       smoothScroll: false,
       allowKeyboardControl: false,
-      overlayClickBehavior: () => undefined,
+      overlayClickBehavior: askToSkip,
+      onPopoverRender: addSkipButton,
       onNextClick: next,
       onPrevClick: previous,
       onDestroyStarted: askToSkip,
