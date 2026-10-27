@@ -11,7 +11,9 @@
     "splash": "node scripts/generateSplash.mjs"
   },
   "dependencies": {
+    "@kids-chores/contracts": "*",
     "@quasar/extras": "^1.16.0",
+    "@simplewebauthn/browser": "^13.3.0",
     "canvas-confetti": "^1.9.4",
     "dexie": "^4.0.0",
     "driver.js": "^1.8.0",

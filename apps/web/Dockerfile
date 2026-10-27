@@ -5,9 +5,11 @@ COPY packages/contracts/package.json packages/contracts/
 COPY apps/web/package.json apps/web/
 COPY apps/api/package.json apps/api/
 COPY apps/notifications/package.json apps/notifications/
-RUN npm ci --workspace apps/web --include-workspace-root
+RUN npm ci --workspace packages/contracts --workspace apps/web --include-workspace-root
+COPY packages/contracts packages/contracts
 COPY apps/web apps/web
-RUN npm run build --workspace apps/web
+RUN npm run build --workspace packages/contracts \
+  && npm run build --workspace apps/web
 
 FROM docker.io/library/nginx:1.28-alpine
 COPY infra/nginx/local.conf /etc/nginx/conf.d/default.conf

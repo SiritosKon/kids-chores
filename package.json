@@ -11,7 +11,7 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w apps/web",
+    "dev": "npm run contracts && npm run dev -w apps/web",
     "contracts": "npm run build -w packages/contracts",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run contracts && npm run typecheck --workspaces --if-present",

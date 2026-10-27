@@ -32,6 +32,9 @@ import { childPage } from './childPage';
 import { spendsPage } from './spendsPage';
 import { whatsNewPage } from './whatsNewPage';
 import { installPage } from './installPage';
+import { accountPage } from './accountPage';
+import { signIn } from './signIn';
+import { passkeySetup } from './passkeySetup';
 
 export const messages = {
   ru: {
@@ -69,6 +72,9 @@ export const messages = {
     spendsPage: spendsPage.ru,
     whatsNewPage: whatsNewPage.ru,
     installPage: installPage.ru,
+    accountPage: accountPage.ru,
+    signIn: signIn.ru,
+    passkeySetup: passkeySetup.ru,
   },
   en: {
     common: common.en,
@@ -105,6 +111,9 @@ export const messages = {
     spendsPage: spendsPage.en,
     whatsNewPage: whatsNewPage.en,
     installPage: installPage.en,
+    accountPage: accountPage.en,
+    signIn: signIn.en,
+    passkeySetup: passkeySetup.en,
   },
   es: {
     common: common.es,
@@ -141,5 +150,8 @@ export const messages = {
     spendsPage: spendsPage.es,
     whatsNewPage: whatsNewPage.es,
     installPage: installPage.es,
+    accountPage: accountPage.es,
+    signIn: signIn.es,
+    passkeySetup: passkeySetup.es,
   },
 };

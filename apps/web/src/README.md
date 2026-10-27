@@ -7,10 +7,10 @@
 | Слой | Что лежит | Слайсы |
 |---|---|---|
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
-| `pages` | Экраны целиком | `home`, `onboarding`, `settings`, `reward`, `task`, `child`, `spends`, `whats-new`, `install` |
+| `pages` | Экраны целиком | `home`, `onboarding`, `settings`, `reward`, `task`, `child`, `spends`, `whats-new`, `install`, `account` |
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `side-menu` |
-| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets` |
-| `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session` |
+| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets`, `sign-in`, `passkey-setup` |
+| `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session`, `account` |
 | `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets`, `i18n` |
 
 Сегменты внутри слайса: `ui` — вёрстка, `model` — состояние и логика, `api` — доступ к данным,
@@ -221,3 +221,23 @@ entities/completion/
 
 Точка подмены — `entities/*/api`. Репозитории меняют реализацию с Dexie на HTTP, схемы остаются
 теми же (ими же валидируем ответы сервера), UI не трогаем.
+
+## Аккаунт
+
+Запросы к `api` идут через `shared/api/http.ts`: путь от `/v1`, cookie того же адреса, ответ
+проверяется схемой из `@kids-chores/contracts`. Сеть упала, сервера нет или ответ не сошёлся со
+схемой — функция возвращает `null` или `false`, исключений наружу нет.
+
+`entities/account` при запуске спрашивает `GET /v1/meta`. Если ответа нет — как на GitHub Pages,
+где API нет, — приложение работает гостем, а плашки и пункта «Аккаунт» в меню нет. Если сервер
+ответил, `GET /v1/me` говорит, вошёл ли человек. Гость видит в сайдбаре плашку «Данные только на
+этом устройстве» с кнопкой «Войти», вошедший — пункт «Аккаунт».
+
+Страница `/account` (`pages/account`) открыта всем: на ней способы входа из `features/sign-in` —
+Google, Face ID или Touch ID и dev-вход, если сервер его включил. Google — переход на
+`/v1/auth/google/start`; после входа сервер возвращает на `#/account`, при ошибке — на
+`#/account?error=google`. Сессия живёт в httpOnly-cookie, скрипт её не видит.
+
+Face ID и выход из аккаунта — только в родрежиме. `features/passkey-setup` создаёт passkey для
+открытого аккаунта и запоминает его id в `localStorage`, чтобы отключить ключ именно этого
+устройства. Выход удаляет сессию на сервере, данные на устройстве остаются: синхронизации ещё нет.

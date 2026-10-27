@@ -14,6 +14,10 @@ export const sideMenu = defineMessages({
     language: 'Язык',
     imported: 'Импорт выполнен',
     importFailed: 'Ошибка импорта: {reason}',
+    account: 'Аккаунт',
+    guestTitle: 'Данные только на этом устройстве',
+    guestText: 'Войдите, чтобы они синхронизировались между устройствами семьи',
+    signIn: 'Войти',
   },
   en: {
     home: 'Home',
@@ -28,6 +32,10 @@ export const sideMenu = defineMessages({
     language: 'Language',
     imported: 'Import complete',
     importFailed: 'Import failed: {reason}',
+    account: 'Account',
+    guestTitle: 'Your data is on this device only',
+    guestText: "Sign in to sync it across your family's devices",
+    signIn: 'Sign in',
   },
   es: {
     home: 'Inicio',
@@ -42,5 +50,9 @@ export const sideMenu = defineMessages({
     language: 'Idioma',
     imported: 'Importación completada',
     importFailed: 'Error de importación: {reason}',
+    account: 'Cuenta',
+    guestTitle: 'Tus datos solo están en este dispositivo',
+    guestText: 'Inicia sesión para sincronizarlos entre los dispositivos de la familia',
+    signIn: 'Iniciar sesión',
   },
 });

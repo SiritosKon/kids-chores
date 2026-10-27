@@ -10,6 +10,7 @@ import { ChildPage, ChildRewardPage, ChildStreakPage, ChildWalletPage } from '@/
 import { SpendsPage } from '@/pages/spends';
 import { WhatsNewPage } from '@/pages/whats-new';
 import { InstallPage } from '@/pages/install';
+import { AccountPage } from '@/pages/account';
 import { BACK_TRANSITION, FORWARD_TRANSITION } from './constants';
 
 const parentOnly = { parentOnly: true };
@@ -31,6 +32,7 @@ export const router = createRouter({
     { path: ROUTES.spends, component: SpendsPage, meta: parentOnly },
     { path: ROUTES.whatsNew, component: WhatsNewPage },
     { path: ROUTES.install, component: InstallPage },
+    { path: ROUTES.account, component: AccountPage },
     { path: '/:rest(.*)*', redirect: ROUTES.home },
   ],
 });

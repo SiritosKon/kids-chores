@@ -75,6 +75,7 @@ import { applyLocale, currentLocale } from '@/shared/i18n';
 import { formatDayKeyLong } from '@/shared/lib/date';
 import { isPersistenceAvailable } from '@/shared/api/db';
 import { recordVersion } from '@/entities/app-version';
+import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
@@ -90,6 +91,7 @@ const { selectedDate } = storeToRefs(useSelectedDateStore());
 const { active: parentActive } = storeToRefs(useParentSessionStore());
 const appVersion = __APP_VERSION__;
 const settingsStore = useSettingsStore();
+const account = useAccountStore();
 const menuOpen = ref(false);
 const confirmLogout = useLogout();
 const tourPending = computed(() => settingsStore.settings?.tourPending === true);
@@ -125,6 +127,7 @@ declare global {
 }
 
 onMounted(async () => {
+  void account.refresh();
   try {
     const { isNew, hadHistory } = await recordVersion(appVersion);
     if (isNew && hadHistory) {

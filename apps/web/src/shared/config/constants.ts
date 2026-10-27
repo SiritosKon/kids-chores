@@ -17,6 +17,7 @@ export const ROUTES = {
   spends: '/spends',
   whatsNew: '/whats-new',
   install: '/install',
+  account: '/account',
 } as const;
 
 export const NEW_STAGE_ID = 'new';

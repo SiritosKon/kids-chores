@@ -14,6 +14,23 @@
         <div class="text-subtitle1 text-weight-bold">{{ APP_NAME }}</div>
       </div>
 
+      <q-card v-if="account.server && account.loaded && !account.signedIn" flat class="side-menu__guest q-mx-md q-mb-sm">
+        <q-card-section class="q-pa-md">
+          <div class="text-body2 text-weight-medium">{{ t('sideMenu.guestTitle') }}</div>
+          <div class="text-caption text-grey-5 q-mt-xs">{{ t('sideMenu.guestText') }}</div>
+          <q-btn
+            unelevated
+            dense
+            no-caps
+            color="primary"
+            text-color="black"
+            class="q-mt-sm q-px-md"
+            :label="t('sideMenu.signIn')"
+            @click="open(ROUTES.account)"
+          />
+        </q-card-section>
+      </q-card>
+
       <q-list class="side-menu__list">
         <q-item clickable :active="isAt(ROUTES.home)" active-class="side-menu__active" @click="open(ROUTES.home)">
           <q-item-section avatar><q-icon name="home" /></q-item-section>
@@ -52,6 +69,17 @@
             <q-item-section>{{ t('sideMenu.logout') }}</q-item-section>
           </q-item>
         </template>
+
+        <q-item
+          v-if="account.signedIn"
+          clickable
+          :active="isAt(ROUTES.account)"
+          active-class="side-menu__active"
+          @click="open(ROUTES.account)"
+        >
+          <q-item-section avatar><q-icon name="account_circle" /></q-item-section>
+          <q-item-section>{{ t('sideMenu.account') }}</q-item-section>
+        </q-item>
 
         <template v-if="installable">
           <q-separator spaced />
@@ -113,6 +141,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { ROUTES, APP_NAME } from '@/shared/config/constants';
 import { applyLocale, currentLocale, LOCALE_NAMES, LOCALE_OPTIONS, type Locale } from '@/shared/i18n';
+import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { PinDialog, useLogout } from '@/features/parent-login';
@@ -125,6 +154,7 @@ const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
 const $q = useQuasar();
 const { t } = useI18n();
+const account = useAccountStore();
 const parentSession = useParentSessionStore();
 const { active } = storeToRefs(parentSession);
 const settingsStore = useSettingsStore();
@@ -232,6 +262,11 @@ const onFile = async (event: Event): Promise<void> => {
 .side-menu__footer-btn {
   color: #8e8e93;
   font-size: 13px;
+}
+
+.side-menu__guest {
+  background: rgba(255, 159, 10, 0.1);
+  border: 1px solid rgba(255, 159, 10, 0.3);
 }
 
 .side-menu__icon {
