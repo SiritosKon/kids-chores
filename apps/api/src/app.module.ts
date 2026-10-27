@@ -7,6 +7,7 @@ import { OutboxModule } from './platform/outbox';
 import { HttpModule } from './platform/http';
 import { MetaModule } from './modules/meta';
 import { IdentityModule } from './modules/identity';
+import { SyncModule } from './modules/sync';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { IdentityModule } from './modules/identity';
     HttpModule,
     MetaModule,
     IdentityModule,
+    SyncModule,
   ],
 })
 export class AppModule {}

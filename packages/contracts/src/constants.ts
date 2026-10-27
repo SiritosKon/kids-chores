@@ -9,3 +9,13 @@ export const AUTH_PROVIDERS = ['google'] as const;
 export const SESSION_COOKIE = 'lbd_session';
 
 export const SESSION_KEY_PREFIX = 'session:';
+
+export const SYNC_KINDS = ['children', 'tasks', 'rewards', 'rewardVariants', 'settings', 'completions', 'spends'] as const;
+
+export const SYNC_SCHEMA_VERSION = 1;
+
+export const SYNC_PUSH_LIMIT = 200;
+
+export const SYNC_PULL_LIMIT = 500;
+
+export const SYNC_FIELD_PATTERN = /^[A-Za-z][A-Za-z0-9]{0,63}$/;

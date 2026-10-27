@@ -72,12 +72,14 @@ model Passkey {
 }
 
 model Family {
-  id               String       @id @db.Uuid
-  timeZone         String?      @map("time_zone")
-  lastChangeNumber BigInt       @default(0) @map("last_change_number")
-  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
-  memberships      Membership[]
-  devices          Device[]
+  id                 String              @id @db.Uuid
+  timeZone           String?             @map("time_zone")
+  lastChangeNumber   BigInt              @default(0) @map("last_change_number")
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  memberships        Membership[]
+  devices            Device[]
+  records            FamilyRecord[]
+  processedMutations ProcessedMutation[]
 
   @@map("families")
   @@schema("core")
@@ -109,5 +111,34 @@ model Device {
   @@index([familyId])
   @@index([userId])
   @@map("devices")
+  @@schema("core")
+}
+
+model FamilyRecord {
+  familyId       String    @map("family_id") @db.Uuid
+  kind           String
+  id             String
+  data           Json
+  fieldChangedAt Json      @map("field_changed_at")
+  changeNumber   BigInt    @map("change_number")
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  family         Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@id([familyId, kind, id])
+  @@index([familyId, changeNumber])
+  @@map("records")
+  @@schema("core")
+}
+
+model ProcessedMutation {
+  familyId   String   @map("family_id") @db.Uuid
+  mutationId String   @map("mutation_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  family     Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@id([familyId, mutationId])
+  @@map("processed_mutations")
   @@schema("core")
 }
