@@ -4,7 +4,7 @@ import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyRequest } from 'fastify';
 import { API_PREFIX, SESSION_KEY_PREFIX, type Session } from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
-import { ACCOUNT_ROUTE, AUTH_STATE_TTL_SECONDS, SESSION_TOKEN_BYTES, SESSION_TTL_SECONDS } from './constants';
+import { ACCOUNT_ROUTE, AUTH_STATE_TTL_SECONDS, HOME_ROUTE, SESSION_TOKEN_BYTES, SESSION_TTL_SECONDS } from './constants';
 
 export const newSessionToken = (): string => randomBytes(SESSION_TOKEN_BYTES).toString('base64url');
 
@@ -38,8 +38,11 @@ export const publicOrigin = (config: AppConfig): string => new URL(config.PUBLIC
 export const callbackUrl = (config: AppConfig, provider: string): string =>
   `${publicOrigin(config)}${API_PREFIX}/auth/${provider}/callback`;
 
-export const accountUrl = (config: AppConfig, error?: string): string =>
-  `${publicOrigin(config)}${config.APP_PATH}${ACCOUNT_ROUTE}${error ? `?error=${encodeURIComponent(error)}` : ''}`;
+export const accountUrl = (config: AppConfig, error: string): string =>
+  `${publicOrigin(config)}${config.APP_PATH}${ACCOUNT_ROUTE}?error=${encodeURIComponent(error)}`;
+
+export const homeUrl = (config: AppConfig, signedIn: string): string =>
+  `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?signedIn=${encodeURIComponent(signedIn)}`;
 
 export const CurrentSession = createParamDecorator((_: unknown, context: ExecutionContext): Session => {
   const session = context.switchToHttp().getRequest<FastifyRequest>().authSession;

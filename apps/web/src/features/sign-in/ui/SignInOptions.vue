@@ -1,26 +1,30 @@
 <template>
-  <div class="column q-gutter-sm">
-    <q-btn
-      v-if="hasGoogle"
-      unelevated
-      no-caps
-      color="white"
-      text-color="black"
-      icon="login"
-      :label="t('signIn.google')"
-      @click="signInWithGoogle"
-    />
-    <q-btn
-      v-if="passkeysSupported"
-      outline
-      no-caps
-      color="primary"
-      icon="fingerprint"
-      :label="t('signIn.passkey')"
-      :loading="busy"
-      @click="signInByPasskey"
-    />
-    <div v-if="server?.devLogin" class="row items-center no-wrap q-gutter-sm q-mt-md">
+  <div>
+    <div class="sign-in-options__buttons">
+      <q-btn
+        v-if="hasGoogle"
+        unelevated
+        no-caps
+        color="white"
+        text-color="black"
+        icon="login"
+        class="q-px-lg"
+        :label="t('signIn.google')"
+        @click="signInWithGoogle"
+      />
+      <q-btn
+        v-if="passkeysSupported"
+        outline
+        no-caps
+        color="primary"
+        icon="fingerprint"
+        class="q-px-lg"
+        :label="t('signIn.passkey')"
+        :loading="busy"
+        @click="signInByPasskey"
+      />
+    </div>
+    <div v-if="server?.devLogin" class="sign-in-options__dev row items-center no-wrap q-gutter-sm q-mt-md">
       <q-input
         v-model="devName"
         dense
@@ -40,12 +44,15 @@ import { computed, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
+import { ROUTES } from '@/shared/config/constants';
 import { devSignIn, providerStartUrl, useAccountStore } from '@/entities/account';
 import { signInWithPasskey } from '../model/passkeySignIn';
 
 const $q = useQuasar();
 const { t } = useI18n();
+const router = useRouter();
 const account = useAccountStore();
 const { server } = storeToRefs(account);
 
@@ -62,6 +69,7 @@ const finish = async (done: boolean, failure: string): Promise<void> => {
   if (done) {
     await account.refresh();
     $q.notify({ type: 'positive', message: t('signIn.signedIn') });
+    void router.push(ROUTES.home);
   } else {
     $q.notify({ type: 'negative', message: failure });
   }
@@ -83,3 +91,16 @@ const signInAsDev = async (): Promise<void> => {
   }
 };
 </script>
+
+<style scoped>
+.sign-in-options__buttons {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.sign-in-options__dev {
+  max-width: 420px;
+}
+</style>

@@ -236,8 +236,10 @@ entities/completion/
 
 Страница `/account` (`pages/account`) открыта всем: на ней способы входа из `features/sign-in` —
 Google, Face ID или Touch ID и dev-вход, если сервер его включил. Google — переход на
-`/v1/auth/google/start`; после входа сервер возвращает на `#/account`, при ошибке — на
-`#/account?error=google`. Сессия живёт в httpOnly-cookie, скрипт её не видит.
+`/v1/auth/google/start`; после входа сервер возвращает на главную `#/?signedIn=google`, и
+`useSignedInNotice` показывает «Вы вошли в аккаунт» и убирает параметр из адреса. При ошибке
+сервер возвращает на `#/account?error=google`. Вход по Face ID, Touch ID и dev-вход тоже ведут на
+главную. Сессия живёт в httpOnly-cookie, скрипт её не видит.
 
 Face ID и выход из аккаунта — только в родрежиме. `features/passkey-setup` создаёт passkey для
 открытого аккаунта и запоминает его id в `localStorage`, чтобы отключить ключ именно этого

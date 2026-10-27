@@ -12,6 +12,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'В знакомстве с приложением подсказки крупнее, у каждой есть кнопка «Пропустить», а нажатие мимо подсказки тоже предлагает пропустить знакомство',
         'На широком экране меню всегда открыто слева, в нём название приложения. На узком меню открывается кнопкой, а шапка теперь от края до края',
         'Аккаунт — отдельным блоком наверху меню, там же видно, когда данные последний раз ушли на сервер',
+        'После входа приложение сразу возвращает на главную, кнопки входа стали компактнее',
         'Аккаунт заработает в опубликованном приложении, когда у него появится свой сервер. Пока его можно попробовать в локальной сборке',
       ],
       en: [
@@ -21,6 +22,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'The app tour has bigger tips, each with a Skip button, and tapping outside a tip also offers to skip the tour',
         'On wide screens the menu stays open on the left with the app name in it. On narrow screens the menu opens with a button, and the top bar now runs edge to edge',
         'The account has its own block at the top of the menu, showing when the data last reached the server',
+        'After signing in the app goes straight back to the home screen, and the sign-in buttons are more compact',
         'The account will work in the published app once it has its own server. For now you can try it in a local build',
       ],
       es: [
@@ -30,6 +32,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'El recorrido por la app tiene consejos más grandes, cada uno con un botón Saltar, y tocar fuera de un consejo también ofrece saltar el recorrido',
         'En pantallas anchas el menú queda abierto a la izquierda con el nombre de la app. En pantallas estrechas se abre con un botón, y la barra superior ahora va de borde a borde',
         'La cuenta tiene su propio bloque arriba del menú, donde se ve cuándo los datos llegaron al servidor por última vez',
+        'Después de iniciar sesión la app vuelve directamente a la pantalla principal, y los botones de inicio de sesión son más compactos',
         'La cuenta funcionará en la app publicada cuando tenga su propio servidor. Por ahora puedes probarla en una versión local',
       ],
     },

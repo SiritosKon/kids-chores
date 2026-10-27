@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AppConfig } from '../../platform/config';
-import { accountUrl, callbackUrl, relyingPartyId, sessionCookieOptions, sessionKey, subjectHash } from './lib';
+import { accountUrl, callbackUrl, homeUrl, relyingPartyId, sessionCookieOptions, sessionKey, subjectHash } from './lib';
 
 const config = (overrides: Partial<AppConfig> = {}): AppConfig => ({
   NODE_ENV: 'test',
@@ -52,10 +52,10 @@ describe('sessionCookieOptions', () => {
 });
 
 describe('urls', () => {
-  it('builds the provider callback and the account page from the public origin', () => {
+  it('builds the provider callback and the pages to return to from the public origin', () => {
     const local = config({ PUBLIC_ORIGIN: 'http://localhost:8080/' });
     expect(callbackUrl(local, 'google')).toBe('http://localhost:8080/v1/auth/google/callback');
-    expect(accountUrl(local)).toBe('http://localhost:8080/kids-chores/#/account');
+    expect(homeUrl(local, 'google')).toBe('http://localhost:8080/kids-chores/#/?signedIn=google');
     expect(accountUrl(local, 'google')).toBe('http://localhost:8080/kids-chores/#/account?error=google');
   });
 
