@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import type { MeResponse } from '@kids-chores/contracts';
 import { fetchMe, fetchServerAuth, requestRename, requestSignOut } from '../api/accountApi';
 import { storeAccountPhoto, storedAccountPhoto } from '../lib/accountPhoto';
+import { downloadProviderPhoto, providerPhotoUrl } from '../lib/providerPhoto';
 import type { ServerAuth } from './types';
 
 export const useAccountStore = defineStore('account', () => {
@@ -36,6 +37,17 @@ export const useAccountStore = defineStore('account', () => {
     return true;
   };
 
+  const adoptProviderPhoto = async (url: string): Promise<void> => {
+    const source = providerPhotoUrl(url);
+    if (!source || !me.value || photo.value) {
+      return;
+    }
+    const downloaded = await downloadProviderPhoto(source);
+    if (!photo.value) {
+      setPhoto(downloaded);
+    }
+  };
+
   const signOut = async (): Promise<boolean> => {
     const done = await requestSignOut();
     if (done) {
@@ -45,5 +57,5 @@ export const useAccountStore = defineStore('account', () => {
     return done;
   };
 
-  return { server, me, photo, loaded, signedIn, name, refresh, rename, setPhoto, signOut };
+  return { server, me, photo, loaded, signedIn, name, refresh, rename, setPhoto, adoptProviderPhoto, signOut };
 });
