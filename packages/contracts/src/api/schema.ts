@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AUTH_PROVIDERS, REGIONS } from '../constants.js';
+import { ACCOUNT_NAME_MAX, AUTH_PROVIDERS, REGIONS } from '../constants.js';
 
 export const metaResponseSchema = z.object({
   version: z.string().min(1),
@@ -12,11 +12,18 @@ export const metaResponseSchema = z.object({
   }),
 });
 
+export const accountNameSchema = z.string().trim().min(1).max(ACCOUNT_NAME_MAX);
+
 export const meResponseSchema = z.object({
   userId: z.uuid(),
   familyId: z.uuid(),
   deviceId: z.uuid(),
+  name: accountNameSchema.nullable(),
   hasPasskey: z.boolean(),
+});
+
+export const profileUpdateRequestSchema = z.object({
+  name: accountNameSchema.nullable(),
 });
 
 export const devLoginRequestSchema = z.object({

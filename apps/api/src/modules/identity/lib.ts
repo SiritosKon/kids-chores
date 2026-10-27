@@ -2,9 +2,10 @@ import { createHash, createHmac, randomBytes } from 'node:crypto';
 import { createParamDecorator, type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyRequest } from 'fastify';
-import { API_PREFIX, SESSION_KEY_PREFIX, type Session } from '@kids-chores/contracts';
+import { ACCOUNT_NAME_MAX, API_PREFIX, SESSION_KEY_PREFIX, type Session } from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
 import { ACCOUNT_ROUTE, AUTH_STATE_TTL_SECONDS, HOME_ROUTE, SESSION_TOKEN_BYTES, SESSION_TTL_SECONDS } from './constants';
+import { googleProfileSchema } from './schema';
 
 export const newSessionToken = (): string => randomBytes(SESSION_TOKEN_BYTES).toString('base64url');
 
@@ -40,6 +41,12 @@ export const callbackUrl = (config: AppConfig, provider: string): string =>
 
 export const accountUrl = (config: AppConfig, error: string): string =>
   `${publicOrigin(config)}${config.APP_PATH}${ACCOUNT_ROUTE}?error=${encodeURIComponent(error)}`;
+
+export const profileName = (claims: unknown): string | undefined => {
+  const profile = googleProfileSchema.safeParse(claims);
+  const name = profile.success ? (profile.data.given_name ?? profile.data.name)?.trim().slice(0, ACCOUNT_NAME_MAX).trim() : '';
+  return name || undefined;
+};
 
 export const homeUrl = (config: AppConfig, signedIn: string): string =>
   `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?signedIn=${encodeURIComponent(signedIn)}`;

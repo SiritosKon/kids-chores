@@ -8,19 +8,22 @@ import type { SignedIn } from './types';
 export class AccountsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async signIn(provider: string, subjectHash: string): Promise<SignedIn> {
+  async signIn(provider: string, subjectHash: string, name?: string): Promise<SignedIn> {
     const account = await this.prisma.authAccount.findUnique({
       where: { provider_subjectHash: { provider, subjectHash } },
       select: { userId: true },
     });
     if (account) {
+      if (name) {
+        await this.prisma.user.updateMany({ where: { id: account.userId, name: null }, data: { name } });
+      }
       return this.addDevice(account.userId);
     }
     try {
-      return await this.createFamily(provider, subjectHash);
+      return await this.createFamily(provider, subjectHash, name);
     } catch (error) {
       if (isUniqueViolation(error)) {
-        return this.signIn(provider, subjectHash);
+        return this.signIn(provider, subjectHash, name);
       }
       throw error;
     }
@@ -42,19 +45,26 @@ export class AccountsService {
       tx.device.updateMany({ where: { id: session.deviceId }, data: { lastSeenAt: new Date() } })
     );
     const passkeys = await this.prisma.passkey.count({ where: { userId: session.userId } });
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: session.userId }, select: { name: true } });
     return {
       userId: session.userId,
       familyId: session.familyId,
       deviceId: session.deviceId,
+      name: user.name,
       hasPasskey: passkeys > 0,
     };
   }
 
-  private async createFamily(provider: string, subjectHash: string): Promise<SignedIn> {
+  async rename(session: Session, name: string | null): Promise<MeResponse> {
+    await this.prisma.user.update({ where: { id: session.userId }, data: { name } });
+    return this.me(session);
+  }
+
+  private async createFamily(provider: string, subjectHash: string, name?: string): Promise<SignedIn> {
     const signedIn: SignedIn = { userId: randomUUID(), familyId: randomUUID(), deviceId: randomUUID() };
     const { userId, familyId, deviceId } = signedIn;
     await this.prisma.inFamily(familyId, async (tx) => {
-      await tx.user.create({ data: { id: userId } });
+      await tx.user.create({ data: { id: userId, name } });
       await tx.family.create({ data: { id: familyId } });
       await tx.membership.create({ data: { userId, familyId } });
       await tx.authAccount.create({ data: { id: randomUUID(), provider, subjectHash, userId } });

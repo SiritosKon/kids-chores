@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { AppConfig } from '../../platform/config';
-import { accountUrl, callbackUrl, homeUrl, relyingPartyId, sessionCookieOptions, sessionKey, subjectHash } from './lib';
+import {
+  accountUrl,
+  callbackUrl,
+  homeUrl,
+  profileName,
+  relyingPartyId,
+  sessionCookieOptions,
+  sessionKey,
+  subjectHash,
+} from './lib';
 
 const config = (overrides: Partial<AppConfig> = {}): AppConfig => ({
   NODE_ENV: 'test',
@@ -62,5 +71,22 @@ describe('urls', () => {
   it('takes the passkey domain from the public origin unless it is set', () => {
     expect(relyingPartyId(config())).toBe('localhost');
     expect(relyingPartyId(config({ WEBAUTHN_RP_ID: 'example.app' }))).toBe('example.app');
+  });
+});
+
+describe('profileName', () => {
+  it('takes the first name from the Google profile and falls back to the full name', () => {
+    expect(profileName({ sub: '1', given_name: ' Anna ', name: 'Anna Smith' })).toBe('Anna');
+    expect(profileName({ sub: '1', name: 'Anna Smith' })).toBe('Anna Smith');
+  });
+
+  it('gives nothing when the profile has no usable name', () => {
+    expect(profileName({ sub: '1' })).toBeUndefined();
+    expect(profileName({ sub: '1', given_name: '   ' })).toBeUndefined();
+    expect(profileName({ sub: '1', given_name: 42 })).toBeUndefined();
+  });
+
+  it('cuts a long name to the account limit', () => {
+    expect(profileName({ sub: '1', given_name: 'x'.repeat(60) })).toHaveLength(40);
   });
 });

@@ -24,7 +24,7 @@ export const ACCOUNT_ROUTE = '#/account';
 
 export const HOME_ROUTE = '#/';
 
-export const GOOGLE_SCOPE = 'openid email';
+export const GOOGLE_SCOPE = 'openid profile';
 
 export const GOOGLE_SERVER: ServerMetadata = {
   issuer: 'https://accounts.google.com',

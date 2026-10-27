@@ -51,3 +51,8 @@ export const passkeyRegisterSchema = z.object({ response: registrationResponseSc
 export const passkeyLoginSchema = z.object({ flowId: z.uuid(), response: authenticationResponseSchema });
 
 export const passkeyTransportsSchema = transports;
+
+export const googleProfileSchema = z.object({
+  given_name: z.string().optional(),
+  name: z.string().optional(),
+});

@@ -7,6 +7,11 @@ export type AuthState = z.infer<typeof authStateSchema>;
 
 export type SignedIn = Omit<Session, 'createdAt'>;
 
+export interface ProviderIdentity {
+  subject: string;
+  name?: string;
+}
+
 export interface ProviderStart {
   url: string;
   state: string;

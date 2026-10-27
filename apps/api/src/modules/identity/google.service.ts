@@ -4,9 +4,9 @@ import * as oidc from 'openid-client';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { VALKEY } from '../../platform/valkey';
 import { AUTH_STATE_PREFIX, AUTH_STATE_TTL_SECONDS, GOOGLE_SCOPE, GOOGLE_SERVER } from './constants';
-import { callbackUrl } from './lib';
+import { callbackUrl, profileName } from './lib';
 import { authStateSchema } from './schema';
-import type { AuthState, ProviderStart } from './types';
+import type { AuthState, ProviderIdentity, ProviderStart } from './types';
 
 @Injectable()
 export class GoogleService {
@@ -38,7 +38,7 @@ export class GoogleService {
     return { url, state };
   }
 
-  async finish(callback: URL, browserState: string | undefined): Promise<string> {
+  async finish(callback: URL, browserState: string | undefined): Promise<ProviderIdentity> {
     const client = this.requireClient();
     const state = callback.searchParams.get('state') ?? '';
     if (!browserState || browserState !== state) {
@@ -53,11 +53,11 @@ export class GoogleService {
       pkceCodeVerifier: stored.data.verifier,
       expectedState: state,
     });
-    const subject = tokens.claims()?.sub;
-    if (!subject) {
+    const claims = tokens.claims();
+    if (!claims?.sub) {
       throw new UnauthorizedException();
     }
-    return subject;
+    return { subject: claims.sub, name: profileName(claims) };
   }
 
   private requireClient(): oidc.Configuration {

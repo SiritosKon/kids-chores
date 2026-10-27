@@ -5,6 +5,7 @@ export {
   AUTH_PROVIDERS,
   SESSION_COOKIE,
   SESSION_KEY_PREFIX,
+  ACCOUNT_NAME_MAX,
   SYNC_KINDS,
   SYNC_SCHEMA_VERSION,
   SYNC_PUSH_LIMIT,
@@ -16,7 +17,9 @@ export {
 export type { Region, AuthProvider } from './types.js';
 export {
   metaResponseSchema,
+  accountNameSchema,
   meResponseSchema,
+  profileUpdateRequestSchema,
   devLoginRequestSchema,
   passkeyCreationOptionsSchema,
   passkeyLoginOptionsSchema,
@@ -25,6 +28,7 @@ export type {
   MetaResponse,
   MeResponse,
   DevLoginRequest,
+  ProfileUpdateRequest,
   PasskeyCreationOptions,
   PasskeyLoginOptions,
 } from './api/types.js';

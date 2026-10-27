@@ -32,6 +32,7 @@ enum MembershipRole {
 
 model User {
   id           String        @id @db.Uuid
+  name         String?       @db.VarChar(40)
   createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   authAccounts AuthAccount[]
   passkeys     Passkey[]

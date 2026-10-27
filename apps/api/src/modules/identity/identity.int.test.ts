@@ -86,6 +86,29 @@ describe('identity over HTTP', () => {
     expect(first.hasPasskey).toBe(false);
   });
 
+  it('names the account and lets the parent rename or clear it', async () => {
+    const name = `name-${randomUUID().slice(0, 8)}`;
+    const cookie = await devLogin(name);
+    expect(meResponseSchema.parse((await me(cookie)).body).name).toBe(name);
+
+    const rename = (payload: unknown, headers: Record<string, string> = { origin, cookie }) =>
+      app.inject({ method: 'PATCH', url: '/v1/me', headers, payload });
+
+    const renamed = await rename({ name: '  Мама  ' });
+    expect(renamed.statusCode).toBe(200);
+    expect(meResponseSchema.parse(renamed.json()).name).toBe('Мама');
+
+    await devLogin(name);
+    expect(meResponseSchema.parse((await me(cookie)).body).name).toBe('Мама');
+
+    expect((await rename({ name: 'x'.repeat(41) })).statusCode).toBe(400);
+    expect((await rename({ name: 'Mallory' }, { origin: 'https://evil.example', cookie })).statusCode).toBe(403);
+    expect((await rename({ name: 'Mallory' }, { origin })).statusCode).toBe(401);
+
+    const cleared = await rename({ name: null });
+    expect(meResponseSchema.parse(cleared.json()).name).toBeNull();
+  });
+
   it('ends the session on logout', async () => {
     const cookie = await devLogin(`logout-${randomUUID().slice(0, 8)}`);
     expect((await me(cookie)).status).toBe(200);
@@ -101,7 +124,7 @@ describe('identity over HTTP', () => {
     expect(location.origin).toBe('https://accounts.google.com');
     expect(location.searchParams.get('client_id')).toBe('integration-client');
     expect(location.searchParams.get('redirect_uri')).toBe(`${origin}/v1/auth/google/callback`);
-    expect(location.searchParams.get('scope')).toBe('openid email');
+    expect(location.searchParams.get('scope')).toBe('openid profile');
     expect(location.searchParams.get('code_challenge_method')).toBe('S256');
     expect(location.searchParams.get('state')).toBeTruthy();
     expect(response.cookies).toEqual([

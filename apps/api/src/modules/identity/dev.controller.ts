@@ -29,7 +29,8 @@ export class DevController {
     }
     const signedIn = await this.accounts.signIn(
       DEV_PROVIDER,
-      subjectHash(this.config.AUTH_PEPPER, DEV_PROVIDER, body.name)
+      subjectHash(this.config.AUTH_PEPPER, DEV_PROVIDER, body.name),
+      body.name
     );
     await this.sessions.start(request, reply, signedIn);
   }

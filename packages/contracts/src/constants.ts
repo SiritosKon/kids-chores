@@ -10,6 +10,8 @@ export const SESSION_COOKIE = 'lbd_session';
 
 export const SESSION_KEY_PREFIX = 'session:';
 
+export const ACCOUNT_NAME_MAX = 40;
+
 export const SYNC_KINDS = ['children', 'tasks', 'rewards', 'rewardVariants', 'settings', 'completions', 'spends'] as const;
 
 export const SYNC_SCHEMA_VERSION = 1;
