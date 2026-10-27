@@ -6,3 +6,8 @@ export interface CatalogueRow {
   updatedAt: number;
   archivedAt?: number;
 }
+
+export interface RowIdentity {
+  id: string;
+  at: number;
+}

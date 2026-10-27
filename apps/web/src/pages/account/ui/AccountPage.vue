@@ -26,6 +26,8 @@
         </div>
       </div>
 
+      <SyncStatus with-button />
+
       <template v-if="parentActive">
         <PasskeySetup />
         <q-btn flat no-caps color="negative" icon="logout" :label="t('accountPage.signOut')" @click="confirmSignOut" />
@@ -47,6 +49,7 @@ import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { SignInOptions } from '@/features/sign-in';
 import { PasskeySetup } from '@/features/passkey-setup';
+import { SyncStatus } from '@/features/sync';
 
 const $q = useQuasar();
 const { t } = useI18n();

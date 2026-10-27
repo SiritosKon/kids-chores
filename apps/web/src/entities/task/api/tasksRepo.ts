@@ -1,4 +1,6 @@
 import { createCatalogue } from '@/shared/api/catalogue';
+import { newIdentity } from '@/shared/api/ids';
+import type { RowIdentity } from '@/shared/api/types';
 import { dayKeyOf } from '@/shared/lib/date';
 import { storedTaskSchema } from '../model/schema';
 import { openPeriod, closePeriod, endPeriods, reassignPeriods, sameChildren, questWindow } from '../lib/schedule';
@@ -12,19 +14,19 @@ export const tasksCatalogue = createCatalogue<Task>('tasks', (rows) =>
 export const createTask = async (
   draft: TaskDraft,
   today: string,
-  { childIds, quest }: TaskOptions = {}
+  { childIds, quest }: TaskOptions = {},
+  { id, at }: RowIdentity = newIdentity()
 ): Promise<Task> => {
-  const now = Date.now();
   const task: Task = {
     ...draft,
-    id: crypto.randomUUID(),
+    id,
     order: await tasksCatalogue.nextOrder(),
     active: true,
     activePeriods: quest ? [questWindow(quest, childIds)] : openPeriod([], today, childIds),
     ...(childIds ? { childIds: [...childIds] } : {}),
     ...(quest ? { quest: true } : {}),
-    createdAt: now,
-    updatedAt: now,
+    createdAt: at,
+    updatedAt: at,
   };
   await tasksCatalogue.put(task);
   return task;

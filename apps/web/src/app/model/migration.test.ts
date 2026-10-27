@@ -77,10 +77,20 @@ describe('schema upgrade from 3 to 4 on a device with history', () => {
     await bootstrap();
 
     const completions = await getAllCompletions();
-    const first = completions.find((row) => row.id === 'legacy-0');
+    const first = completions.find((row) => row.id === 'timofey:study:2026-09-16');
     expect(first).toBeDefined();
     expect(Object.keys(first!).sort()).toEqual(
       ['childId', 'createdAt', 'date', 'id', 'points', 'taskId', 'updatedAt'].sort()
+    );
+  });
+
+  it('gives every mark an id made of the child, the task and the day', async () => {
+    await openLegacyDatabase();
+
+    await db.open();
+
+    expect((await getAllCompletions()).map((row) => row.id).sort()).toEqual(
+      LEGACY_COMPLETIONS.map((row) => `${row.childId}:${row.taskId}:${row.date}`).sort()
     );
   });
 

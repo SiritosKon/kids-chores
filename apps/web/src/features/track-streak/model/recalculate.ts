@@ -1,4 +1,5 @@
 import { transaction } from '@/shared/api/db';
+import { streakAwardId } from '@/shared/api/ids';
 import { todayKey } from '@/shared/lib/date';
 import { childrenCatalogue } from '@/entities/child';
 import { tasksCatalogue, tasksRequiredOn, STREAK_TASK_ID } from '@/entities/task';
@@ -13,9 +14,6 @@ import {
   type StreakState,
 } from '@/entities/streak';
 import type { StreakAward } from './types';
-
-const awardId = (childId: string, milestoneId: string, day: string): string =>
-  `streak:${childId}:${milestoneId}:${day}`;
 
 const dayTimestamp = (day: string): number => new Date(`${day}T12:00:00`).getTime();
 
@@ -94,7 +92,7 @@ export const recalculateStreaks = async (
     );
 
     for (const hit of [...summary.hits].reverse()) {
-      const id = awardId(child.id, hit.milestoneId, hit.day);
+      const id = streakAwardId(child.id, hit.milestoneId, hit.day);
       const left = uncelebrated[hit.milestoneId] ?? 0;
       if (left > 0 && !alreadyGranted.has(id)) {
         uncelebrated[hit.milestoneId] = left - 1;
@@ -109,6 +107,7 @@ export const recalculateStreaks = async (
         });
       }
       if (hit.points !== undefined && hit.points > 0) {
+        const earlier = completions.find((row) => row.id === id);
         expectedCompletions.set(id, {
           id,
           childId: child.id,
@@ -116,7 +115,7 @@ export const recalculateStreaks = async (
           date: hit.day,
           points: hit.points,
           createdAt: dayTimestamp(hit.day),
-          updatedAt: now,
+          updatedAt: earlier?.points === hit.points ? earlier.updatedAt : now,
         });
       }
       if (hit.rewardId !== undefined) {

@@ -1,4 +1,5 @@
 import { table, transaction } from '@/shared/api/db';
+import { completionId } from '@/shared/api/ids';
 import { weekDayKeys } from '@/shared/lib/week';
 import { storedCompletionSchema } from '../model/schema';
 import type { Completion } from '../model/types';
@@ -40,7 +41,7 @@ export const saveDayMarks = async (
   const toAdd: Completion[] = marks
     .filter((mark) => !existingTaskIds.has(mark.taskId))
     .map((mark) => ({
-      id: crypto.randomUUID(),
+      id: completionId(childId, mark.taskId, dateKey),
       childId,
       taskId: mark.taskId,
       date: dateKey,
@@ -58,7 +59,7 @@ export const saveDayMarks = async (
       await completionsTable.bulkDelete(toDelete);
     }
     if (toAdd.length > 0) {
-      await completionsTable.bulkAdd(toAdd);
+      await completionsTable.bulkPut(toAdd);
     }
   });
 };

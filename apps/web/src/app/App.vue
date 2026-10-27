@@ -81,6 +81,8 @@ import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
 import { useParentAutoLogout } from '@/features/parent-auto-logout';
 import { useLogout } from '@/features/parent-login';
+import { useSyncStore } from '@/features/sync';
+import { recalculateStreaks } from '@/features/track-streak';
 import { SideMenu } from '@/widgets/side-menu';
 import { OnboardingDialog } from '@/pages/onboarding';
 
@@ -92,6 +94,7 @@ const { active: parentActive } = storeToRefs(useParentSessionStore());
 const appVersion = __APP_VERSION__;
 const settingsStore = useSettingsStore();
 const account = useAccountStore();
+const sync = useSyncStore();
 const menuOpen = ref(false);
 const confirmLogout = useLogout();
 const tourPending = computed(() => settingsStore.settings?.tourPending === true);
@@ -128,6 +131,7 @@ declare global {
 
 onMounted(async () => {
   void account.refresh();
+  sync.start({ afterRemoteChanges: recalculateStreaks });
   try {
     const { isNew, hadHistory } = await recordVersion(appVersion);
     if (isNew && hadHistory) {

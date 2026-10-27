@@ -16,6 +16,7 @@ import { useSettingsStore } from '@/entities/settings';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { getDayCompletions, getTaskCompletions, saveDayMarks, type TaskMark } from '@/entities/completion';
 import { recalculateStreaks, type StreakAward } from '@/features/track-streak';
+import { useSyncStore } from '@/features/sync';
 import type { MarksByChild, QuestDoneDays, QuestState } from './types';
 
 export const useDayMarks = (selectedDate: Ref<string>) => {
@@ -24,6 +25,7 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   const tasksStore = useTasksStore();
   const settingsStore = useSettingsStore();
   const parentSession = useParentSessionStore();
+  const sync = useSyncStore();
 
   const children = computed(() => childrenStore.active);
   const tasks = computed(() => tasksRequiredOn(tasksStore.items, selectedDate.value));
@@ -149,6 +151,14 @@ export const useDayMarks = (selectedDate: Ref<string>) => {
   };
 
   watch([selectedDate, children, tasks, quests], load);
+  watch(
+    () => sync.revision,
+    () => {
+      if (!dirty.value) {
+        void load();
+      }
+    }
+  );
   onMounted(load);
 
   const clearAwards = (): void => {

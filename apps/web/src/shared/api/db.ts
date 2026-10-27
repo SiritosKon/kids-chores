@@ -1,4 +1,6 @@
 import Dexie, { type Table } from 'dexie';
+import { completionId, isStreakAwardId } from './ids';
+import { completionKeySchema } from './schema';
 
 export const db = new Dexie('kids-chores');
 
@@ -40,6 +42,45 @@ db.version(5).stores({
   settings: 'id',
   streaks: 'childId',
 });
+
+db.version(6)
+  .stores({
+    completions: 'id, childId, date, [childId+date], [childId+taskId+date]',
+    spends: 'id, childId, rewardId, createdAt, source',
+    versionLog: 'version, firstSeenAt',
+    children: 'id, order',
+    tasks: 'id, order',
+    rewards: 'id, order',
+    rewardVariants: 'id, rewardId, order',
+    variantPhotos: 'id',
+    settings: 'id',
+    streaks: 'childId',
+    syncQueue: '++seq',
+    syncShadow: 'key, kind',
+    syncMeta: 'key',
+  })
+  .upgrade(async (tx) => {
+    const completions = tx.table('completions');
+    const rows = completionKeySchema.array().parse(await completions.toArray());
+    const byId = new Map(
+      rows.map((row) => {
+        const id = isStreakAwardId(row.id) ? row.id : completionId(row.childId, row.taskId, row.date);
+        const at = row.createdAt ?? (new Date(`${row.date}T12:00:00`).getTime() || 0);
+        return [id, { ...row, id, createdAt: at, updatedAt: row.updatedAt ?? at }];
+      })
+    );
+    await completions.clear();
+    await completions.bulkAdd([...byId.values()]);
+    const now = Date.now();
+    await tx
+      .table('spends')
+      .toCollection()
+      .modify((row: Record<string, unknown>) => {
+        if (typeof row.createdAt !== 'number') {
+          row.createdAt = now;
+        }
+      });
+  });
 
 // Dexie раздаёт таблицы динамически и типизировать их здесь нечем: строки
 // описаны zod-схемами в entities, а shared про entities знать не должен.

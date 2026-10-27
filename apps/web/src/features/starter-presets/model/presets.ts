@@ -1,5 +1,6 @@
 import { i18n } from '@/shared/i18n';
 import { todayKey } from '@/shared/lib/date';
+import { presetIdentity } from '@/shared/api/ids';
 import { childrenCatalogue, createChild } from '@/entities/child';
 import { tasksCatalogue, createTask } from '@/entities/task';
 import { rewardsCatalogue, createReward } from '@/entities/reward';
@@ -15,13 +16,13 @@ export const seedPresets = async (): Promise<void> => {
     return;
   }
   const { t } = i18n.global;
-  const { nameKey, ...childDraft } = PRESET_CHILD;
-  await createChild({ ...childDraft, name: t(nameKey), photo: '' });
+  const { presetId, nameKey, ...childDraft } = PRESET_CHILD;
+  await createChild({ ...childDraft, name: t(nameKey), photo: '' }, presetIdentity(presetId));
   const today = todayKey();
-  for (const { nameKey: taskKey, ...draft } of PRESET_TASKS) {
-    await createTask({ ...draft, name: t(taskKey) }, today);
+  for (const { presetId: taskId, nameKey: taskKey, ...draft } of PRESET_TASKS) {
+    await createTask({ ...draft, name: t(taskKey) }, today, {}, presetIdentity(taskId));
   }
-  for (const { nameKey: rewardKey, ...draft } of PRESET_REWARDS) {
-    await createReward({ ...draft, name: t(rewardKey) });
+  for (const { presetId: rewardId, nameKey: rewardKey, ...draft } of PRESET_REWARDS) {
+    await createReward({ ...draft, name: t(rewardKey) }, presetIdentity(rewardId));
   }
 };

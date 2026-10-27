@@ -1,4 +1,6 @@
 import { createCatalogue } from '@/shared/api/catalogue';
+import { newIdentity } from '@/shared/api/ids';
+import type { RowIdentity } from '@/shared/api/types';
 import { childSchema } from '../model/schema';
 import type { Child, ChildGoal } from '../model/types';
 import type { ChildDraft } from './types';
@@ -7,15 +9,14 @@ export const childrenCatalogue = createCatalogue<Child>('children', (rows) =>
   childSchema.array().parse(rows)
 );
 
-export const createChild = async (draft: ChildDraft): Promise<Child> => {
-  const now = Date.now();
+export const createChild = async (draft: ChildDraft, { id, at }: RowIdentity = newIdentity()): Promise<Child> => {
   const child: Child = {
     ...draft,
-    id: crypto.randomUUID(),
+    id,
     order: await childrenCatalogue.nextOrder(),
     active: true,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: at,
+    updatedAt: at,
   };
   await childrenCatalogue.put(child);
   return child;

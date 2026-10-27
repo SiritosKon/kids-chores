@@ -78,7 +78,10 @@
           @click="open(ROUTES.account)"
         >
           <q-item-section avatar><q-icon name="account_circle" /></q-item-section>
-          <q-item-section>{{ t('sideMenu.account') }}</q-item-section>
+          <q-item-section>
+            <q-item-label>{{ t('sideMenu.account') }}</q-item-label>
+            <SyncStatus class="q-mt-xs" />
+          </q-item-section>
         </q-item>
 
         <template v-if="installable">
@@ -148,6 +151,7 @@ import { PinDialog, useLogout } from '@/features/parent-login';
 import { canAddToHomeScreen } from '@/features/install-app';
 import { exportAll, importAll, downloadJson } from '@/features/backup';
 import { recalculateStreaks } from '@/features/track-streak';
+import { SyncStatus } from '@/features/sync';
 
 defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();

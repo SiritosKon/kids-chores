@@ -6,8 +6,8 @@ done build a streak with its own prize. A parent PIN protects everything that ch
 The interface speaks Russian, English and Spanish.
 
 The app is in **alpha**. The deployed build has no backend: all data lives in the browser's
-IndexedDB on the device, and nothing is sent anywhere. A backend with accounts and sync between
-devices is being built in this repository and runs only locally for now.
+IndexedDB on the device, and nothing is sent anywhere. The backend in this repository adds a family
+account and sync between devices; for now it runs only locally, in the containers described below.
 
 Live build: <https://siritoskon.github.io/kids-chores/>
 
@@ -36,6 +36,10 @@ sync between devices and accounts (see the roadmap in the `research` branch).
 - **Backup.** JSON export and import in parent mode. This is the only backup, so export regularly.
 - **PWA.** Installable, works offline, splash screens for iPhone and iPad, and an in-app guide for
   adding it to the iOS home screen.
+- **Family account and sync** (local contour only). Sign in with Google, then with Face ID or
+  Touch ID. Kids, chores, rewards, marks and purchases go to the server and on to the family's
+  other devices; offline changes wait on the device. Signing in is optional, and photos never
+  leave the device.
 
 ## Repository
 
@@ -103,6 +107,23 @@ podman compose down -v            # stop and delete the data
 It starts Postgres, Valkey, the migrations, `api`, `outbox-relay`, `notifications` and nginx
 with the built PWA. Host ports are set in `.env`; Valkey is on 6380 by default because 6379 is
 often taken. While the contour is up, `npm run dev` proxies `/v1` to it.
+
+To try sync, open <http://localhost:8080/kids-chores/> in two browsers (or a normal and a private
+window), open the menu → **Sign in** in each and use the dev sign-in with the same name: both
+windows join one family. A change in one window shows up in the other within a second after it is
+saved, or when you switch back to it. Google sign-in works too once `GOOGLE_CLIENT_ID` and
+`GOOGLE_CLIENT_SECRET` are in `.env` and `http://localhost:8080/v1/auth/google/callback` is an
+authorised redirect URI of that OAuth client.
+
+The backend can also run on the host against the containers' Postgres and Valkey:
+
+```sh
+podman compose up -d postgres valkey
+cp apps/api/.env.example apps/api/.env       # once
+npm run dev -w apps/api                      # api with reload on http://localhost:3000
+API_URL=http://localhost:3000 npm run dev    # the PWA on :5173, /v1 goes to the api on the host
+npm run test:integration                     # integration tests on the real Postgres and Valkey
+```
 
 ## Project structure
 

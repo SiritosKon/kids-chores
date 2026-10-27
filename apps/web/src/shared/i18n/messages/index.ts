@@ -35,6 +35,7 @@ import { installPage } from './installPage';
 import { accountPage } from './accountPage';
 import { signIn } from './signIn';
 import { passkeySetup } from './passkeySetup';
+import { sync } from './sync';
 
 export const messages = {
   ru: {
@@ -75,6 +76,7 @@ export const messages = {
     accountPage: accountPage.ru,
     signIn: signIn.ru,
     passkeySetup: passkeySetup.ru,
+    sync: sync.ru,
   },
   en: {
     common: common.en,
@@ -114,6 +116,7 @@ export const messages = {
     accountPage: accountPage.en,
     signIn: signIn.en,
     passkeySetup: passkeySetup.en,
+    sync: sync.en,
   },
   es: {
     common: common.es,
@@ -153,5 +156,6 @@ export const messages = {
     accountPage: accountPage.es,
     signIn: signIn.es,
     passkeySetup: passkeySetup.es,
+    sync: sync.es,
   },
 };

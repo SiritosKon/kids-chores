@@ -9,3 +9,4 @@ export {
   getAllCompletions,
 } from './api/completionsRepo';
 export type { TaskMark } from './api/types';
+export { withCompletionKey } from './lib/key';

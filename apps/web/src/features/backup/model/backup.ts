@@ -1,5 +1,5 @@
 import { transaction } from '@/shared/api/db';
-import { completionsTable, getAllCompletions } from '@/entities/completion';
+import { completionsTable, getAllCompletions, withCompletionKey } from '@/entities/completion';
 import { spendsTable, getAllSpends } from '@/entities/spend';
 import { childrenCatalogue } from '@/entities/child';
 import { tasksCatalogue } from '@/entities/task';
@@ -51,7 +51,7 @@ export const importAll = async (data: unknown): Promise<void> => {
 
   await transaction(BACKUP_TABLES, async () => {
     await completionsTable.clear();
-    await completionsTable.bulkAdd(completions);
+    await completionsTable.bulkPut(completions.map(withCompletionKey));
 
     await spendsTable.clear();
     if (spends.length > 0) {

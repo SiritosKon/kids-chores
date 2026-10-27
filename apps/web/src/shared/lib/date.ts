@@ -33,6 +33,9 @@ export const formatTimestampNumeric = (timestamp: number): string => {
   });
 };
 
+export const formatClockTime = (timestamp: number): string =>
+  new Date(timestamp).toLocaleTimeString(dateLocale(), { hour: '2-digit', minute: '2-digit' });
+
 export const formatTimestampShort = (timestamp: number): string => {
   return new Date(timestamp).toLocaleDateString(dateLocale(), { day: 'numeric', month: 'short' });
 };
