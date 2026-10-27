@@ -57,10 +57,11 @@ export class AuthController {
     const browserState = request.cookies[AUTH_STATE_COOKIE];
     reply.clearCookie(AUTH_STATE_COOKIE, { path: authStateCookieOptions(this.config).path });
     try {
-      const { subject, name } = await this.google.finish(new URL(request.url, publicOrigin(this.config)), browserState);
+      const callbackAt = new URL(request.url, publicOrigin(this.config));
+      const { subject, name, picture } = await this.google.finish(callbackAt, browserState);
       const signedIn = await this.accounts.signIn(known, subjectHash(this.config.AUTH_PEPPER, known, subject), name);
       await this.sessions.start(request, reply, signedIn);
-      return reply.redirect(homeUrl(this.config, known), 302);
+      return reply.redirect(homeUrl(this.config, known, picture), 302);
     } catch (error) {
       this.logger.warn(`${known} sign-in failed: ${error instanceof Error ? error.name : 'unknown error'}`);
       return reply.redirect(accountUrl(this.config, known), 302);

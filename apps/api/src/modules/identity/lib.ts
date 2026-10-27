@@ -2,7 +2,7 @@ import { createHash, createHmac, randomBytes } from 'node:crypto';
 import { createParamDecorator, type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyRequest } from 'fastify';
-import { ACCOUNT_NAME_MAX, API_PREFIX, SESSION_KEY_PREFIX, type Session } from '@kids-chores/contracts';
+import { ACCOUNT_NAME_MAX, API_PREFIX, providerPictureSchema, SESSION_KEY_PREFIX, type Session } from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
 import { ACCOUNT_ROUTE, AUTH_STATE_TTL_SECONDS, HOME_ROUTE, SESSION_TOKEN_BYTES, SESSION_TTL_SECONDS } from './constants';
 import { googleProfileSchema } from './schema';
@@ -48,8 +48,16 @@ export const profileName = (claims: unknown): string | undefined => {
   return name || undefined;
 };
 
-export const homeUrl = (config: AppConfig, signedIn: string): string =>
-  `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?signedIn=${encodeURIComponent(signedIn)}`;
+export const profilePicture = (claims: unknown): string | undefined => {
+  const profile = googleProfileSchema.safeParse(claims);
+  const picture = providerPictureSchema.safeParse(profile.success ? profile.data.picture : undefined);
+  return picture.success ? picture.data : undefined;
+};
+
+export const homeUrl = (config: AppConfig, signedIn: string, picture?: string): string =>
+  `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?signedIn=${encodeURIComponent(signedIn)}${
+    picture ? `&picture=${encodeURIComponent(picture)}` : ''
+  }`;
 
 export const CurrentSession = createParamDecorator((_: unknown, context: ExecutionContext): Session => {
   const session = context.switchToHttp().getRequest<FastifyRequest>().authSession;

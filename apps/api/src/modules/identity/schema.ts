@@ -55,4 +55,5 @@ export const passkeyTransportsSchema = transports;
 export const googleProfileSchema = z.object({
   given_name: z.string().optional(),
   name: z.string().optional(),
+  picture: z.string().optional(),
 });

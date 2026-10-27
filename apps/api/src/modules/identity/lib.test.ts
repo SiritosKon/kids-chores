@@ -5,6 +5,7 @@ import {
   callbackUrl,
   homeUrl,
   profileName,
+  profilePicture,
   relyingPartyId,
   sessionCookieOptions,
   sessionKey,
@@ -65,6 +66,9 @@ describe('urls', () => {
     const local = config({ PUBLIC_ORIGIN: 'http://localhost:8080/' });
     expect(callbackUrl(local, 'google')).toBe('http://localhost:8080/v1/auth/google/callback');
     expect(homeUrl(local, 'google')).toBe('http://localhost:8080/kids-chores/#/?signedIn=google');
+    expect(homeUrl(local, 'google', 'https://lh3.googleusercontent.com/a/x=s96-c')).toBe(
+      'http://localhost:8080/kids-chores/#/?signedIn=google&picture=https%3A%2F%2Flh3.googleusercontent.com%2Fa%2Fx%3Ds96-c'
+    );
     expect(accountUrl(local, 'google')).toBe('http://localhost:8080/kids-chores/#/account?error=google');
   });
 
@@ -88,5 +92,19 @@ describe('profileName', () => {
 
   it('cuts a long name to the account limit', () => {
     expect(profileName({ sub: '1', given_name: 'x'.repeat(60) })).toHaveLength(40);
+  });
+});
+
+describe('profilePicture', () => {
+  it('passes on a Google profile picture link', () => {
+    const picture = 'https://lh3.googleusercontent.com/a/ACg8ocK=s96-c';
+    expect(profilePicture({ sub: '1', picture })).toBe(picture);
+  });
+
+  it('drops a link that is not an https Google picture', () => {
+    expect(profilePicture({ sub: '1' })).toBeUndefined();
+    expect(profilePicture({ sub: '1', picture: 'http://lh3.googleusercontent.com/a/x' })).toBeUndefined();
+    expect(profilePicture({ sub: '1', picture: 'https://googleusercontent.com.evil.example/a' })).toBeUndefined();
+    expect(profilePicture({ sub: '1', picture: 'javascript:alert(1)' })).toBeUndefined();
   });
 });

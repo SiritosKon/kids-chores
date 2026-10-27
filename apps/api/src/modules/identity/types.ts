@@ -10,6 +10,7 @@ export type SignedIn = Omit<Session, 'createdAt'>;
 export interface ProviderIdentity {
   subject: string;
   name?: string;
+  picture?: string;
 }
 
 export interface ProviderStart {

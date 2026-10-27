@@ -4,7 +4,7 @@ import * as oidc from 'openid-client';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { VALKEY } from '../../platform/valkey';
 import { AUTH_STATE_PREFIX, AUTH_STATE_TTL_SECONDS, GOOGLE_SCOPE, GOOGLE_SERVER } from './constants';
-import { callbackUrl, profileName } from './lib';
+import { callbackUrl, profileName, profilePicture } from './lib';
 import { authStateSchema } from './schema';
 import type { AuthState, ProviderIdentity, ProviderStart } from './types';
 
@@ -57,7 +57,7 @@ export class GoogleService {
     if (!claims?.sub) {
       throw new UnauthorizedException();
     }
-    return { subject: claims.sub, name: profileName(claims) };
+    return { subject: claims.sub, name: profileName(claims), picture: profilePicture(claims) };
   }
 
   private requireClient(): oidc.Configuration {

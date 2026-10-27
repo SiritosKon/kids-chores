@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ACCOUNT_NAME_MAX, AUTH_PROVIDERS, REGIONS } from '../constants.js';
+import { ACCOUNT_NAME_MAX, AUTH_PROVIDERS, PROVIDER_PICTURE_HOST, REGIONS } from '../constants.js';
 
 export const metaResponseSchema = z.object({
   version: z.string().min(1),
@@ -21,6 +21,8 @@ export const meResponseSchema = z.object({
   name: accountNameSchema.nullable(),
   hasPasskey: z.boolean(),
 });
+
+export const providerPictureSchema = z.url({ protocol: /^https$/, hostname: PROVIDER_PICTURE_HOST });
 
 export const profileUpdateRequestSchema = z.object({
   name: accountNameSchema.nullable(),
