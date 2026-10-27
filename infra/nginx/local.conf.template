@@ -2,6 +2,10 @@ server {
   listen 80;
   server_name _;
   absolute_redirect off;
+  resolver ${NGINX_LOCAL_RESOLVERS} valid=10s;
+
+  set $api http://api:3000;
+  set $notifications http://notifications:3001;
 
   location = / {
     return 302 /kids-chores/;
@@ -13,13 +17,13 @@ server {
   }
 
   location /v1/notifications/ {
-    proxy_pass http://notifications:3001;
+    proxy_pass $notifications;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
   }
 
   location /v1/ {
-    proxy_pass http://api:3000;
+    proxy_pass $api;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
   }

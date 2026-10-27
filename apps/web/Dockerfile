@@ -12,5 +12,6 @@ RUN npm run build --workspace packages/contracts \
   && npm run build --workspace apps/web
 
 FROM docker.io/library/nginx:1.28-alpine
-COPY infra/nginx/local.conf /etc/nginx/conf.d/default.conf
+ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
+COPY infra/nginx/local.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/apps/web/dist /usr/share/nginx/html/kids-chores
