@@ -3,6 +3,7 @@ import { syncPushRequestSchema, type SyncMutation, type SyncRecord } from '@kids
 import { db } from '@/shared/api/db';
 import { childrenCatalogue, createChild } from '@/entities/child';
 import { getAllCompletions, saveDayMarks } from '@/entities/completion';
+import { getSettings, setupParentPin } from '@/entities/settings';
 import { seedPresets } from '@/features/starter-presets';
 import { syncFamily, pendingChanges } from './engine';
 
@@ -118,6 +119,38 @@ describe('syncFamily', () => {
     server.save({ kind: 'completions', id: `${child.id}:bed:${DAY}`, data: bed?.data ?? {}, deleted: true });
     await syncFamily('family-1');
     expect(await getAllCompletions()).toEqual([]);
+  });
+
+  it('takes device-only fields such as the PIN from the device, never from the server', async () => {
+    await setupParentPin('123456', 'ru');
+    await createChild({ name: 'Тимофей', carColor: '#0A84FF', photo: 'data:image/png;base64,AAAA' });
+    await syncFamily('family-1');
+    const settings = server.records.get('settings/app');
+    server.save({
+      kind: 'settings',
+      id: 'app',
+      deleted: false,
+      data: { ...settings?.data, parentPin: '999999', locale: 'es', bonus: { enabled: true, points: 5 } },
+    });
+
+    await syncFamily('family-1');
+
+    expect(settings?.data).not.toHaveProperty('parentPin');
+    expect(await getSettings()).toMatchObject({ parentPin: '123456', locale: 'ru', bonus: { enabled: true, points: 5 } });
+  });
+
+  it('replaces the data of the previous family instead of sending it to the next one', async () => {
+    await createChild({ name: 'Тимофей', carColor: '#0A84FF', photo: '' });
+    await syncFamily('family-1');
+    server = createServer();
+    vi.stubGlobal('fetch', vi.fn(server.handle));
+    server.save(familyChild('mia', 'Mia'));
+
+    const report = await syncFamily('family-2');
+
+    expect(report.changed).toBe(true);
+    expect((await childrenCatalogue.read()).map((child) => child.name)).toEqual(['Mia']);
+    expect(server.pushed).toEqual([]);
   });
 
   it('keeps changes on the device while the server is out of reach', async () => {

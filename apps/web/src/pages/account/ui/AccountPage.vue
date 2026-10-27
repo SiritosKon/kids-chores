@@ -49,12 +49,13 @@ import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { SignInOptions } from '@/features/sign-in';
 import { PasskeySetup } from '@/features/passkey-setup';
-import { SyncStatus } from '@/features/sync';
+import { SyncStatus, useSyncStore } from '@/features/sync';
 
 const $q = useQuasar();
 const { t } = useI18n();
 const route = useRoute();
 const account = useAccountStore();
+const sync = useSyncStore();
 const { active: parentActive } = storeToRefs(useParentSessionStore());
 
 const failedProvider = computed(() => typeof route.query.error === 'string' && !account.signedIn);
@@ -67,6 +68,7 @@ const confirmSignOut = (): void => {
     ok: { flat: true, noCaps: true, color: 'negative', label: t('accountPage.signOut') },
     persistent: true,
   }).onOk(async () => {
+    await sync.run();
     const done = await account.signOut();
     $q.notify({
       type: done ? 'positive' : 'negative',

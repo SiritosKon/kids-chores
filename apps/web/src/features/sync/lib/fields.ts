@@ -23,6 +23,9 @@ export const syncedFields = (row: SyncRow, localFields: readonly string[]): Sync
 export const localPart = (row: Record<string, unknown>, localFields: readonly string[]): Record<string, unknown> =>
   Object.fromEntries(Object.entries(row).filter(([field]) => localFields.includes(field)));
 
+export const sharedPart = (fields: SyncFields, localFields: readonly string[]): SyncFields =>
+  Object.fromEntries(Object.entries(fields).filter(([field]) => !localFields.includes(field)));
+
 export const changedFields = (before: SyncFields | undefined, after: SyncFields): SyncFields =>
   Object.fromEntries([
     ...Object.entries(after).filter(

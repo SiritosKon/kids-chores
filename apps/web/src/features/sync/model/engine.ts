@@ -1,5 +1,5 @@
 import { SYNC_PUSH_LIMIT, type SyncRecord } from '@kids-chores/contracts';
-import { applyRecords, hasFamilyData, isPristine, replaceWithFamily } from './apply';
+import { adoptLocalRows, applyRecords, hasFamilyData, isPristine, replaceWithFamily } from './apply';
 import { captureChanges } from './capture';
 import { pullRecords, pushMutations } from './transport';
 import { inSyncTransaction, queueTable, readQueue, readState, saveState, shadowTable } from './storage';
@@ -21,15 +21,19 @@ const pullEverything = async (): Promise<Transported<{ records: SyncRecord[]; cu
   }
 };
 
-const attach = async (familyId: string): Promise<Transported<boolean>> => {
-  if (await isPristine()) {
+const attach = async (familyId: string, previous: string | null): Promise<Transported<boolean>> => {
+  const switching = previous !== null;
+  if (switching || (await isPristine())) {
     const family = await pullEverything();
     if (!family.ok) {
       return family;
     }
-    if (hasFamilyData(family.value.records)) {
+    if (switching || hasFamilyData(family.value.records)) {
       await inSyncTransaction(async () => {
         await replaceWithFamily(family.value.records);
+        if (switching) {
+          await adoptLocalRows();
+        }
         await saveState({ familyId, cursor: family.value.cursor });
       });
       return { ok: true, value: true };
@@ -82,8 +86,9 @@ const pullChanges = async (): Promise<Transported<boolean>> => {
 
 export const syncFamily = async (familyId: string): Promise<SyncReport> => {
   let changed = false;
-  if ((await readState()).familyId !== familyId) {
-    const attached = await attach(familyId);
+  const previous = (await readState()).familyId;
+  if (previous !== familyId) {
+    const attached = await attach(familyId, previous);
     if (!attached.ok) {
       return { failure: attached.reason, changed, rejected: 0 };
     }
