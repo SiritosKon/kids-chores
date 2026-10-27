@@ -17,8 +17,8 @@
       <SignInOptions />
     </template>
 
-    <div v-else class="column q-gutter-md">
-      <div class="row items-center no-wrap q-gutter-md">
+    <div v-else class="form-stack">
+      <div class="form-row">
         <q-icon name="account_circle" size="40px" color="primary" />
         <div>
           <div class="text-subtitle1">{{ t('accountPage.signedIn') }}</div>
@@ -26,19 +26,40 @@
         </div>
       </div>
 
-      <SyncStatus with-button />
+      <SyncStatus />
 
       <template v-if="parentActive">
         <PasskeySetup />
-        <q-btn flat no-caps color="negative" icon="logout" :label="t('accountPage.signOut')" @click="confirmSignOut" />
+        <q-btn
+          flat
+          no-caps
+          color="negative"
+          icon="logout"
+          class="self-start"
+          :label="t('accountPage.signOut')"
+          @click="confirmSignOut"
+        />
       </template>
-      <p v-else class="text-caption text-grey-5">{{ t('accountPage.parentOnly') }}</p>
+      <template v-else>
+        <div class="text-caption text-grey-5">{{ t('accountPage.parentOnly') }}</div>
+        <q-btn
+          outline
+          no-caps
+          color="primary"
+          icon="lock_open"
+          class="self-start q-px-lg"
+          :label="t('accountPage.enterParentMode')"
+          @click="showParentLogin = true"
+        />
+      </template>
     </div>
+
+    <PinDialog v-model="showParentLogin" />
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { storeToRefs } from 'pinia';
 import { useRoute } from 'vue-router';
@@ -47,6 +68,7 @@ import { ROUTES } from '@/shared/config/constants';
 import PageHeader from '@/shared/ui/PageHeader.vue';
 import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
+import { PinDialog } from '@/features/parent-login';
 import { SignInOptions } from '@/features/sign-in';
 import { PasskeySetup } from '@/features/passkey-setup';
 import { SyncStatus, useSyncStore } from '@/features/sync';
@@ -57,6 +79,7 @@ const route = useRoute();
 const account = useAccountStore();
 const sync = useSyncStore();
 const { active: parentActive } = storeToRefs(useParentSessionStore());
+const showParentLogin = ref(false);
 
 const failedProvider = computed(() => typeof route.query.error === 'string' && !account.signedIn);
 

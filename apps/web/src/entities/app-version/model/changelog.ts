@@ -13,6 +13,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'На широком экране меню всегда открыто слева, в нём название приложения. На узком меню открывается кнопкой, а шапка теперь от края до края',
         'Аккаунт — отдельным блоком наверху меню, там же видно, когда данные последний раз ушли на сервер',
         'После входа приложение сразу возвращает на главную, кнопки входа стали компактнее',
+        'На странице аккаунта есть кнопка входа в родительский режим: Face ID и выход из аккаунта — там',
         'Аккаунт заработает в опубликованном приложении, когда у него появится свой сервер. Пока его можно попробовать в локальной сборке',
       ],
       en: [
@@ -23,6 +24,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'On wide screens the menu stays open on the left with the app name in it. On narrow screens the menu opens with a button, and the top bar now runs edge to edge',
         'The account has its own block at the top of the menu, showing when the data last reached the server',
         'After signing in the app goes straight back to the home screen, and the sign-in buttons are more compact',
+        'The account page has a button to enter parent mode, where Face ID and signing out live',
         'The account will work in the published app once it has its own server. For now you can try it in a local build',
       ],
       es: [
@@ -33,6 +35,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'En pantallas anchas el menú queda abierto a la izquierda con el nombre de la app. En pantallas estrechas se abre con un botón, y la barra superior ahora va de borde a borde',
         'La cuenta tiene su propio bloque arriba del menú, donde se ve cuándo los datos llegaron al servidor por última vez',
         'Después de iniciar sesión la app vuelve directamente a la pantalla principal, y los botones de inicio de sesión son más compactos',
+        'La página de la cuenta tiene un botón para entrar al modo padres, donde están Face ID y el cierre de sesión',
         'La cuenta funcionará en la app publicada cuando tenga su propio servidor. Por ahora puedes probarla en una versión local',
       ],
     },

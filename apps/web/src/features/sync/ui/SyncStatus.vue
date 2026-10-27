@@ -6,16 +6,6 @@
       <div v-if="sync.pending > 0 && sync.status !== 'syncing'">{{ t('sync.pending', { count: sync.pending }) }}</div>
       <div v-if="sync.rejected > 0" class="text-negative">{{ t('sync.rejected', { count: sync.rejected }) }}</div>
     </div>
-    <q-btn
-      v-if="withButton"
-      flat
-      dense
-      no-caps
-      color="primary"
-      :loading="sync.status === 'syncing'"
-      :label="t('sync.syncNow')"
-      @click="sync.run()"
-    />
   </div>
 </template>
 
@@ -25,8 +15,6 @@ import { useI18n } from 'vue-i18n';
 import { formatClockTime } from '@/shared/lib/date';
 import { useSyncStore } from '../model/store';
 import { STATUS_LOOKS } from './constants';
-
-defineProps<{ withButton?: boolean }>();
 
 const { t } = useI18n();
 const sync = useSyncStore();
