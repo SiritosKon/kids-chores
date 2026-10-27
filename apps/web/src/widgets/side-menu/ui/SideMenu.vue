@@ -32,6 +32,22 @@
         </q-card-section>
       </q-card>
 
+      <q-card
+        v-else-if="account.signedIn"
+        flat
+        class="side-menu__account q-mx-md q-mb-sm"
+        :class="{ 'side-menu__account--active': isAt(ROUTES.account) }"
+      >
+        <q-item clickable class="q-py-md" @click="open(ROUTES.account)">
+          <q-item-section avatar><q-icon name="account_circle" size="32px" color="primary" /></q-item-section>
+          <q-item-section>
+            <q-item-label class="text-weight-medium">{{ t('sideMenu.account') }}</q-item-label>
+            <SyncStatus class="q-mt-xs" />
+          </q-item-section>
+          <q-item-section side><q-icon name="chevron_right" color="grey-6" /></q-item-section>
+        </q-item>
+      </q-card>
+
       <q-list class="side-menu__list" :data-tour="docked ? 'parent-menu' : undefined">
         <q-item clickable :active="isAt(ROUTES.home)" active-class="side-menu__active" @click="open(ROUTES.home)">
           <q-item-section avatar><q-icon name="home" /></q-item-section>
@@ -70,20 +86,6 @@
             <q-item-section>{{ t('sideMenu.logout') }}</q-item-section>
           </q-item>
         </template>
-
-        <q-item
-          v-if="account.signedIn"
-          clickable
-          :active="isAt(ROUTES.account)"
-          active-class="side-menu__active"
-          @click="open(ROUTES.account)"
-        >
-          <q-item-section avatar><q-icon name="account_circle" /></q-item-section>
-          <q-item-section>
-            <q-item-label>{{ t('sideMenu.account') }}</q-item-label>
-            <SyncStatus class="q-mt-xs" />
-          </q-item-section>
-        </q-item>
 
         <template v-if="installable">
           <q-separator spaced />
@@ -277,6 +279,15 @@ const onFile = async (event: Event): Promise<void> => {
 .side-menu__guest {
   background: rgba(255, 159, 10, 0.1);
   border: 1px solid rgba(255, 159, 10, 0.3);
+}
+
+.side-menu__account {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.side-menu__account--active {
+  border-color: rgba(255, 159, 10, 0.5);
 }
 
 .side-menu__icon {
