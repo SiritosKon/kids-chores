@@ -9,6 +9,7 @@ import { starterPresets } from './starterPresets';
 import { celebrateStreak } from './celebrateStreak';
 import { chooseRewardVariant } from './chooseRewardVariant';
 import { editChild } from './editChild';
+import { editProfile } from './editProfile';
 import { editReward } from './editReward';
 import { editSettings } from './editSettings';
 import { editTask } from './editTask';
@@ -50,6 +51,7 @@ export const messages = {
     celebrateStreak: celebrateStreak.ru,
     chooseRewardVariant: chooseRewardVariant.ru,
     editChild: editChild.ru,
+    editProfile: editProfile.ru,
     editReward: editReward.ru,
     editSettings: editSettings.ru,
     editTask: editTask.ru,
@@ -90,6 +92,7 @@ export const messages = {
     celebrateStreak: celebrateStreak.en,
     chooseRewardVariant: chooseRewardVariant.en,
     editChild: editChild.en,
+    editProfile: editProfile.en,
     editReward: editReward.en,
     editSettings: editSettings.en,
     editTask: editTask.en,
@@ -130,6 +133,7 @@ export const messages = {
     celebrateStreak: celebrateStreak.es,
     chooseRewardVariant: chooseRewardVariant.es,
     editChild: editChild.es,
+    editProfile: editProfile.es,
     editReward: editReward.es,
     editSettings: editSettings.es,
     editTask: editTask.es,

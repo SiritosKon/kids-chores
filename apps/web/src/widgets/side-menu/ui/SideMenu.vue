@@ -15,38 +15,36 @@
         <div class="text-subtitle1 text-weight-bold">{{ APP_NAME }}</div>
       </div>
 
-      <q-card v-if="account.server && account.loaded && !account.signedIn" flat class="side-menu__guest q-mx-md q-mb-sm">
-        <q-card-section class="q-pa-md">
-          <div class="text-body2 text-weight-medium">{{ t('sideMenu.guestTitle') }}</div>
-          <div class="text-caption text-grey-5 q-mt-xs">{{ t('sideMenu.guestText') }}</div>
-          <q-btn
-            unelevated
-            dense
-            no-caps
-            color="primary"
-            text-color="black"
-            class="q-mt-sm q-px-md"
-            :label="t('sideMenu.signIn')"
-            @click="open(ROUTES.account)"
-          />
-        </q-card-section>
-      </q-card>
-
-      <q-card
-        v-else-if="account.signedIn"
-        flat
-        class="side-menu__account q-mx-md q-mb-sm"
-        :class="{ 'side-menu__account--active': isAt(ROUTES.account) }"
-      >
-        <q-item clickable class="q-py-md" @click="open(ROUTES.account)">
-          <q-item-section avatar><q-icon name="account_circle" size="32px" color="primary" /></q-item-section>
+      <div v-if="account.server && account.loaded" class="side-menu__account">
+        <q-item
+          v-if="account.signedIn"
+          clickable
+          class="side-menu__account-item"
+          :active="isAt(ROUTES.account)"
+          active-class="side-menu__active"
+          @click="open(ROUTES.account)"
+        >
+          <q-item-section avatar><AccountAvatar size="36px" /></q-item-section>
           <q-item-section>
-            <q-item-label class="text-weight-medium">{{ t('sideMenu.account') }}</q-item-label>
-            <SyncStatus class="q-mt-xs" />
+            <q-item-label class="ellipsis">{{ account.name ?? t('sideMenu.account') }}</q-item-label>
+            <SyncStatus compact class="q-mt-xs" />
           </q-item-section>
-          <q-item-section side><q-icon name="chevron_right" color="grey-6" /></q-item-section>
         </q-item>
-      </q-card>
+        <q-item
+          v-else
+          clickable
+          class="side-menu__account-item"
+          :active="isAt(ROUTES.account)"
+          active-class="side-menu__active"
+          @click="open(ROUTES.account)"
+        >
+          <q-item-section avatar><q-icon name="cloud_off" color="primary" /></q-item-section>
+          <q-item-section>
+            <q-item-label class="text-primary text-weight-medium">{{ t('sideMenu.signIn') }}</q-item-label>
+            <q-item-label caption class="text-grey-5">{{ t('sideMenu.guestTitle') }}</q-item-label>
+          </q-item-section>
+        </q-item>
+      </div>
 
       <q-list class="side-menu__list" :data-tour="docked ? 'parent-menu' : undefined">
         <q-item clickable :active="isAt(ROUTES.home)" active-class="side-menu__active" @click="open(ROUTES.home)">
@@ -147,7 +145,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { ROUTES, APP_NAME } from '@/shared/config/constants';
 import { applyLocale, currentLocale, LOCALE_NAMES, LOCALE_OPTIONS, type Locale } from '@/shared/i18n';
-import { useAccountStore } from '@/entities/account';
+import { AccountAvatar, useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
 import { PinDialog, useLogout } from '@/features/parent-login';
@@ -276,18 +274,16 @@ const onFile = async (event: Event): Promise<void> => {
   font-size: 13px;
 }
 
-.side-menu__guest {
-  background: rgba(255, 159, 10, 0.1);
-  border: 1px solid rgba(255, 159, 10, 0.3);
-}
-
 .side-menu__account {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 0;
+  margin-bottom: 8px;
 }
 
-.side-menu__account--active {
-  border-color: rgba(255, 159, 10, 0.5);
+.side-menu__account-item {
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .side-menu__icon {

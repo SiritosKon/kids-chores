@@ -19,9 +19,9 @@
 
     <div v-else class="form-stack">
       <div class="form-row">
-        <q-icon name="account_circle" size="40px" color="primary" />
-        <div>
-          <div class="text-subtitle1">{{ t('accountPage.signedIn') }}</div>
+        <AccountAvatar size="48px" />
+        <div class="col">
+          <div class="text-subtitle1 ellipsis">{{ account.name ?? t('accountPage.signedIn') }}</div>
           <div class="text-caption text-grey-5">{{ t('accountPage.deviceNote') }}</div>
         </div>
       </div>
@@ -29,6 +29,7 @@
       <SyncStatus />
 
       <template v-if="parentActive">
+        <ProfileForm />
         <PasskeySetup />
         <q-btn
           flat
@@ -66,8 +67,9 @@ import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { ROUTES } from '@/shared/config/constants';
 import PageHeader from '@/shared/ui/PageHeader.vue';
-import { useAccountStore } from '@/entities/account';
+import { AccountAvatar, useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
+import { ProfileForm } from '@/features/edit-profile';
 import { PinDialog } from '@/features/parent-login';
 import { SignInOptions } from '@/features/sign-in';
 import { PasskeySetup } from '@/features/passkey-setup';

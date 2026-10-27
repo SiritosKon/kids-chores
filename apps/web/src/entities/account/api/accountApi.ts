@@ -18,6 +18,9 @@ export const fetchServerAuth = async (): Promise<ServerAuth | null> =>
 
 export const fetchMe = (): Promise<MeResponse | null> => apiJson('/me', (data) => meResponseSchema.parse(data));
 
+export const requestRename = (name: string | null): Promise<MeResponse | null> =>
+  apiJson('/me', (data) => meResponseSchema.parse(data), 'PATCH', { name });
+
 export const requestSignOut = (): Promise<boolean> => apiOk('/auth/logout', 'POST');
 
 export const devSignIn = (name: string): Promise<boolean> => apiOk('/dev/login', 'POST', { name });

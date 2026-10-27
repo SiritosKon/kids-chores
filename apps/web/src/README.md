@@ -9,7 +9,7 @@
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
 | `pages` | Экраны целиком | `home`, `onboarding`, `settings`, `reward`, `task`, `child`, `spends`, `whats-new`, `install`, `account` |
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `side-menu` |
-| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets`, `sign-in`, `passkey-setup`, `sync` |
+| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets`, `sign-in`, `passkey-setup`, `edit-profile`, `sync` |
 | `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session`, `account` |
 | `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets`, `i18n` |
 
@@ -229,10 +229,10 @@ entities/completion/
 схемой — функция возвращает `null` или `false`, исключений наружу нет.
 
 `entities/account` при запуске спрашивает `GET /v1/meta`. Если ответа нет — как на GitHub Pages,
-где API нет, — приложение работает гостем, а плашки и пункта «Аккаунт» в меню нет. Если сервер
-ответил, `GET /v1/me` говорит, вошёл ли человек. Гость видит в сайдбаре плашку «Данные только на
-этом устройстве» с кнопкой «Войти», вошедший — блок «Аккаунт» со статусом синхронизации; оба
-стоят наверху меню, под названием.
+где API нет, — приложение работает гостем, а пункта аккаунта в меню нет. Если сервер ответил,
+`GET /v1/me` говорит, вошёл ли человек. Наверху меню, под названием, — пункт аккаунта между
+двумя линиями: у гостя «Войти» и «Данные только на этом устройстве», у вошедшего аватарка, имя
+и строка статуса синхронизации (`SyncStatus compact`).
 
 Страница `/account` (`pages/account`) открыта всем: на ней способы входа из `features/sign-in` —
 Google, Face ID или Touch ID и dev-вход, если сервер его включил. Google — переход на
@@ -241,8 +241,15 @@ Google, Face ID или Touch ID и dev-вход, если сервер его в
 сервер возвращает на `#/account?error=google`. Вход по Face ID, Touch ID и dev-вход тоже ведут на
 главную. Сессия живёт в httpOnly-cookie, скрипт её не видит.
 
-Face ID и выход из аккаунта — только в родрежиме; вне его на странице аккаунта кнопка «Войти в
-родительский режим» открывает тот же `PinDialog`, что и меню. `features/passkey-setup` создаёт passkey для
+Имя, фото, Face ID и выход из аккаунта — только в родрежиме; вне его на странице аккаунта кнопка
+«Войти в родительский режим» открывает тот же `PinDialog`, что и меню.
+
+Имя хранится в аккаунте на сервере (`users.name`, до 40 символов), поэтому его видно и после
+входа по Face ID. При первом входе через Google сервер берёт имя из профиля Google (право
+`profile`), dev-вход — имя, под которым вошли; уже заданное имя вход не трогает. Поменять или
+стереть — `features/edit-profile`, запрос `PATCH /v1/me`. Фото — только на устройстве, в
+`localStorage` под ключом с id пользователя; на сервер оно не уходит. `AccountAvatar` показывает
+фото, без него — первую букву имени, без имени — значок. `features/passkey-setup` создаёт passkey для
 открытого аккаунта и запоминает его id в `localStorage`, чтобы отключить ключ именно этого
 устройства. Выход удаляет сессию на сервере, данные на устройстве остаются. После входа тем же
 аккаунтом синхронизация продолжается с того места, где остановилась.
