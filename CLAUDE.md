@@ -37,6 +37,20 @@ podman compose down -v               # снести вместе с данным
 
 Порты на машине задаются в `.env`; Valkey по умолчанию на 6380, потому что 6379 часто занят.
 
+`api` на машине, без контейнера, — против Postgres и Valkey из Compose:
+
+```
+podman compose up -d postgres valkey
+cp apps/api/.env.example apps/api/.env       # один раз
+npm run dev -w apps/api                      # api на http://localhost:3000
+API_URL=http://localhost:3000 npm run dev    # PWA на :5173, /v1 уходит в api на машине
+npm run test:integration                     # тесты на настоящих Postgres и Valkey
+```
+
+Интеграционные тесты — файлы `*.int.test.ts`, `npm test` их не запускает. В CI для них свои
+Postgres и Valkey. Vitest собирает бэк через SWC: esbuild не пишет метаданные декораторов, и без
+них Nest не находит зависимости.
+
 Иконки в `apps/web/public/` и мастер-кадры экрана загрузки в `apps/web/art/` — рисованные, их не
 генерирует ни один скрипт; SVG-исходники лежат рядом в `art/`. `npm run splash` только читает
 `art/splash-portrait.png` и `art/splash-landscape.png` и вписывает кадр нужной ориентации в каждый

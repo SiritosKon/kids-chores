@@ -18,3 +18,52 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: docker.io/library/postgres:17-alpine
+        env:
+          POSTGRES_DB: kids_chores
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d kids_chores"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+      valkey:
+        image: docker.io/valkey/valkey:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://app_core:app-core-ci@localhost:5432/kids_chores?schema=core
+      MIGRATOR_DATABASE_URL: postgresql://migrator:migrator-ci@localhost:5432/kids_chores?schema=core
+      VALKEY_URL: redis://localhost:6379
+      REGION: eu
+      PUBLIC_ORIGIN: http://localhost:8080
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - name: Create database roles and schemas
+        run: sh infra/postgres/init.sh
+        env:
+          PGHOST: localhost
+          PGPASSWORD: postgres-ci
+          POSTGRES_USER: postgres
+          POSTGRES_DB: kids_chores
+          MIGRATOR_PASSWORD: migrator-ci
+          APP_CORE_PASSWORD: app-core-ci
+          APP_NOTIFICATIONS_PASSWORD: app-notifications-ci
+      - run: npm run test:integration
