@@ -19,7 +19,8 @@ import { Public } from '../../platform/http';
 import { AccountsService } from './accounts.service';
 import { PasskeyLoginDto, PasskeyRegisterDto } from './dto';
 import { GoogleService } from './google.service';
-import { accountUrl, CurrentSession, publicOrigin, subjectHash } from './lib';
+import { AUTH_STATE_COOKIE } from './constants';
+import { accountUrl, authStateCookieOptions, CurrentSession, publicOrigin, subjectHash } from './lib';
 import { PasskeysService } from './passkeys.service';
 import { SessionsService } from './sessions.service';
 import type { PasskeyLoginOptions, PasskeyRegisterOptions } from './types';
@@ -40,7 +41,9 @@ export class AuthController {
   @Get(':provider/start')
   async start(@Param('provider') provider: string, @Res() reply: FastifyReply): Promise<FastifyReply> {
     this.requireProvider(provider);
-    return reply.redirect(await this.google.start(), 302);
+    const { url, state } = await this.google.start();
+    reply.setCookie(AUTH_STATE_COOKIE, state, authStateCookieOptions(this.config));
+    return reply.redirect(url, 302);
   }
 
   @Public()
@@ -51,8 +54,10 @@ export class AuthController {
     @Res() reply: FastifyReply
   ): Promise<FastifyReply> {
     const known = this.requireProvider(provider);
+    const browserState = request.cookies[AUTH_STATE_COOKIE];
+    reply.clearCookie(AUTH_STATE_COOKIE, { path: authStateCookieOptions(this.config).path });
     try {
-      const subject = await this.google.finish(new URL(request.url, publicOrigin(this.config)));
+      const subject = await this.google.finish(new URL(request.url, publicOrigin(this.config)), browserState);
       const signedIn = await this.accounts.signIn(known, subjectHash(this.config.AUTH_PEPPER, known, subject));
       await this.sessions.start(request, reply, signedIn);
       return reply.redirect(accountUrl(this.config), 302);

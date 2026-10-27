@@ -6,7 +6,7 @@ import { VALKEY } from '../../platform/valkey';
 import { AUTH_STATE_PREFIX, AUTH_STATE_TTL_SECONDS, GOOGLE_SCOPE, GOOGLE_SERVER } from './constants';
 import { callbackUrl } from './lib';
 import { authStateSchema } from './schema';
-import type { AuthState } from './types';
+import type { AuthState, ProviderStart } from './types';
 
 @Injectable()
 export class GoogleService {
@@ -22,12 +22,12 @@ export class GoogleService {
         : null;
   }
 
-  async start(): Promise<string> {
+  async start(): Promise<ProviderStart> {
     const client = this.requireClient();
     const state = oidc.randomState();
     const stored: AuthState = { provider: 'google', verifier: oidc.randomPKCECodeVerifier() };
     await this.valkey.set(`${AUTH_STATE_PREFIX}${state}`, JSON.stringify(stored), 'EX', AUTH_STATE_TTL_SECONDS);
-    return oidc.buildAuthorizationUrl(client, {
+    const url = oidc.buildAuthorizationUrl(client, {
       redirect_uri: callbackUrl(this.config, 'google'),
       scope: GOOGLE_SCOPE,
       code_challenge: await oidc.calculatePKCECodeChallenge(stored.verifier),
@@ -35,11 +35,15 @@ export class GoogleService {
       state,
       prompt: 'select_account',
     }).href;
+    return { url, state };
   }
 
-  async finish(callback: URL): Promise<string> {
+  async finish(callback: URL, browserState: string | undefined): Promise<string> {
     const client = this.requireClient();
     const state = callback.searchParams.get('state') ?? '';
+    if (!browserState || browserState !== state) {
+      throw new UnauthorizedException();
+    }
     const raw = await this.valkey.getdel(`${AUTH_STATE_PREFIX}${state}`);
     const stored = authStateSchema.safeParse(JSON.parse(raw ?? 'null'));
     if (!stored.success || stored.data.provider !== 'google') {

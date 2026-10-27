@@ -4,7 +4,7 @@ import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyRequest } from 'fastify';
 import { API_PREFIX, SESSION_KEY_PREFIX, type Session } from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
-import { ACCOUNT_ROUTE, SESSION_TOKEN_BYTES, SESSION_TTL_SECONDS } from './constants';
+import { ACCOUNT_ROUTE, AUTH_STATE_TTL_SECONDS, SESSION_TOKEN_BYTES, SESSION_TTL_SECONDS } from './constants';
 
 export const newSessionToken = (): string => randomBytes(SESSION_TOKEN_BYTES).toString('base64url');
 
@@ -20,6 +20,14 @@ export const sessionCookieOptions = (config: AppConfig): CookieSerializeOptions 
   sameSite: 'lax',
   path: API_PREFIX,
   maxAge: SESSION_TTL_SECONDS,
+});
+
+export const authStateCookieOptions = (config: AppConfig): CookieSerializeOptions => ({
+  httpOnly: true,
+  secure: new URL(config.PUBLIC_ORIGIN).protocol === 'https:',
+  sameSite: 'lax',
+  path: `${API_PREFIX}/auth`,
+  maxAge: AUTH_STATE_TTL_SECONDS,
 });
 
 export const relyingPartyId = (config: AppConfig): string =>

@@ -104,13 +104,33 @@ describe('identity over HTTP', () => {
     expect(location.searchParams.get('scope')).toBe('openid email');
     expect(location.searchParams.get('code_challenge_method')).toBe('S256');
     expect(location.searchParams.get('state')).toBeTruthy();
+    expect(response.cookies).toEqual([
+      expect.objectContaining({
+        name: 'lbd_auth_state',
+        value: location.searchParams.get('state'),
+        httpOnly: true,
+        path: '/v1/auth',
+      }),
+    ]);
+  });
+
+  it('refuses a callback that this browser did not start', async () => {
+    const started = await app.inject({ method: 'GET', url: '/v1/auth/google/start' });
+    const state = new URL(started.headers.location ?? '').searchParams.get('state') ?? '';
+    const response = await app.inject({
+      method: 'GET',
+      url: `/v1/auth/google/callback?code=x&state=${state}`,
+      headers: { cookie: 'lbd_auth_state=attacker-state' },
+    });
+    expect(response.headers.location).toBe(`${origin}/kids-chores/#/account?error=google`);
+    expect(response.cookies.filter((cookie) => cookie.name === 'lbd_session')).toEqual([]);
   });
 
   it('returns to the account page with an error when the state is unknown', async () => {
     const response = await app.inject({ method: 'GET', url: '/v1/auth/google/callback?code=x&state=unknown' });
     expect(response.statusCode).toBe(302);
     expect(response.headers.location).toBe(`${origin}/kids-chores/#/account?error=google`);
-    expect(response.cookies).toEqual([]);
+    expect(response.cookies.filter((cookie) => cookie.name === 'lbd_session')).toEqual([]);
   });
 
   it('does not know providers that are off', async () => {
