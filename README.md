@@ -105,15 +105,18 @@ podman compose down -v            # stop and delete the data
 ```
 
 It starts Postgres, Valkey, the migrations, `api`, `outbox-relay`, `notifications` and nginx
-with the built PWA. Host ports are set in `.env`; Valkey is on 6380 by default because 6379 is
-often taken. While the contour is up, `npm run dev` proxies `/v1` to it.
+with the built PWA. The `migrate` container applies the migrations and stops with exit code 0;
+`api` and `outbox-relay` start only after it. Host ports are set in `.env`; Valkey is on 6380 by
+default because 6379 is often taken. While the contour is up, `npm run dev` proxies `/v1` to it.
 
 To try sync, open <http://localhost:8080/kids-chores/> in two browsers (or a normal and a private
-window), open the menu → **Sign in** in each and use the dev sign-in with the same name: both
-windows join one family. A change in one window shows up in the other within a second after it is
-saved, or when you switch back to it. Google sign-in works too once `GOOGLE_CLIENT_ID` and
-`GOOGLE_CLIENT_SECRET` are in `.env` and `http://localhost:8080/v1/auth/google/callback` is an
-authorised redirect URI of that OAuth client.
+window), open the menu → **Sign in** in each and sign in the same way in both: both windows join
+one family. A change is sent to the server a second after it is saved and shows up in the other
+window when you switch back to it. Google sign-in needs `GOOGLE_CLIENT_ID` and
+`GOOGLE_CLIENT_SECRET` in `.env` and `http://localhost:8080/v1/auth/google/callback` as an
+authorised redirect URI of that OAuth client. Without Google, set `DEV_LOGIN=true` in `.env` and
+run `podman compose up -d api`: the account page gets a sign-in by any name, and the same name
+means the same family.
 
 The backend can also run on the host against the containers' Postgres and Valkey:
 
