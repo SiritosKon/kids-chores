@@ -3,7 +3,7 @@
     <div class="app-frame">
       <q-layout view="hHh lpR fFf" container style="height: 100%">
         <q-header class="bg-black text-white">
-          <q-toolbar class="q-py-md items-start">
+          <q-toolbar class="q-py-md items-start app-column">
             <q-btn
               v-if="!needsSetup"
               flat
@@ -48,7 +48,7 @@
           <q-banner v-if="!persistence" class="bg-warning text-black">
             {{ t('app.storageUnavailable') }}
           </q-banner>
-          <div v-if="settingsStore.loaded" class="page-stack">
+          <div v-if="settingsStore.loaded" class="page-stack app-column">
             <router-view v-slot="{ Component, route }">
               <transition :name="route.meta.transition" mode="out-in">
                 <keep-alive include="HomePage">
