@@ -31,8 +31,10 @@ sync between devices and accounts (see the roadmap in the `research` branch).
 - **Bonus.** Optional extra points for a day with every task done.
 - **Parent mode.** Six-digit PIN, closes by itself after five idle minutes. Children, tasks and
   rewards are edited on their own pages; settings cover the streak, the bonus and the PIN.
-- **First launch.** The board opens with an editable example — a kid, three chores and three
-  rewards — a PIN window over it and a four-step tour: kids, chores, rewards and the menu.
+- **First launch.** Where the backend is available, the app first offers to sign in or continue
+  without an account. The board opens with an editable example — a kid, three chores and three
+  rewards — a PIN window over it and a four-step tour: kids, chores, rewards and the menu. A
+  device that joins a family with data takes that data and skips the tour.
 - **Backup.** JSON export and import in parent mode. This is the only backup, so export regularly.
 - **PWA.** Installable, works offline, splash screens for iPhone and iPad, and an in-app guide for
   adding it to the iOS home screen.
