@@ -1,0 +1,17 @@
+FROM docker.io/library/node:24-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY packages/contracts/package.json packages/contracts/
+COPY apps/web/package.json apps/web/
+COPY apps/api/package.json apps/api/
+COPY apps/notifications/package.json apps/notifications/
+RUN npm ci --workspace packages/contracts --workspace apps/web --include-workspace-root
+COPY packages/contracts packages/contracts
+COPY apps/web apps/web
+RUN npm run build --workspace packages/contracts \
+  && npm run build --workspace apps/web
+
+FROM docker.io/library/nginx:1.28-alpine
+ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
+COPY infra/nginx/local.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=build /app/apps/web/dist /usr/share/nginx/html/kids-chores

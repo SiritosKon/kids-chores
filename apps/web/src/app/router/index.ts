@@ -1,0 +1,46 @@
+import { createRouter, createWebHashHistory } from 'vue-router';
+import { ROUTES } from '@/shared/config/constants';
+import { routeDepth } from '@/shared/lib/routes';
+import { useParentSessionStore } from '@/entities/parent-session';
+import { HomePage } from '@/pages/home';
+import { SettingsPage, StreakStagePage, StageRewardPage, PinPage } from '@/pages/settings';
+import { RewardPage } from '@/pages/reward';
+import { TaskPage } from '@/pages/task';
+import { ChildPage, ChildRewardPage, ChildStreakPage, ChildWalletPage } from '@/pages/child';
+import { SpendsPage } from '@/pages/spends';
+import { WhatsNewPage } from '@/pages/whats-new';
+import { InstallPage } from '@/pages/install';
+import { AccountPage } from '@/pages/account';
+import { BACK_TRANSITION, FORWARD_TRANSITION } from './constants';
+
+const parentOnly = { parentOnly: true };
+
+export const router = createRouter({
+  history: createWebHashHistory(),
+  routes: [
+    { path: ROUTES.home, component: HomePage },
+    { path: ROUTES.settings, component: SettingsPage, meta: parentOnly },
+    { path: ROUTES.settingsPin, component: PinPage, meta: parentOnly },
+    { path: ROUTES.settingsStage, component: StreakStagePage, meta: parentOnly },
+    { path: ROUTES.settingsStageReward, component: StageRewardPage, meta: parentOnly },
+    { path: ROUTES.reward, component: RewardPage, meta: parentOnly },
+    { path: ROUTES.task, component: TaskPage, meta: parentOnly },
+    { path: ROUTES.child, component: ChildPage, meta: parentOnly },
+    { path: ROUTES.childReward, component: ChildRewardPage, meta: parentOnly },
+    { path: ROUTES.childStreak, component: ChildStreakPage },
+    { path: ROUTES.childWallet, component: ChildWalletPage },
+    { path: ROUTES.spends, component: SpendsPage, meta: parentOnly },
+    { path: ROUTES.whatsNew, component: WhatsNewPage },
+    { path: ROUTES.install, component: InstallPage },
+    { path: ROUTES.account, component: AccountPage },
+    { path: '/:rest(.*)*', redirect: ROUTES.home },
+  ],
+});
+
+router.beforeEach((to) =>
+  to.meta.parentOnly === true && !useParentSessionStore().active ? ROUTES.home : true
+);
+
+router.afterEach((to, from) => {
+  to.meta.transition = routeDepth(to.path) < routeDepth(from.path) ? BACK_TRANSITION : FORWARD_TRANSITION;
+});
