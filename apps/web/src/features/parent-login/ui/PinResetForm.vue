@@ -39,6 +39,7 @@ import PinInput from '@/shared/ui/PinInput.vue';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
 import { makeParentCheck } from '../lib/parentCheck';
+import { clearPinFailures } from '../lib/pinLock';
 import { RESET_STEP_TITLES } from '../model/constants';
 import type { ResetStep } from '../model/types';
 
@@ -83,7 +84,8 @@ const onPin = async (value: string): Promise<void> => {
     });
     return;
   }
-  await settingsStore.update({ parentPin: value });
+  await settingsStore.changePin(value);
+  clearPinFailures();
   parentSession.unlock();
   $q.notify({ type: 'positive', message: t('parentLogin.pinChanged') });
   emit('done');

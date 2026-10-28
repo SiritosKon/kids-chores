@@ -121,7 +121,7 @@ describe('syncFamily', () => {
     expect(await getAllCompletions()).toEqual([]);
   });
 
-  it('takes device-only fields such as the PIN from the device, never from the server', async () => {
+  it('takes device-only fields such as the language from the device, never from the server', async () => {
     await setupParentPin('123456', 'ru');
     await createChild({ name: 'Тимофей', carColor: '#0A84FF', photo: 'data:image/png;base64,AAAA' });
     await syncFamily('family-1');
@@ -136,7 +136,20 @@ describe('syncFamily', () => {
     await syncFamily('family-1');
 
     expect(settings?.data).not.toHaveProperty('parentPin');
-    expect(await getSettings()).toMatchObject({ parentPin: '123456', locale: 'ru', bonus: { enabled: true, points: 5 } });
+    expect(await getSettings()).toMatchObject({ parentPin: null, locale: 'ru', bonus: { enabled: true, points: 5 } });
+  });
+
+  it('shares the PIN hash with the whole family', async () => {
+    await setupParentPin('123456', 'ru');
+    await syncFamily('family-1');
+    const settings = server.records.get('settings/app');
+    expect(settings?.data.pinHash).toEqual((await getSettings())?.pinHash);
+
+    const familyPin = { salt: 'c2FsdA==', hash: 'aGFzaA==', iterations: 1 };
+    server.save({ kind: 'settings', id: 'app', deleted: false, data: { ...settings?.data, pinHash: familyPin } });
+    await syncFamily('family-1');
+
+    expect((await getSettings())?.pinHash).toEqual(familyPin);
   });
 
   it('replaces the data of the previous family instead of sending it to the next one', async () => {

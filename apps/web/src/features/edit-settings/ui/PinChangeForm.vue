@@ -37,7 +37,7 @@ const failPin = (step: PinStep): void => {
 const onPin = async (value: string): Promise<void> => {
   pinError.value = false;
   if (pinStep.value === 'current') {
-    if (value !== settingsStore.settings?.parentPin) {
+    if (!(await settingsStore.checkPin(value))) {
       failPin('current');
       return;
     }
@@ -46,7 +46,7 @@ const onPin = async (value: string): Promise<void> => {
     nextPin.value = value;
     pinStep.value = 'repeat';
   } else if (value === nextPin.value) {
-    await settingsStore.update({ parentPin: value });
+    await settingsStore.changePin(value);
     $q.notify({ type: 'positive', message: t('editSettings.pinChanged') });
     emit('done');
     return;

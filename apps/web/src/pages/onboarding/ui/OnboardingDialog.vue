@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
@@ -77,11 +77,34 @@ const sync = useSyncStore();
 const parentSession = useParentSessionStore();
 
 const guest = ref(false);
+const familyLoaded = ref(false);
+let pinChosen = false;
+
 const stage = computed<OnboardingStage>(() => {
   if (!account.loaded) {
     return 'loading';
   }
-  return account.server && !account.signedIn && !guest.value ? 'account' : 'pin';
+  if (account.server && !account.signedIn && !guest.value) {
+    return 'account';
+  }
+  return account.signedIn && !familyLoaded.value ? 'loading' : 'pin';
+});
+
+watch(
+  () => account.signedIn,
+  async (signedIn) => {
+    if (signedIn && !familyLoaded.value) {
+      await sync.run();
+      familyLoaded.value = true;
+    }
+  },
+  { immediate: true }
+);
+
+onBeforeUnmount(() => {
+  if (account.signedIn && !pinChosen) {
+    $q.notify({ type: 'info', message: t('onboardingPage.familyPin'), timeout: 8000 });
+  }
 });
 const signInFailed = computed(() => typeof route.query.error === 'string');
 
@@ -111,7 +134,7 @@ const onPin = async (value: string): Promise<void> => {
     $q.notify({ type: 'negative', message: t('onboardingPage.pinMismatch') });
     return;
   }
-  await sync.run();
+  pinChosen = true;
   await setupParentPin(value, currentLocale());
   parentSession.unlock();
 };

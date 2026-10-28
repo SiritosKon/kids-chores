@@ -16,6 +16,9 @@ export const parentLogin = defineMessages({
     answer: 'Ответ',
     wrongAnswer: 'Неверно. Вот другой пример',
     pinChanged: 'PIN изменён, родительский режим включён',
+    locked: 'Слишком много неверных попыток. Попробуйте через {time}',
+    seconds: '{count} с',
+    minutes: '{count} мин',
   },
   en: {
     logoutTitle: 'Leave parent mode?',
@@ -32,6 +35,9 @@ export const parentLogin = defineMessages({
     answer: 'Answer',
     wrongAnswer: "That's not right. Try this one",
     pinChanged: 'PIN changed, parent mode is on',
+    locked: 'Too many wrong attempts. Try again in {time}',
+    seconds: '{count} s',
+    minutes: '{count} min',
   },
   es: {
     logoutTitle: '¿Salir del modo padres?',
@@ -48,5 +54,8 @@ export const parentLogin = defineMessages({
     answer: 'Respuesta',
     wrongAnswer: 'No es correcto. Prueba con esta',
     pinChanged: 'PIN cambiado, modo padres activado',
+    locked: 'Demasiados intentos fallidos. Inténtalo de nuevo en {time}',
+    seconds: '{count} s',
+    minutes: '{count} min',
   },
 });

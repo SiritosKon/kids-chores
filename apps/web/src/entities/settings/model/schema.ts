@@ -8,6 +8,12 @@ export const parentPinSchema = z.string().regex(PIN_PATTERN);
 
 export const isValidPin = (value: string): boolean => PIN_PATTERN.test(value);
 
+export const pinHashSchema = z.object({
+  salt: z.string().min(1),
+  hash: z.string().min(1),
+  iterations: z.number().int().positive(),
+});
+
 export const bonusSettingsSchema = z.object({
   enabled: z.boolean(),
   points: z.number().int().nonnegative(),
@@ -31,6 +37,7 @@ export const streakSettingsSchema = z.object({
 export const settingsSchema = z.object({
   id: z.literal(SETTINGS_ID),
   parentPin: parentPinSchema.nullable(),
+  pinHash: pinHashSchema.nullable(),
   bonus: bonusSettingsSchema,
   streak: streakSettingsSchema,
   tourPending: z.boolean(),
@@ -42,6 +49,7 @@ export const storedSettingsSchema = z
     id: z.literal(SETTINGS_ID),
     parentPin: z.string().nullable().optional(),
     parentPassword: z.string().optional(),
+    pinHash: pinHashSchema.nullable().default(null),
     bonus: bonusSettingsSchema.default(LEGACY_BONUS),
     streak: streakSettingsSchema.default(LEGACY_STREAK),
     tourPending: z.boolean().default(false),
@@ -52,6 +60,7 @@ export const storedSettingsSchema = z
     return {
       id: row.id,
       parentPin: isValidPin(stored) ? stored : null,
+      pinHash: row.pinHash,
       bonus: row.bonus,
       streak: row.streak,
       tourPending: row.tourPending,

@@ -121,7 +121,7 @@ watch(
   { immediate: true }
 );
 
-const needsSetup = computed(() => settingsStore.loaded && !settingsStore.settings?.parentPin);
+const needsSetup = computed(() => settingsStore.loaded && !settingsStore.hasPin);
 const docked = useDockedMenu();
 const menuDocked = computed(() => docked.value && !needsSetup.value);
 

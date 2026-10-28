@@ -29,6 +29,7 @@ describe('storedSettingsSchema', () => {
       'id',
       'locale',
       'parentPin',
+      'pinHash',
       'streak',
       'tourPending',
     ]);
@@ -44,6 +45,12 @@ describe('storedSettingsSchema', () => {
     const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111', locale: 'es' });
 
     expect(settings.locale).toBe('es');
+  });
+
+  it('reads a row without a pin hash as one that still has to get it', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111' });
+
+    expect(settings.pinHash).toBeNull();
   });
 
   it('treats a row written before the tour existed as already introduced', () => {

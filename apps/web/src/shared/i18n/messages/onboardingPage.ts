@@ -8,6 +8,7 @@ export const onboardingPage = defineMessages({
     continueAsGuest: 'Продолжить без входа',
     guestNote: 'Без входа всё хранится только на этом устройстве. Войти можно позже в меню.',
     signInFailed: 'Не получилось войти. Попробуйте ещё раз.',
+    familyPin: 'В семье уже есть PIN родителя — родительский режим открывается им и на этом устройстве.',
     abilitiesTitle: 'В родительском режиме вы можете:',
     abilities: {
       edit: 'добавлять и менять детей, задачи и награды',
@@ -29,6 +30,7 @@ export const onboardingPage = defineMessages({
     continueAsGuest: 'Continue without signing in',
     guestNote: 'Without an account everything stays on this device only. You can sign in later from the menu.',
     signInFailed: "Couldn't sign in. Please try again.",
+    familyPin: 'Your family already has a parent PIN, and it opens parent mode on this device too.',
     abilitiesTitle: 'In parent mode you can:',
     abilities: {
       edit: 'add and edit kids, chores and rewards',
@@ -50,6 +52,7 @@ export const onboardingPage = defineMessages({
     continueAsGuest: 'Continuar sin iniciar sesión',
     guestNote: 'Sin cuenta, todo se queda solo en este dispositivo. Puedes iniciar sesión más tarde desde el menú.',
     signInFailed: 'No se pudo iniciar sesión. Inténtalo de nuevo.',
+    familyPin: 'Tu familia ya tiene un PIN de padres, y también abre el modo padres en este dispositivo.',
     abilitiesTitle: 'En el modo padres puedes:',
     abilities: {
       edit: 'añadir y editar niños, tareas y premios',

@@ -35,6 +35,7 @@ export const FAMILY_REWARDS = withCatalogueDefaults([
 export const FAMILY_SETTINGS: Settings = {
   id: SETTINGS_ID,
   parentPin: '123456',
+  pinHash: null,
   bonus: { enabled: true, points: 1 },
   streak: { enabled: true, milestones: [{ id: 'week', days: 7, rewardId: 'bubble-tea' }] },
   tourPending: false,

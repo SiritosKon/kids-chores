@@ -29,8 +29,10 @@ sync between devices and accounts (see the roadmap in the `research` branch).
 - **Streaks.** Days in a row with all tasks done earn a configurable prize (reward and/or points)
   every N days. Changing tasks or the rule never rewrites past streaks or prizes.
 - **Bonus.** Optional extra points for a day with every task done.
-- **Parent mode.** Six-digit PIN, closes by itself after five idle minutes. Children, tasks and
-  rewards are edited on their own pages; settings cover the streak, the bonus and the PIN.
+- **Parent mode.** Six-digit PIN, closes by itself after five idle minutes. The PIN is kept only
+  as a salted PBKDF2 hash, one per family when signed in, and five wrong tries in a row pause the
+  PIN window. Children, tasks and rewards are edited on their own pages; settings cover the streak,
+  the bonus and the PIN.
 - **First launch.** Where the backend is available, the app first offers to sign in or continue
   without an account. The board opens with an editable example — a kid, three chores and three
   rewards — a PIN window over it and a four-step tour: kids, chores, rewards and the menu. A
