@@ -3,6 +3,7 @@ import { ConfigModule } from './platform/config';
 import { AppLoggerModule } from './platform/logger';
 import { DatabaseModule } from './platform/database';
 import { ValkeyModule } from './platform/valkey';
+import { RateLimitModule } from './platform/rate-limit';
 import { OutboxModule } from './platform/outbox';
 import { HttpModule } from './platform/http';
 import { MetaModule } from './modules/meta';
@@ -15,6 +16,7 @@ import { SyncModule } from './modules/sync';
     AppLoggerModule,
     DatabaseModule,
     ValkeyModule,
+    RateLimitModule,
     OutboxModule,
     HttpModule,
     MetaModule,

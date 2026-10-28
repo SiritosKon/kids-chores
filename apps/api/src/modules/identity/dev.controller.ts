@@ -2,6 +2,7 @@ import { Body, Controller, HttpCode, Inject, NotFoundException, Post, Req, Res }
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { Public } from '../../platform/http';
+import { AuthRateLimit } from '../../platform/rate-limit';
 import { AccountsService } from './accounts.service';
 import { DEV_PROVIDER } from './constants';
 import { DevLoginDto } from './dto';
@@ -17,6 +18,7 @@ export class DevController {
   ) {}
 
   @Public()
+  @AuthRateLimit()
   @Post('login')
   @HttpCode(204)
   async login(

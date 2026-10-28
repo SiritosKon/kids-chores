@@ -16,6 +16,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import { AUTH_PROVIDERS, type AuthProvider, type Session } from '@kids-chores/contracts';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { Public } from '../../platform/http';
+import { AuthRateLimit } from '../../platform/rate-limit';
 import { AccountsService } from './accounts.service';
 import { PasskeyLoginDto, PasskeyRegisterDto } from './dto';
 import { GoogleService } from './google.service';
@@ -38,6 +39,7 @@ export class AuthController {
   ) {}
 
   @Public()
+  @AuthRateLimit()
   @Get(':provider/start')
   async start(@Param('provider') provider: string, @Res() reply: FastifyReply): Promise<FastifyReply> {
     this.requireProvider(provider);
@@ -87,12 +89,14 @@ export class AuthController {
   }
 
   @Public()
+  @AuthRateLimit()
   @Post('passkey/login/options')
   loginOptions(): Promise<PasskeyLoginOptions> {
     return this.passkeys.loginOptions();
   }
 
   @Public()
+  @AuthRateLimit()
   @Post('passkey/login')
   @HttpCode(204)
   async login(

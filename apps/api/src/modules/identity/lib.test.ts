@@ -15,6 +15,7 @@ import {
 const config = (overrides: Partial<AppConfig> = {}): AppConfig => ({
   NODE_ENV: 'test',
   PORT: 3000,
+  TRUST_PROXY_HOPS: 0,
   LOG_LEVEL: 'silent',
   DATABASE_URL: 'postgresql://app_core:secret@localhost:5432/kids_chores',
   VALKEY_URL: 'redis://localhost:6379',

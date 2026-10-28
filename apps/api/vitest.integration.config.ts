@@ -10,6 +10,7 @@ export default defineConfig({
   plugins: [swc.vite({ module: { type: 'es6' } })],
   test: {
     include: ['src/**/*.int.test.ts'],
+    setupFiles: ['src/testing/integration.setup.ts'],
     fileParallelism: false,
     env: {
       LOG_LEVEL: 'silent',

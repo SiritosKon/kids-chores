@@ -37,6 +37,7 @@ describe('loadConfig', () => {
     expect(config).toMatchObject({
       NODE_ENV: 'development',
       PORT: 3000,
+      TRUST_PROXY_HOPS: 0,
       LOG_LEVEL: 'info',
       APP_PATH: '/kids-chores/',
       MIN_CLIENT_VERSION: '0.0.0',

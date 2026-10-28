@@ -10,6 +10,7 @@ export const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     PORT: z.coerce.number().int().positive().default(3000),
+    TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(0),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
     DATABASE_URL: z.url(),
     VALKEY_URL: z.url(),

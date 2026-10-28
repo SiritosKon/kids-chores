@@ -165,5 +165,7 @@ In the deployed build everything, including a child's photo, stays in the browse
 device the app runs on. On iOS a web app added to the home screen has its own storage, separate
 from Safari, and removing the icon deletes that data — export first.
 
-The backend is designed to keep as little personal data as possible: no passwords, no emails or
-names from sign-in providers, only a hash of the provider's account id.
+The backend is designed to keep as little personal data as possible: no passwords, no emails, only
+a hash of the provider's account id and the name the parent sees in the app. Request limits count
+by a keyed hash of the address and of the session, the counters live for a few minutes, and the
+logs carry no addresses.
