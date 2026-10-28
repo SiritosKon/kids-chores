@@ -38,6 +38,7 @@
           icon="logout"
           class="self-start"
           :label="t('accountPage.signOut')"
+          :loading="signingOut"
           @click="confirmSignOut"
         />
       </template>
@@ -82,23 +83,43 @@ const account = useAccountStore();
 const sync = useSyncStore();
 const { active: parentActive } = storeToRefs(useParentSessionStore());
 const showParentLogin = ref(false);
+const signingOut = ref(false);
 
 const failedProvider = computed(() => typeof route.query.error === 'string' && !account.signedIn);
 
-const confirmSignOut = (): void => {
-  $q.dialog({
-    title: t('accountPage.signOutTitle'),
-    message: t('accountPage.signOutMessage'),
-    cancel: { flat: true, noCaps: true, label: t('common.cancel') },
-    ok: { flat: true, noCaps: true, color: 'negative', label: t('accountPage.signOut') },
-    persistent: true,
-  }).onOk(async () => {
-    await sync.run();
-    const done = await account.signOut();
-    $q.notify({
-      type: done ? 'positive' : 'negative',
-      message: done ? t('accountPage.signedOut') : t('accountPage.signOutFailed'),
-    });
+const ask = (title: string, message: string): Promise<boolean> =>
+  new Promise((resolve) => {
+    $q.dialog({
+      title,
+      message,
+      cancel: { flat: true, noCaps: true, label: t('common.cancel') },
+      ok: { flat: true, noCaps: true, color: 'negative', label: t('accountPage.signOut') },
+      persistent: true,
+    })
+      .onOk(() => resolve(true))
+      .onCancel(() => resolve(false));
   });
+
+const confirmSignOut = async (): Promise<void> => {
+  if (!(await ask(t('accountPage.signOutTitle'), t('accountPage.signOutMessage')))) {
+    return;
+  }
+  signingOut.value = true;
+  await sync.run();
+  if (sync.status === 'offline') {
+    signingOut.value = false;
+    $q.notify({ type: 'negative', message: t('accountPage.signOutOffline') });
+    return;
+  }
+  if (sync.pending > 0 && !(await ask(t('accountPage.unsentTitle'), t('accountPage.unsentMessage')))) {
+    signingOut.value = false;
+    return;
+  }
+  if (!(await account.signOut())) {
+    signingOut.value = false;
+    $q.notify({ type: 'negative', message: t('accountPage.signOutFailed') });
+    return;
+  }
+  window.location.replace(import.meta.env.BASE_URL);
 };
 </script>

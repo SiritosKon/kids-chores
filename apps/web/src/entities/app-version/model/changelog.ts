@@ -14,6 +14,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'Аккаунт — первым пунктом меню: имя, аватарка и время, когда данные последний раз ушли на сервер. Имя хранится в аккаунте и видно на всех устройствах семьи. При входе через Google имя и фото подставляются сами, фото хранится только на этом устройстве',
         'После входа приложение сразу возвращает на главную, кнопки входа стали компактнее',
         'На странице аккаунта есть кнопка входа в родительский режим: Face ID и выход из аккаунта — там',
+        'Выход из аккаунта стирает данные семьи с этого устройства, и приложение начинается заново, как при первом запуске. В аккаунте всё остаётся. Без сети выйти нельзя, а если какие-то изменения не дошли до сервера, приложение предупредит',
         'Аккаунт заработает в опубликованном приложении, когда у него появится свой сервер. Пока его можно попробовать в локальной сборке',
       ],
       en: [
@@ -25,6 +26,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'The account is the first item in the menu: name, picture and when the data last reached the server. The name is kept in the account and shows on all family devices. Signing in with Google fills in the name and photo; the photo stays on this device',
         'After signing in the app goes straight back to the home screen, and the sign-in buttons are more compact',
         'The account page has a button to enter parent mode, where Face ID and signing out live',
+        "Signing out removes the family's data from this device, and the app starts over as on first launch. Everything stays in the account. You can't sign out offline, and the app warns you if some changes haven't reached the server",
         'The account will work in the published app once it has its own server. For now you can try it in a local build',
       ],
       es: [
@@ -36,6 +38,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'La cuenta es el primer elemento del menú: nombre, foto y cuándo los datos llegaron al servidor por última vez. El nombre se guarda en la cuenta y se ve en todos los dispositivos de la familia. Al iniciar sesión con Google el nombre y la foto se rellenan solos; la foto se queda en este dispositivo',
         'Después de iniciar sesión la app vuelve directamente a la pantalla principal, y los botones de inicio de sesión son más compactos',
         'La página de la cuenta tiene un botón para entrar al modo padres, donde están Face ID y el cierre de sesión',
+        'Al cerrar sesión los datos de la familia se borran de este dispositivo y la app empieza de nuevo, como la primera vez. En la cuenta todo se queda. Sin conexión no se puede cerrar sesión, y si algunos cambios no llegaron al servidor, la app avisa',
         'La cuenta funcionará en la app publicada cuando tenga su propio servidor. Por ahora puedes probarla en una versión local',
       ],
     },

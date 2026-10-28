@@ -4,6 +4,7 @@ import type { MeResponse } from '@kids-chores/contracts';
 import { fetchMe, fetchServerAuth, requestRename, requestSignOut } from '../api/accountApi';
 import { storeAccountPhoto, storedAccountPhoto } from '../lib/accountPhoto';
 import { downloadProviderPhoto, providerPhotoUrl } from '../lib/providerPhoto';
+import { wipeDevice } from '../lib/wipeDevice';
 import type { ServerAuth } from './types';
 
 export const useAccountStore = defineStore('account', () => {
@@ -49,12 +50,13 @@ export const useAccountStore = defineStore('account', () => {
   };
 
   const signOut = async (): Promise<boolean> => {
-    const done = await requestSignOut();
-    if (done) {
-      me.value = null;
-      photo.value = null;
+    if (!(await requestSignOut())) {
+      return false;
     }
-    return done;
+    me.value = null;
+    photo.value = null;
+    await wipeDevice();
+    return true;
   };
 
   return { server, me, photo, loaded, signedIn, name, refresh, rename, setPhoto, adoptProviderPhoto, signOut };

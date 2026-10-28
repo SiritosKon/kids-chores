@@ -9,5 +9,5 @@ export {
   firstDayOfWeek,
 } from './i18n';
 export { localeSchema } from './schema';
-export { SUPPORTED_LOCALES, LOCALE_NAMES, LOCALE_OPTIONS, LEGACY_LOCALE } from './constants';
+export { SUPPORTED_LOCALES, LOCALE_NAMES, LOCALE_OPTIONS, LEGACY_LOCALE, LOCALE_CACHE_KEY } from './constants';
 export type { Locale } from './types';
