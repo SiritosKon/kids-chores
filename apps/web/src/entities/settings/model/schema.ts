@@ -1,17 +1,22 @@
 import { z } from 'zod';
 import { dayKeySchema } from '@/shared/lib/date';
 import { localeSchema, LEGACY_LOCALE } from '@/shared/i18n';
-import { SETTINGS_ID, PIN_PATTERN, LEGACY_BONUS, LEGACY_STREAK } from './constants';
+import { SETTINGS_ID, PIN_PATTERN, PIN_QUESTION_MAX, LEGACY_BONUS, LEGACY_STREAK } from './constants';
 import type { Settings } from './types';
 
 export const parentPinSchema = z.string().regex(PIN_PATTERN);
 
 export const isValidPin = (value: string): boolean => PIN_PATTERN.test(value);
 
-export const pinHashSchema = z.object({
+export const secretHashSchema = z.object({
   salt: z.string().min(1),
   hash: z.string().min(1),
   iterations: z.number().int().positive(),
+});
+
+export const pinQuestionSchema = z.object({
+  question: z.string().trim().min(1).max(PIN_QUESTION_MAX),
+  answer: secretHashSchema,
 });
 
 export const bonusSettingsSchema = z.object({
@@ -37,7 +42,8 @@ export const streakSettingsSchema = z.object({
 export const settingsSchema = z.object({
   id: z.literal(SETTINGS_ID),
   parentPin: parentPinSchema.nullable(),
-  pinHash: pinHashSchema.nullable(),
+  pinHash: secretHashSchema.nullable(),
+  pinQuestion: pinQuestionSchema.nullable(),
   bonus: bonusSettingsSchema,
   streak: streakSettingsSchema,
   tourPending: z.boolean(),
@@ -49,7 +55,8 @@ export const storedSettingsSchema = z
     id: z.literal(SETTINGS_ID),
     parentPin: z.string().nullable().optional(),
     parentPassword: z.string().optional(),
-    pinHash: pinHashSchema.nullable().default(null),
+    pinHash: secretHashSchema.nullable().default(null),
+    pinQuestion: pinQuestionSchema.nullable().default(null),
     bonus: bonusSettingsSchema.default(LEGACY_BONUS),
     streak: streakSettingsSchema.default(LEGACY_STREAK),
     tourPending: z.boolean().default(false),
@@ -61,6 +68,7 @@ export const storedSettingsSchema = z
       id: row.id,
       parentPin: isValidPin(stored) ? stored : null,
       pinHash: row.pinHash,
+      pinQuestion: row.pinQuestion,
       bonus: row.bonus,
       streak: row.streak,
       tourPending: row.tourPending,

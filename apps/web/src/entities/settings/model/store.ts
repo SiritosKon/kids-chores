@@ -1,9 +1,9 @@
 import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
-import { getSettings, saveSettings, watchSettings } from '../api/settingsRepo';
-import { hashPin, pinMatches } from '../lib/pinHash';
+import { getSettings, questionHash, saveSettings, watchSettings } from '../api/settingsRepo';
+import { hashSecret, normalizeAnswer, secretMatches } from '../lib/secretHash';
 import { NO_BONUS, NO_STREAK } from './constants';
-import type { Settings } from './types';
+import type { PinRecovery, Settings } from './types';
 
 export const useSettingsStore = defineStore('settings', () => {
   const settings = ref<Settings | null>(null);
@@ -24,15 +24,24 @@ export const useSettingsStore = defineStore('settings', () => {
   };
 
   const changePin = async (pin: string): Promise<void> => {
-    await update({ parentPin: null, pinHash: await hashPin(pin) });
+    await update({ parentPin: null, pinHash: await hashSecret(pin) });
   };
 
   const checkPin = async (pin: string): Promise<boolean> => {
     const current = settings.value;
     if (current?.pinHash) {
-      return pinMatches(pin, current.pinHash);
+      return secretMatches(pin, current.pinHash);
     }
     return current?.parentPin === pin;
+  };
+
+  const changeQuestion = async (recovery: PinRecovery): Promise<void> => {
+    await update({ pinQuestion: await questionHash(recovery) });
+  };
+
+  const checkAnswer = async (answer: string): Promise<boolean> => {
+    const question = settings.value?.pinQuestion;
+    return question ? secretMatches(normalizeAnswer(answer), question.answer) : false;
   };
 
   const hashLegacyPin = (row: Settings): void => {
@@ -54,5 +63,5 @@ export const useSettingsStore = defineStore('settings', () => {
   });
   onScopeDispose(() => subscription.unsubscribe());
 
-  return { settings, loaded, bonus, streak, hasPin, update, changePin, checkPin };
+  return { settings, loaded, bonus, streak, hasPin, update, changePin, checkPin, changeQuestion, checkAnswer };
 });

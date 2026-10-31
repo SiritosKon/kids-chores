@@ -23,13 +23,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
-import { clearPinFailures, pinLockedFor, recordPinFailure } from '../lib/pinLock';
+import { usePinLock } from '../model/usePinLock';
 import PinResetForm from './PinResetForm.vue';
 import type { PinDialogMode } from '../model/types';
 
@@ -55,30 +55,7 @@ const close = (): void => {
   emit('update:modelValue', false);
 };
 
-const lockedMs = ref(0);
-let ticker: ReturnType<typeof setInterval> | undefined;
-
-const lockedText = computed(() => {
-  const seconds = Math.ceil(lockedMs.value / 1000);
-  return seconds < 60
-    ? t('parentLogin.seconds', { count: seconds })
-    : t('parentLogin.minutes', { count: Math.ceil(seconds / 60) });
-});
-
-const tick = (): void => {
-  lockedMs.value = pinLockedFor(Date.now());
-  if (lockedMs.value === 0) {
-    clearInterval(ticker);
-    ticker = undefined;
-  }
-};
-
-const watchLock = (): void => {
-  tick();
-  if (lockedMs.value > 0 && ticker === undefined) {
-    ticker = setInterval(tick, 1000);
-  }
-};
+const { lockedMs, lockedText, watchLock, fail, clear } = usePinLock();
 
 watch(
   () => props.modelValue,
@@ -90,18 +67,15 @@ watch(
   { immediate: true }
 );
 
-onBeforeUnmount(() => clearInterval(ticker));
-
 const submit = async (value: string): Promise<void> => {
   if (await settingsStore.checkPin(value)) {
-    clearPinFailures();
+    clear();
     parentSession.unlock();
     $q.notify({ type: 'positive', message: t('parentLogin.unlocked') });
     close();
     return;
   }
-  recordPinFailure(Date.now());
-  watchLock();
+  fail();
   error.value = false;
   requestAnimationFrame(() => {
     error.value = true;

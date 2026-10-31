@@ -1,7 +1,34 @@
 <template>
   <div>
     <div class="text-center text-grey-5 q-mb-md">{{ t(RESET_STEP_TITLES[step]) }}</div>
-    <div v-if="step === 'check'" class="form-stack">
+    <div v-if="lockedMs > 0 && step === 'question'" class="text-center text-grey-4 q-py-md">
+      {{ t('parentLogin.locked', { time: lockedText }) }}
+    </div>
+    <div v-else-if="step === 'question'" class="form-stack">
+      <div class="text-center text-h6">{{ pinQuestion }}</div>
+      <q-input
+        v-model="answer"
+        :label="t('parentLogin.answer')"
+        autofocus
+        :error="checkError"
+        :error-message="t('parentLogin.wrongSecret')"
+        @keyup.enter="submitAnswer"
+      />
+      <div class="row">
+        <q-btn flat no-caps :label="t('common.back')" @click="emit('cancel')" />
+        <q-space />
+        <q-btn
+          unelevated
+          no-caps
+          color="primary"
+          :label="t('common.next')"
+          :disable="answer.trim() === '' || checking"
+          :loading="checking"
+          @click="submitAnswer"
+        />
+      </div>
+    </div>
+    <div v-else-if="step === 'check'" class="form-stack">
       <div class="text-center text-h5">{{ t('parentLogin.question', { question: check.question }) }}</div>
       <q-input
         v-model="answer"
@@ -39,7 +66,7 @@ import PinInput from '@/shared/ui/PinInput.vue';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
 import { makeParentCheck } from '../lib/parentCheck';
-import { clearPinFailures } from '../lib/pinLock';
+import { usePinLock } from '../model/usePinLock';
 import { RESET_STEP_TITLES } from '../model/constants';
 import type { ResetStep } from '../model/types';
 
@@ -50,13 +77,34 @@ const { t } = useI18n();
 const parentSession = useParentSessionStore();
 const settingsStore = useSettingsStore();
 
-const step = ref<ResetStep>('check');
+const pinQuestion = settingsStore.settings?.pinQuestion?.question ?? null;
+const { lockedMs, lockedText, watchLock, fail, clear } = usePinLock();
+watchLock();
+
+const step = ref<ResetStep>(pinQuestion ? 'question' : 'check');
+const checking = ref(false);
 const check = ref(makeParentCheck());
 const answer = ref('');
 const checkError = ref(false);
 const pin = ref('');
 const nextPin = ref('');
 const pinError = ref(false);
+
+const submitAnswer = async (): Promise<void> => {
+  if (answer.value.trim() === '' || checking.value) {
+    return;
+  }
+  checking.value = true;
+  const right = await settingsStore.checkAnswer(answer.value);
+  checking.value = false;
+  if (right) {
+    step.value = 'next';
+    return;
+  }
+  fail();
+  answer.value = '';
+  checkError.value = true;
+};
 
 const submitCheck = (): void => {
   if (Number(answer.value.trim()) === check.value.answer) {
@@ -85,7 +133,7 @@ const onPin = async (value: string): Promise<void> => {
     return;
   }
   await settingsStore.changePin(value);
-  clearPinFailures();
+  clear();
   parentSession.unlock();
   $q.notify({ type: 'positive', message: t('parentLogin.pinChanged') });
   emit('done');

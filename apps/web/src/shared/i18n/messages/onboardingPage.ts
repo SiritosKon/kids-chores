@@ -21,6 +21,7 @@ export const onboardingPage = defineMessages({
       'Приложение работает только локально: все данные хранятся на этом устройстве и никуда не отправляются. Периодически делайте «Экспорт данных» в родительском режиме, чтобы не потерять информацию.',
     choosePin: 'Придумайте PIN родителя',
     repeatPin: 'Повторите PIN',
+    questionStep: 'Секретный вопрос на случай, если забудете PIN',
     pinMismatch: 'PIN не совпал, попробуйте ещё раз',
   },
   en: {
@@ -43,6 +44,7 @@ export const onboardingPage = defineMessages({
       'The app works only locally: all data stays on this device and is never sent anywhere. Use “Export data” in parent mode now and then so you don’t lose anything.',
     choosePin: 'Choose a parent PIN',
     repeatPin: 'Repeat the PIN',
+    questionStep: 'A secret question in case you forget the PIN',
     pinMismatch: 'The PINs don’t match, try again',
   },
   es: {
@@ -65,6 +67,7 @@ export const onboardingPage = defineMessages({
       'La app funciona solo en local: todos los datos se quedan en este dispositivo y no se envían a ningún sitio. Usa «Exportar datos» en el modo padres de vez en cuando para no perder nada.',
     choosePin: 'Crea un PIN de padres',
     repeatPin: 'Repite el PIN',
+    questionStep: 'Una pregunta secreta por si olvidas el PIN',
     pinMismatch: 'Los PIN no coinciden, inténtalo de nuevo',
   },
 });

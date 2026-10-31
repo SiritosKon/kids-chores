@@ -26,7 +26,7 @@
       </template>
 
       <template v-else>
-        <q-card-section class="q-pt-none text-grey-5">
+        <q-card-section v-if="step !== 'question'" class="q-pt-none text-grey-5">
           <div>{{ t('onboardingPage.abilitiesTitle') }}</div>
           <ul class="onboarding__abilities">
             <li v-for="key in PARENT_MODE_ABILITY_KEYS" :key="key">{{ t(key) }}</li>
@@ -35,7 +35,8 @@
 
         <q-card-section>
           <div class="text-center text-subtitle1 q-mb-sm">{{ t(PIN_SETUP_TITLE_KEYS[step]) }}</div>
-          <PinInput :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="error" @complete="onPin" />
+          <PinQuestionForm v-if="step === 'question'" :submit-label="t('common.done')" :busy="saving" @save="finish" />
+          <PinInput v-else :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="error" @complete="onPin" />
         </q-card-section>
 
         <q-card-section v-if="!account.signedIn" class="q-pt-none">
@@ -62,7 +63,8 @@ import { currentLocale } from '@/shared/i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
 import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { setupParentPin, PARENT_PIN_LENGTH } from '@/entities/settings';
+import { setupParentPin, PARENT_PIN_LENGTH, type PinRecovery } from '@/entities/settings';
+import { PinQuestionForm } from '@/features/pin-question';
 import { SignInOptions } from '@/features/sign-in';
 import { seedPresets } from '@/features/starter-presets';
 import { useSyncStore } from '@/features/sync';
@@ -112,12 +114,13 @@ const step = ref<PinSetupStep>('choose');
 const pin = ref('');
 const chosen = ref('');
 const error = ref(false);
+const saving = ref(false);
 
 onMounted(() => {
   void seedPresets();
 });
 
-const onPin = async (value: string): Promise<void> => {
+const onPin = (value: string): void => {
   error.value = false;
   if (step.value === 'choose') {
     chosen.value = value;
@@ -134,8 +137,13 @@ const onPin = async (value: string): Promise<void> => {
     $q.notify({ type: 'negative', message: t('onboardingPage.pinMismatch') });
     return;
   }
+  step.value = 'question';
+};
+
+const finish = async (recovery: PinRecovery): Promise<void> => {
+  saving.value = true;
   pinChosen = true;
-  await setupParentPin(value, currentLocale());
+  await setupParentPin(chosen.value, currentLocale(), recovery);
   parentSession.unlock();
 };
 </script>

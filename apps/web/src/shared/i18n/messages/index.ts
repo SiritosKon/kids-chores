@@ -16,6 +16,7 @@ import { editTask } from './editTask';
 import { installApp } from './installApp';
 import { parentAutoLogout } from './parentAutoLogout';
 import { parentLogin } from './parentLogin';
+import { pinQuestion } from './pinQuestion';
 import { rollbackSpend } from './rollbackSpend';
 import { selectDate } from './selectDate';
 import { streakDetails } from './streakDetails';
@@ -58,6 +59,7 @@ export const messages = {
     installApp: installApp.ru,
     parentAutoLogout: parentAutoLogout.ru,
     parentLogin: parentLogin.ru,
+    pinQuestion: pinQuestion.ru,
     rollbackSpend: rollbackSpend.ru,
     selectDate: selectDate.ru,
     streakDetails: streakDetails.ru,
@@ -99,6 +101,7 @@ export const messages = {
     installApp: installApp.en,
     parentAutoLogout: parentAutoLogout.en,
     parentLogin: parentLogin.en,
+    pinQuestion: pinQuestion.en,
     rollbackSpend: rollbackSpend.en,
     selectDate: selectDate.en,
     streakDetails: streakDetails.en,
@@ -140,6 +143,7 @@ export const messages = {
     installApp: installApp.es,
     parentAutoLogout: parentAutoLogout.es,
     parentLogin: parentLogin.es,
+    pinQuestion: pinQuestion.es,
     rollbackSpend: rollbackSpend.es,
     selectDate: selectDate.es,
     streakDetails: streakDetails.es,

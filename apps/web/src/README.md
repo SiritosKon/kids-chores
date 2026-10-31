@@ -9,7 +9,7 @@
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
 | `pages` | Экраны целиком | `home`, `onboarding`, `settings`, `reward`, `task`, `child`, `spends`, `whats-new`, `install`, `account` |
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `side-menu` |
-| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets`, `sign-in`, `passkey-setup`, `edit-profile`, `sync` |
+| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets`, `sign-in`, `passkey-setup`, `edit-profile`, `pin-question`, `sync` |
 | `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session`, `account` |
 | `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets`, `i18n` |
 
@@ -147,13 +147,19 @@ PIN хранится хешем: PBKDF2-SHA-256 из WebCrypto, 600 000 итер
 вдвое дольше, но не больше 15 минут (`features/parent-login/lib/pinLock.ts`). Счётчик лежит в
 `localStorage` и переживает перезагрузку; верный PIN или сброс его обнуляют.
 
-Забытый PIN сбрасывается без почты: «Забыли PIN?» в окне входа задаёт пример
+При первом PIN родитель задаёт ещё секретный вопрос и ответ (`features/pin-question`, шаг
+`question` в `OnboardingDialog`; поменять — на странице смены PIN). Вопрос хранится как написан,
+ответ — хешем, как PIN, после нормализации: без регистра, лишних пробелов и с «е» вместо «ё».
+Поле `pinQuestion` синхронизируется вместе с `pinHash`. Если вопрос задан, «Забыли PIN?» спрашивает
+его, неверные ответы считаются вместе с неверными PIN (`usePinLock`). Это защита на уровне MVP:
+ответ, который знает ребёнок, её не держит.
+
+Без вопроса — у тех, кто ставил PIN до него, — «Забыли PIN?» в окне входа задаёт пример
 (`features/parent-login/lib/parentCheck.ts`) — проверка для взрослых, как в детских приложениях.
 Вид примера каждый раз выбирается случайно из пяти: умножение двузначного на однозначное,
 сложение и вычитание трёхзначных, деление с ответом от 12 до 19 и пример в два действия
 `7 × 8 + 15`. Неверный ответ — новый пример, тоже случайного вида. Решил — придумывает новый
-PIN и сразу попадает в родрежим. С аккаунтом сброс должен требовать повторного входа тем же
-аккаунтом или Face ID (ADR-008, §6), пока он такой же, как у гостя.
+PIN и сразу попадает в родрежим.
 
 ## Задачи для конкретных детей
 
