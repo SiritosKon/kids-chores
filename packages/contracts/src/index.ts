@@ -20,7 +20,6 @@ export {
   metaResponseSchema,
   accountNameSchema,
   meResponseSchema,
-  profileUpdateRequestSchema,
   providerPictureSchema,
   devLoginRequestSchema,
   passkeyCreationOptionsSchema,
@@ -30,7 +29,6 @@ export type {
   MetaResponse,
   MeResponse,
   DevLoginRequest,
-  ProfileUpdateRequest,
   PasskeyCreationOptions,
   PasskeyLoginOptions,
 } from './api/types.js';

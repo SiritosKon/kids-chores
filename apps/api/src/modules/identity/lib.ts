@@ -4,13 +4,21 @@ import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyRequest } from 'fastify';
 import { ACCOUNT_NAME_MAX, API_PREFIX, providerPictureSchema, SESSION_KEY_PREFIX, type Session } from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
-import { ACCOUNT_ROUTE, AUTH_STATE_TTL_SECONDS, HOME_ROUTE, SESSION_TOKEN_BYTES, SESSION_TTL_SECONDS } from './constants';
+import {
+  AUTH_STATE_TTL_SECONDS,
+  FAMILY_SESSIONS_PREFIX,
+  HOME_ROUTE,
+  SESSION_TOKEN_BYTES,
+  SESSION_TTL_SECONDS,
+} from './constants';
 import { googleProfileSchema } from './schema';
 
 export const newSessionToken = (): string => randomBytes(SESSION_TOKEN_BYTES).toString('base64url');
 
 export const sessionKey = (token: string): string =>
   `${SESSION_KEY_PREFIX}${createHash('sha256').update(token).digest('hex')}`;
+
+export const familySessionsKey = (familyId: string): string => `${FAMILY_SESSIONS_PREFIX}${familyId}`;
 
 export const subjectHash = (pepper: string, provider: string, subject: string): string =>
   createHmac('sha256', pepper).update(`${provider}:${subject}`).digest('hex');
@@ -39,8 +47,8 @@ export const publicOrigin = (config: AppConfig): string => new URL(config.PUBLIC
 export const callbackUrl = (config: AppConfig, provider: string): string =>
   `${publicOrigin(config)}${API_PREFIX}/auth/${provider}/callback`;
 
-export const accountUrl = (config: AppConfig, error: string): string =>
-  `${publicOrigin(config)}${config.APP_PATH}${ACCOUNT_ROUTE}?error=${encodeURIComponent(error)}`;
+export const failedSignInUrl = (config: AppConfig, error: string): string =>
+  `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?error=${encodeURIComponent(error)}`;
 
 export const profileName = (claims: unknown): string | undefined => {
   const profile = googleProfileSchema.safeParse(claims);

@@ -4,6 +4,8 @@ export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 
 export const SESSION_TOKEN_BYTES = 32;
 
+export const FAMILY_SESSIONS_PREFIX = 'sessions:family:';
+
 export const AUTH_STATE_TTL_SECONDS = 10 * 60;
 
 export const AUTH_STATE_PREFIX = 'auth:state:';
@@ -20,7 +22,9 @@ export const PASSKEY_RP_NAME = 'Little Big Deals';
 
 export const DEV_PROVIDER = 'dev';
 
-export const ACCOUNT_ROUTE = '#/account';
+export const FAMILY_DELETED_EVENT = 'family.deleted';
+
+export const FAMILY_DELETED_VERSION = 1;
 
 export const HOME_ROUTE = '#/';
 

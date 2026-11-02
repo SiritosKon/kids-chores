@@ -2,7 +2,7 @@ import Dexie from 'dexie';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '@/shared/api/db';
 import { LOCALE_CACHE_KEY } from '@/shared/i18n';
-import { ACCOUNT_PHOTO_STORAGE_PREFIX, PASSKEY_ID_STORAGE_KEY } from './constants';
+import { ACCOUNT_PHOTO_STORAGE_PREFIX, ACCOUNT_STORAGE_KEY, PASSKEY_ID_STORAGE_KEY } from './constants';
 import { wipeDevice } from './wipeDevice';
 
 const memoryStorage = () => {
@@ -28,11 +28,12 @@ describe('wipeDevice', () => {
     vi.unstubAllGlobals();
   });
 
-  it('removes the local database, every parent photo and the passkey id, and keeps the language', async () => {
+  it('removes the local database, the account, every parent photo and the passkey id, and keeps the language', async () => {
     await db.table('settings').put({ id: 'main', parentPin: '123456' });
     localStorage.setItem(`${ACCOUNT_PHOTO_STORAGE_PREFIX}first`, 'data:image/jpeg;base64,AAAA');
     localStorage.setItem(`${ACCOUNT_PHOTO_STORAGE_PREFIX}second`, 'data:image/jpeg;base64,BBBB');
     localStorage.setItem(PASSKEY_ID_STORAGE_KEY, 'credential');
+    localStorage.setItem(ACCOUNT_STORAGE_KEY, '{}');
     localStorage.setItem(LOCALE_CACHE_KEY, 'es');
 
     await wipeDevice();

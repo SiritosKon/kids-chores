@@ -21,7 +21,7 @@ import { AccountsService } from './accounts.service';
 import { PasskeyLoginDto, PasskeyRegisterDto } from './dto';
 import { GoogleService } from './google.service';
 import { AUTH_STATE_COOKIE } from './constants';
-import { accountUrl, authStateCookieOptions, CurrentSession, homeUrl, publicOrigin, subjectHash } from './lib';
+import { authStateCookieOptions, CurrentSession, failedSignInUrl, homeUrl, publicOrigin, subjectHash } from './lib';
 import { PasskeysService } from './passkeys.service';
 import { SessionsService } from './sessions.service';
 import type { PasskeyLoginOptions, PasskeyRegisterOptions } from './types';
@@ -66,7 +66,7 @@ export class AuthController {
       return reply.redirect(homeUrl(this.config, known, picture), 302);
     } catch (error) {
       this.logger.warn(`${known} sign-in failed: ${error instanceof Error ? error.name : 'unknown error'}`);
-      return reply.redirect(accountUrl(this.config, known), 302);
+      return reply.redirect(failedSignInUrl(this.config, known), 302);
     }
   }
 

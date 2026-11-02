@@ -15,8 +15,6 @@ export const sideMenu = defineMessages({
     imported: 'Импорт выполнен',
     importFailed: 'Ошибка импорта: {reason}',
     account: 'Аккаунт',
-    guestTitle: 'Данные только на этом устройстве',
-    signIn: 'Войти',
   },
   en: {
     home: 'Home',
@@ -32,8 +30,6 @@ export const sideMenu = defineMessages({
     imported: 'Import complete',
     importFailed: 'Import failed: {reason}',
     account: 'Account',
-    guestTitle: 'Your data is on this device only',
-    signIn: 'Sign in',
   },
   es: {
     home: 'Inicio',
@@ -49,7 +45,5 @@ export const sideMenu = defineMessages({
     imported: 'Importación completada',
     importFailed: 'Error de importación: {reason}',
     account: 'Cuenta',
-    guestTitle: 'Tus datos solo están en este dispositivo',
-    signIn: 'Iniciar sesión',
   },
 });

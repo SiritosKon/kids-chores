@@ -17,11 +17,20 @@
           <q-banner v-if="signInFailed" rounded dense class="bg-negative text-white q-mb-md">
             {{ t('onboardingPage.signInFailed') }}
           </q-banner>
-          <div class="text-center"><SignInOptions /></div>
-        </q-card-section>
-        <q-card-section class="q-pt-none text-center">
-          <q-btn flat no-caps color="grey-4" :label="t('onboardingPage.continueAsGuest')" @click="guest = true" />
-          <div class="text-caption text-grey-6 q-mt-xs">{{ t('onboardingPage.guestNote') }}</div>
+          <div v-if="account.server" class="text-center"><SignInOptions /></div>
+          <div v-else class="text-center">
+            <p class="text-grey-5">{{ t('onboardingPage.offline') }}</p>
+            <q-btn
+              outline
+              no-caps
+              color="primary"
+              icon="refresh"
+              class="q-px-lg"
+              :label="t('onboardingPage.retry')"
+              :loading="retrying"
+              @click="retry"
+            />
+          </div>
         </q-card-section>
       </template>
 
@@ -39,15 +48,6 @@
           <PinInput v-else :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="error" @complete="onPin" />
         </q-card-section>
 
-        <q-card-section v-if="!account.signedIn" class="q-pt-none">
-          <div class="onboarding__alpha">
-            <q-icon name="science" size="20px" class="onboarding__alpha-icon" />
-            <div>
-              <div class="text-weight-bold">{{ t('onboardingPage.alphaTitle') }}</div>
-              <div>{{ t('onboardingPage.alphaText') }}</div>
-            </div>
-          </div>
-        </q-card-section>
       </template>
     </q-card>
   </q-dialog>
@@ -63,7 +63,7 @@ import { currentLocale } from '@/shared/i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
 import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { setupParentPin, PARENT_PIN_LENGTH, type PinRecovery } from '@/entities/settings';
+import { setupParentPin, useSettingsStore, PARENT_PIN_LENGTH, type PinRecovery } from '@/entities/settings';
 import { PinQuestionForm } from '@/features/pin-question';
 import { SignInOptions } from '@/features/sign-in';
 import { seedPresets } from '@/features/starter-presets';
@@ -77,20 +77,28 @@ const route = useRoute();
 const account = useAccountStore();
 const sync = useSyncStore();
 const parentSession = useParentSessionStore();
+const hadPin = useSettingsStore().hasPin;
 
-const guest = ref(false);
 const familyLoaded = ref(false);
+const retrying = ref(false);
 let pinChosen = false;
 
 const stage = computed<OnboardingStage>(() => {
-  if (!account.loaded) {
-    return 'loading';
+  if (!account.signedIn) {
+    return account.loaded ? 'account' : 'loading';
   }
-  if (account.server && !account.signedIn && !guest.value) {
-    return 'account';
-  }
-  return account.signedIn && !familyLoaded.value ? 'loading' : 'pin';
+  return familyLoaded.value ? 'pin' : 'loading';
 });
+
+const retry = async (): Promise<void> => {
+  retrying.value = true;
+  await account.refresh();
+  retrying.value = false;
+};
+
+const retryOnline = (): void => {
+  void account.refresh();
+};
 
 watch(
   () => account.signedIn,
@@ -104,7 +112,8 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  if (account.signedIn && !pinChosen) {
+  window.removeEventListener('online', retryOnline);
+  if (account.signedIn && !hadPin && !pinChosen) {
     $q.notify({ type: 'info', message: t('onboardingPage.familyPin'), timeout: 8000 });
   }
 });
@@ -117,6 +126,7 @@ const error = ref(false);
 const saving = ref(false);
 
 onMounted(() => {
+  window.addEventListener('online', retryOnline);
   void seedPresets();
 });
 
@@ -149,23 +159,6 @@ const finish = async (recovery: PinRecovery): Promise<void> => {
 </script>
 
 <style scoped>
-.onboarding__alpha {
-  display: flex;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(255, 159, 10, 0.12);
-  color: #ffd9a0;
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.onboarding__alpha-icon {
-  flex: 0 0 auto;
-  color: #ff9f0a;
-  margin-top: 1px;
-}
-
 .onboarding__abilities {
   margin: 4px 0 0;
   padding-left: 20px;

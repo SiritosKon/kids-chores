@@ -9,7 +9,6 @@ import { starterPresets } from './starterPresets';
 import { celebrateStreak } from './celebrateStreak';
 import { chooseRewardVariant } from './chooseRewardVariant';
 import { editChild } from './editChild';
-import { editProfile } from './editProfile';
 import { editReward } from './editReward';
 import { editSettings } from './editSettings';
 import { editTask } from './editTask';
@@ -34,7 +33,7 @@ import { childPage } from './childPage';
 import { spendsPage } from './spendsPage';
 import { whatsNewPage } from './whatsNewPage';
 import { installPage } from './installPage';
-import { accountPage } from './accountPage';
+import { accountCard } from './accountCard';
 import { signIn } from './signIn';
 import { passkeySetup } from './passkeySetup';
 import { sync } from './sync';
@@ -52,7 +51,6 @@ export const messages = {
     celebrateStreak: celebrateStreak.ru,
     chooseRewardVariant: chooseRewardVariant.ru,
     editChild: editChild.ru,
-    editProfile: editProfile.ru,
     editReward: editReward.ru,
     editSettings: editSettings.ru,
     editTask: editTask.ru,
@@ -77,7 +75,7 @@ export const messages = {
     spendsPage: spendsPage.ru,
     whatsNewPage: whatsNewPage.ru,
     installPage: installPage.ru,
-    accountPage: accountPage.ru,
+    accountCard: accountCard.ru,
     signIn: signIn.ru,
     passkeySetup: passkeySetup.ru,
     sync: sync.ru,
@@ -94,7 +92,6 @@ export const messages = {
     celebrateStreak: celebrateStreak.en,
     chooseRewardVariant: chooseRewardVariant.en,
     editChild: editChild.en,
-    editProfile: editProfile.en,
     editReward: editReward.en,
     editSettings: editSettings.en,
     editTask: editTask.en,
@@ -119,7 +116,7 @@ export const messages = {
     spendsPage: spendsPage.en,
     whatsNewPage: whatsNewPage.en,
     installPage: installPage.en,
-    accountPage: accountPage.en,
+    accountCard: accountCard.en,
     signIn: signIn.en,
     passkeySetup: passkeySetup.en,
     sync: sync.en,
@@ -136,7 +133,6 @@ export const messages = {
     celebrateStreak: celebrateStreak.es,
     chooseRewardVariant: chooseRewardVariant.es,
     editChild: editChild.es,
-    editProfile: editProfile.es,
     editReward: editReward.es,
     editSettings: editSettings.es,
     editTask: editTask.es,
@@ -161,7 +157,7 @@ export const messages = {
     spendsPage: spendsPage.es,
     whatsNewPage: whatsNewPage.es,
     installPage: installPage.es,
-    accountPage: accountPage.es,
+    accountCard: accountCard.es,
     signIn: signIn.es,
     passkeySetup: passkeySetup.es,
     sync: sync.es,

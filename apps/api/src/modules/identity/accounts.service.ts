@@ -2,11 +2,16 @@ import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import type { MeResponse, Session } from '@kids-chores/contracts';
 import { isUniqueViolation, PrismaService } from '../../platform/database';
+import { OutboxService } from '../../platform/outbox';
+import { FAMILY_DELETED_EVENT, FAMILY_DELETED_VERSION } from './constants';
 import type { SignedIn } from './types';
 
 @Injectable()
 export class AccountsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly outbox: OutboxService
+  ) {}
 
   async signIn(provider: string, subjectHash: string, name?: string): Promise<SignedIn> {
     const account = await this.prisma.authAccount.findUnique({
@@ -15,7 +20,7 @@ export class AccountsService {
     });
     if (account) {
       if (name) {
-        await this.prisma.user.updateMany({ where: { id: account.userId, name: null }, data: { name } });
+        await this.prisma.user.update({ where: { id: account.userId }, data: { name } });
       }
       return this.addDevice(account.userId);
     }
@@ -55,9 +60,19 @@ export class AccountsService {
     };
   }
 
-  async rename(session: Session, name: string | null): Promise<MeResponse> {
-    await this.prisma.user.update({ where: { id: session.userId }, data: { name } });
-    return this.me(session);
+  async remove(session: Session): Promise<void> {
+    const { familyId, userId } = session;
+    await this.prisma.inFamily(familyId, async (tx) => {
+      await tx.outbox.deleteMany({ where: { familyId } });
+      await tx.user.delete({ where: { id: userId } });
+      await tx.family.delete({ where: { id: familyId } });
+      await this.outbox.record(tx, {
+        type: FAMILY_DELETED_EVENT,
+        version: FAMILY_DELETED_VERSION,
+        familyId,
+        payload: {},
+      });
+    });
   }
 
   private async createFamily(provider: string, subjectHash: string, name?: string): Promise<SignedIn> {

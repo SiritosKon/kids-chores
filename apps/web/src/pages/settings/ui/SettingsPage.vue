@@ -19,6 +19,9 @@
         <q-item-section side><q-icon name="chevron_right" /></q-item-section>
       </q-item>
     </section>
+
+    <div class="text-subtitle1 text-weight-bold q-mb-sm q-px-xs">{{ t('settingsPage.account') }}</div>
+    <AccountCard />
   </q-page>
 </template>
 
@@ -30,6 +33,7 @@ import { stagePath } from '@/shared/lib/routes';
 import PageHeader from '@/shared/ui/PageHeader.vue';
 import { StreakStagesCard, BonusCard } from '@/features/edit-settings';
 import { recalculateStreaks } from '@/features/track-streak';
+import { AccountCard } from '@/widgets/account-card';
 
 const { t } = useI18n();
 const router = useRouter();

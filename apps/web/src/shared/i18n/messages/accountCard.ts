@@ -1,14 +1,8 @@
 import { defineMessages } from '../lib';
 
-export const accountPage = defineMessages({
+export const accountCard = defineMessages({
   ru: {
     title: 'Аккаунт',
-    guest:
-      'Сейчас данные хранятся только на этом устройстве. Войдите, чтобы они хранились в аккаунте и были на всех устройствах семьи.',
-    signedIn: 'Вы вошли в аккаунт',
-    deviceNote: 'Это устройство подключено к аккаунту семьи.',
-    parentOnly: 'Имя, фото, Face ID и выход из аккаунта — в родительском режиме.',
-    enterParentMode: 'Войти в родительский режим',
     signOut: 'Выйти из аккаунта',
     signOutTitle: 'Выйти из аккаунта?',
     signOutMessage:
@@ -17,17 +11,15 @@ export const accountPage = defineMessages({
     unsentTitle: 'Не все изменения отправлены',
     unsentMessage: 'Часть изменений не дошла до сервера и пропадёт при выходе. Всё равно выйти?',
     signOutFailed: 'Не получилось выйти, попробуйте ещё раз',
-    signInFailed: 'Не получилось войти. Попробуйте ещё раз.',
-    unavailable: 'Сервер недоступен. Вход появится, когда приложение подключится к нему.',
+    remove: 'Удалить аккаунт и все данные',
+    removeTitle: 'Удалить аккаунт и все данные?',
+    removeMessage:
+      'С сервера удалятся аккаунт, дети, задачи, награды и вся история, а все устройства семьи выйдут из аккаунта. Отменить это нельзя. Чтобы сохранить копию, сначала сделайте «Экспорт данных» в меню.',
+    removeConfirm: 'Удалить всё',
+    removeFailed: 'Не получилось удалить аккаунт. Проверьте интернет и попробуйте ещё раз.',
   },
   en: {
     title: 'Account',
-    guest:
-      "Right now your data lives only on this device. Sign in to keep it in your account and on all your family's devices.",
-    signedIn: "You're signed in",
-    deviceNote: 'This device is connected to your family account.',
-    parentOnly: 'Name, photo, Face ID and signing out are in parent mode.',
-    enterParentMode: 'Enter parent mode',
     signOut: 'Sign out',
     signOutTitle: 'Sign out?',
     signOutMessage:
@@ -36,17 +28,15 @@ export const accountPage = defineMessages({
     unsentTitle: 'Some changes are not sent',
     unsentMessage: "Some changes haven't reached the server and will be lost when you sign out. Sign out anyway?",
     signOutFailed: "Couldn't sign out, please try again",
-    signInFailed: "Couldn't sign in. Please try again.",
-    unavailable: 'The server is unavailable. Sign-in will appear once the app connects to it.',
+    remove: 'Delete the account and all data',
+    removeTitle: 'Delete the account and all data?',
+    removeMessage:
+      "The account, kids, chores, rewards and the whole history are deleted from the server, and every family device is signed out. This can't be undone. To keep a copy, use “Export data” in the menu first.",
+    removeConfirm: 'Delete everything',
+    removeFailed: "Couldn't delete the account. Check the internet and try again.",
   },
   es: {
     title: 'Cuenta',
-    guest:
-      'Ahora tus datos solo están en este dispositivo. Inicia sesión para guardarlos en tu cuenta y tenerlos en todos los dispositivos de la familia.',
-    signedIn: 'Has iniciado sesión',
-    deviceNote: 'Este dispositivo está conectado a la cuenta familiar.',
-    parentOnly: 'El nombre, la foto, Face ID y el cierre de sesión están en el modo padres.',
-    enterParentMode: 'Entrar al modo padres',
     signOut: 'Cerrar sesión',
     signOutTitle: '¿Cerrar sesión?',
     signOutMessage:
@@ -55,7 +45,11 @@ export const accountPage = defineMessages({
     unsentTitle: 'Hay cambios sin enviar',
     unsentMessage: 'Algunos cambios no han llegado al servidor y se perderán al cerrar sesión. ¿Cerrar sesión de todos modos?',
     signOutFailed: 'No se pudo cerrar sesión, inténtalo de nuevo',
-    signInFailed: 'No se pudo iniciar sesión. Inténtalo de nuevo.',
-    unavailable: 'El servidor no está disponible. El inicio de sesión aparecerá cuando la app se conecte a él.',
+    remove: 'Eliminar la cuenta y todos los datos',
+    removeTitle: '¿Eliminar la cuenta y todos los datos?',
+    removeMessage:
+      'Se eliminarán del servidor la cuenta, los niños, las tareas, los premios y todo el historial, y todos los dispositivos de la familia cerrarán sesión. No se puede deshacer. Para guardar una copia, usa antes «Exportar datos» en el menú.',
+    removeConfirm: 'Eliminar todo',
+    removeFailed: 'No se pudo eliminar la cuenta. Revisa internet e inténtalo de nuevo.',
   },
 });

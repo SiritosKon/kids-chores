@@ -5,7 +5,7 @@ import { API_PREFIX, SESSION_COOKIE, sessionSchema, type Session } from '@kids-c
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { VALKEY } from '../../platform/valkey';
 import { SESSION_TTL_SECONDS } from './constants';
-import { newSessionToken, sessionCookieOptions, sessionKey } from './lib';
+import { familySessionsKey, newSessionToken, sessionCookieOptions, sessionKey } from './lib';
 import type { SignedIn } from './types';
 
 @Injectable()
@@ -21,16 +21,24 @@ export class SessionsService {
       return null;
     }
     const parsed = sessionSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : null;
+    if (!parsed.success) {
+      return null;
+    }
+    await this.valkey.expire(familySessionsKey(parsed.data.familyId), SESSION_TTL_SECONDS);
+    return parsed.data;
   }
 
   async start(request: FastifyRequest, reply: FastifyReply, signedIn: SignedIn): Promise<void> {
-    if (request.sessionToken) {
-      await this.valkey.del(sessionKey(request.sessionToken));
-    }
+    await this.forget(request);
     const token = newSessionToken();
     const session: Session = { ...signedIn, createdAt: new Date().toISOString() };
-    await this.valkey.set(sessionKey(token), JSON.stringify(session), 'EX', SESSION_TTL_SECONDS);
+    const family = familySessionsKey(signedIn.familyId);
+    await this.valkey
+      .multi()
+      .set(sessionKey(token), JSON.stringify(session), 'EX', SESSION_TTL_SECONDS)
+      .sadd(family, sessionKey(token))
+      .expire(family, SESSION_TTL_SECONDS)
+      .exec();
     reply.setCookie(SESSION_COOKIE, token, sessionCookieOptions(this.config));
   }
 
@@ -39,9 +47,26 @@ export class SessionsService {
   }
 
   async end(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    if (request.sessionToken) {
-      await this.valkey.del(sessionKey(request.sessionToken));
-    }
+    await this.forget(request);
     reply.clearCookie(SESSION_COOKIE, { path: API_PREFIX });
+  }
+
+  async endFamily(familyId: string, reply: FastifyReply): Promise<void> {
+    const family = familySessionsKey(familyId);
+    const keys = await this.valkey.smembers(family);
+    await this.valkey.del(...keys, family);
+    reply.clearCookie(SESSION_COOKIE, { path: API_PREFIX });
+  }
+
+  private async forget(request: FastifyRequest): Promise<void> {
+    if (!request.sessionToken) {
+      return;
+    }
+    const key = sessionKey(request.sessionToken);
+    const multi = this.valkey.multi().del(key);
+    if (request.authSession) {
+      multi.srem(familySessionsKey(request.authSession.familyId), key);
+    }
+    await multi.exec();
   }
 }

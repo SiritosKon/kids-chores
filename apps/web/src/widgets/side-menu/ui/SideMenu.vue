@@ -15,33 +15,12 @@
         <div class="text-subtitle1 text-weight-bold">{{ APP_NAME }}</div>
       </div>
 
-      <div v-if="account.server && account.loaded" class="side-menu__account">
-        <q-item
-          v-if="account.signedIn"
-          clickable
-          class="side-menu__account-item"
-          :active="isAt(ROUTES.account)"
-          active-class="side-menu__active"
-          @click="open(ROUTES.account)"
-        >
+      <div v-if="account.signedIn" class="side-menu__account">
+        <q-item class="side-menu__account-item">
           <q-item-section avatar><AccountAvatar size="36px" /></q-item-section>
           <q-item-section>
             <q-item-label class="ellipsis">{{ account.name ?? t('sideMenu.account') }}</q-item-label>
             <SyncStatus compact class="q-mt-xs" />
-          </q-item-section>
-        </q-item>
-        <q-item
-          v-else
-          clickable
-          class="side-menu__account-item"
-          :active="isAt(ROUTES.account)"
-          active-class="side-menu__active"
-          @click="open(ROUTES.account)"
-        >
-          <q-item-section avatar><q-icon name="cloud_off" color="primary" /></q-item-section>
-          <q-item-section>
-            <q-item-label class="text-primary text-weight-medium">{{ t('sideMenu.signIn') }}</q-item-label>
-            <q-item-label caption class="text-grey-5">{{ t('sideMenu.guestTitle') }}</q-item-label>
           </q-item-section>
         </q-item>
       </div>

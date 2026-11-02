@@ -24,10 +24,6 @@ export const meResponseSchema = z.object({
 
 export const providerPictureSchema = z.url({ protocol: /^https$/, hostname: PROVIDER_PICTURE_HOST });
 
-export const profileUpdateRequestSchema = z.object({
-  name: accountNameSchema.nullable(),
-});
-
 export const devLoginRequestSchema = z.object({
   name: z.string().trim().min(1).max(40),
 });

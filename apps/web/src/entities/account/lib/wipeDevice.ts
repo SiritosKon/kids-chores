@@ -1,6 +1,7 @@
 import { db } from '@/shared/api/db';
 import { ACCOUNT_PHOTO_STORAGE_PREFIX } from './constants';
 import { forgetPasskeyId } from './passkeyId';
+import { forgetAccount } from './rememberedAccount';
 
 const forgetAccountPhotos = (): void => {
   try {
@@ -13,6 +14,7 @@ const forgetAccountPhotos = (): void => {
 };
 
 export const wipeDevice = async (): Promise<void> => {
+  forgetAccount();
   forgetPasskeyId();
   forgetAccountPhotos();
   await db.delete();

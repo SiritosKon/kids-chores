@@ -5,7 +5,7 @@
         <q-header class="bg-black text-white">
           <q-toolbar class="q-py-md items-start">
             <q-btn
-              v-if="!needsSetup && !menuDocked"
+              v-if="!welcome && !menuDocked"
               flat
               round
               dense
@@ -45,7 +45,7 @@
           </q-toolbar>
         </q-header>
 
-        <SideMenu v-if="!needsSetup" v-model="menuOpen" :docked="menuDocked" />
+        <SideMenu v-if="!welcome" v-model="menuOpen" :docked="menuDocked" />
 
         <q-page-container>
           <q-banner v-if="!persistence" class="bg-warning text-black">
@@ -62,7 +62,7 @@
           </div>
         </q-page-container>
       </q-layout>
-      <OnboardingDialog v-if="needsSetup" />
+      <OnboardingDialog v-if="welcome" />
     </div>
   </div>
 </template>
@@ -121,9 +121,9 @@ watch(
   { immediate: true }
 );
 
-const needsSetup = computed(() => settingsStore.loaded && !settingsStore.hasPin);
+const welcome = computed(() => settingsStore.loaded && (!settingsStore.hasPin || !account.signedIn));
 const docked = useDockedMenu();
-const menuDocked = computed(() => docked.value && !needsSetup.value);
+const menuDocked = computed(() => docked.value && !welcome.value);
 
 const dateLabel = computed(() => {
   const label = formatDayKeyLong(selectedDate.value);

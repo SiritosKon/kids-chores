@@ -2,8 +2,14 @@ import { randomUUID } from 'node:crypto';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { meResponseSchema, metaResponseSchema, SESSION_COOKIE } from '@kids-chores/contracts';
+import type { Redis } from 'ioredis';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
+import { PrismaService } from '../../platform/database';
+import { VALKEY } from '../../platform/valkey';
 import { cookieHeader, createTestApp } from '../../testing';
+import { AccountsService } from './accounts.service';
+import { DEV_PROVIDER } from './constants';
+import { subjectHash } from './lib';
 
 describe('identity over HTTP', () => {
   let app: NestFastifyApplication;
@@ -86,27 +92,85 @@ describe('identity over HTTP', () => {
     expect(first.hasPasskey).toBe(false);
   });
 
-  it('names the account and lets the parent rename or clear it', async () => {
+  it('takes the name from the provider on every sign-in', async () => {
     const name = `name-${randomUUID().slice(0, 8)}`;
     const cookie = await devLogin(name);
-    expect(meResponseSchema.parse((await me(cookie)).body).name).toBe(name);
+    const first = meResponseSchema.parse((await me(cookie)).body);
+    expect(first.name).toBe(name);
 
-    const rename = (payload: object, headers: Record<string, string> = { origin, cookie }) =>
-      app.inject({ method: 'PATCH', url: '/v1/me', headers, payload });
-
-    const renamed = await rename({ name: '  Мама  ' });
-    expect(renamed.statusCode).toBe(200);
-    expect(meResponseSchema.parse(renamed.json()).name).toBe('Мама');
-
-    await devLogin(name);
+    const subject = subjectHash(app.get<AppConfig>(APP_CONFIG).AUTH_PEPPER, DEV_PROVIDER, name);
+    await app.get(AccountsService).signIn(DEV_PROVIDER, subject, 'Мама');
     expect(meResponseSchema.parse((await me(cookie)).body).name).toBe('Мама');
 
-    expect((await rename({ name: 'x'.repeat(41) })).statusCode).toBe(400);
-    expect((await rename({ name: 'Mallory' }, { origin: 'https://evil.example', cookie })).statusCode).toBe(403);
-    expect((await rename({ name: 'Mallory' }, { origin })).statusCode).toBe(401);
+    const rename = await app.inject({
+      method: 'PATCH',
+      url: '/v1/me',
+      headers: { origin, cookie },
+      payload: { name: 'x' },
+    });
+    expect(rename.statusCode).toBe(404);
+  });
 
-    const cleared = await rename({ name: null });
-    expect(meResponseSchema.parse(cleared.json()).name).toBeNull();
+  it('deletes the account with the whole family and signs out every device', async () => {
+    const name = `delete-${randomUUID().slice(0, 8)}`;
+    const cookie = await devLogin(name);
+    const other = await devLogin(name);
+    const stranger = await devLogin(`keep-${randomUUID().slice(0, 8)}`);
+    const { userId, familyId } = meResponseSchema.parse((await me(cookie)).body);
+    const kept = meResponseSchema.parse((await me(stranger)).body);
+    const pushed = await app.inject({
+      method: 'POST',
+      url: '/v1/sync/push',
+      headers: { origin, cookie },
+      payload: {
+        mutations: [
+          {
+            mutationId: randomUUID(),
+            schemaVersion: 1,
+            kind: 'children',
+            id: 'c1',
+            op: 'put',
+            fields: { name: 'Mia' },
+            changedAt: 1,
+          },
+        ],
+      },
+    });
+    expect(pushed.statusCode).toBe(200);
+
+    const foreign = await app.inject({
+      method: 'DELETE',
+      url: '/v1/me',
+      headers: { origin: 'https://evil.example', cookie },
+    });
+    expect(foreign.statusCode).toBe(403);
+    expect((await app.inject({ method: 'DELETE', url: '/v1/me', headers: { origin } })).statusCode).toBe(401);
+
+    const removed = await app.inject({ method: 'DELETE', url: '/v1/me', headers: { origin, cookie } });
+    expect(removed.statusCode).toBe(204);
+    expect(removed.cookies).toEqual([expect.objectContaining({ name: SESSION_COOKIE, value: '' })]);
+    expect((await me(cookie)).status).toBe(401);
+    expect((await me(other)).status).toBe(401);
+    expect((await me(stranger)).status).toBe(200);
+
+    const prisma = app.get(PrismaService);
+    const left = await prisma.inFamily(familyId, async (tx) => ({
+      family: await tx.family.count({ where: { id: familyId } }),
+      records: await tx.familyRecord.count({ where: { familyId } }),
+      devices: await tx.device.count({ where: { familyId } }),
+    }));
+    expect(left).toEqual({ family: 0, records: 0, devices: 0 });
+    expect(await prisma.user.count({ where: { id: userId } })).toBe(0);
+    expect(await prisma.authAccount.count({ where: { userId } })).toBe(0);
+    expect(await prisma.membership.count({ where: { userId } })).toBe(0);
+    const events = await prisma.outbox.findMany({ where: { familyId } });
+    expect(events.map((event) => event.type)).toEqual(['family.deleted']);
+    expect(await prisma.inFamily(kept.familyId, (tx) => tx.family.count({ where: { id: kept.familyId } }))).toBe(1);
+    expect(await app.get<Redis>(VALKEY).exists(`sessions:family:${familyId}`)).toBe(0);
+
+    const again = meResponseSchema.parse((await me(await devLogin(name))).body);
+    expect(again.familyId).not.toBe(familyId);
+    expect(again.userId).not.toBe(userId);
   });
 
   it('ends the session on logout', async () => {
@@ -145,14 +209,14 @@ describe('identity over HTTP', () => {
       url: `/v1/auth/google/callback?code=x&state=${state}`,
       headers: { cookie: 'lbd_auth_state=attacker-state' },
     });
-    expect(response.headers.location).toBe(`${origin}/kids-chores/#/account?error=google`);
+    expect(response.headers.location).toBe(`${origin}/kids-chores/#/?error=google`);
     expect(response.cookies.filter((cookie) => cookie.name === 'lbd_session')).toEqual([]);
   });
 
-  it('returns to the account page with an error when the state is unknown', async () => {
+  it('returns home with an error when the state is unknown', async () => {
     const response = await app.inject({ method: 'GET', url: '/v1/auth/google/callback?code=x&state=unknown' });
     expect(response.statusCode).toBe(302);
-    expect(response.headers.location).toBe(`${origin}/kids-chores/#/account?error=google`);
+    expect(response.headers.location).toBe(`${origin}/kids-chores/#/?error=google`);
     expect(response.cookies.filter((cookie) => cookie.name === 'lbd_session')).toEqual([]);
   });
 

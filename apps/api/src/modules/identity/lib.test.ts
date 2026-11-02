@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { AppConfig } from '../../platform/config';
 import {
-  accountUrl,
   callbackUrl,
+  failedSignInUrl,
   homeUrl,
   profileName,
   profilePicture,
@@ -70,7 +70,7 @@ describe('urls', () => {
     expect(homeUrl(local, 'google', 'https://lh3.googleusercontent.com/a/x=s96-c')).toBe(
       'http://localhost:8080/kids-chores/#/?signedIn=google&picture=https%3A%2F%2Flh3.googleusercontent.com%2Fa%2Fx%3Ds96-c'
     );
-    expect(accountUrl(local, 'google')).toBe('http://localhost:8080/kids-chores/#/account?error=google');
+    expect(failedSignInUrl(local, 'google')).toBe('http://localhost:8080/kids-chores/#/?error=google');
   });
 
   it('takes the passkey domain from the public origin unless it is set', () => {

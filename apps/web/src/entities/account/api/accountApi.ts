@@ -5,21 +5,32 @@ import {
   passkeyCreationOptionsSchema,
   passkeyLoginOptionsSchema,
   type AuthProvider,
-  type MeResponse,
   type PasskeyCreationOptions,
   type PasskeyLoginOptions,
 } from '@kids-chores/contracts';
 import type { AuthenticationResponseJSON, RegistrationResponseJSON } from '@simplewebauthn/browser';
-import { apiJson, apiOk } from '@/shared/api/http';
-import type { ServerAuth } from '../model/types';
+import { apiJson, apiOk, apiRequest } from '@/shared/api/http';
+import type { MeResult, ServerAuth } from '../model/types';
 
 export const fetchServerAuth = async (): Promise<ServerAuth | null> =>
   (await apiJson('/meta', (data) => metaResponseSchema.parse(data)))?.auth ?? null;
 
-export const fetchMe = (): Promise<MeResponse | null> => apiJson('/me', (data) => meResponseSchema.parse(data));
+export const fetchMe = async (): Promise<MeResult> => {
+  const response = await apiRequest('/me');
+  if (response?.status === 401) {
+    return { status: 'signedOut' };
+  }
+  if (!response?.ok) {
+    return { status: 'unreachable' };
+  }
+  try {
+    return { status: 'signedIn', me: meResponseSchema.parse(await response.json()) };
+  } catch {
+    return { status: 'unreachable' };
+  }
+};
 
-export const requestRename = (name: string | null): Promise<MeResponse | null> =>
-  apiJson('/me', (data) => meResponseSchema.parse(data), 'PATCH', { name });
+export const requestAccountRemoval = (): Promise<boolean> => apiOk('/me', 'DELETE');
 
 export const requestSignOut = (): Promise<boolean> => apiOk('/auth/logout', 'POST');
 
