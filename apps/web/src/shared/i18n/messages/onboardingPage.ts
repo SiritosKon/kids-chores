@@ -4,7 +4,7 @@ export const onboardingPage = defineMessages({
   ru: {
     welcome: 'Добро пожаловать в {app}!',
     intro: 'Чтобы начать, задайте PIN-код для родительского режима.',
-    accountIntro: 'Войдите в аккаунт семьи: данные будут храниться в нём и появятся на всех устройствах семьи.',
+    accountIntro: 'Войдите, чтобы начать.',
     signInFailed: 'Не получилось войти. Попробуйте ещё раз.',
     offline: 'Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.',
     retry: 'Повторить',
@@ -24,7 +24,7 @@ export const onboardingPage = defineMessages({
   en: {
     welcome: 'Welcome to {app}!',
     intro: 'To get started, set a PIN for parent mode.',
-    accountIntro: "Sign in to your family account: your data will be kept there and show up on all your family's devices.",
+    accountIntro: 'Sign in to get started.',
     signInFailed: "Couldn't sign in. Please try again.",
     offline: "There's no connection to the server. Check the internet and try again.",
     retry: 'Try again',
@@ -44,7 +44,7 @@ export const onboardingPage = defineMessages({
   es: {
     welcome: '¡Te damos la bienvenida a {app}!',
     intro: 'Para empezar, crea un PIN para el modo padres.',
-    accountIntro: 'Inicia sesión en la cuenta familiar: tus datos se guardarán en ella y aparecerán en todos los dispositivos de la familia.',
+    accountIntro: 'Inicia sesión para empezar.',
     signInFailed: 'No se pudo iniciar sesión. Inténtalo de nuevo.',
     offline: 'No hay conexión con el servidor. Revisa internet e inténtalo de nuevo.',
     retry: 'Reintentar',

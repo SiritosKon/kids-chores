@@ -4,7 +4,7 @@
       <q-item-section avatar><AccountAvatar size="48px" /></q-item-section>
       <q-item-section>
         <q-item-label class="text-subtitle1 ellipsis">{{ account.name ?? t('accountCard.title') }}</q-item-label>
-        <SyncStatus compact class="q-mt-xs" />
+        <SyncStatus class="q-mt-xs" />
       </q-item-section>
     </q-item>
     <q-separator />

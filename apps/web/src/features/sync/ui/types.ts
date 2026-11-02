@@ -1,4 +1,4 @@
-export interface StatusLook {
+export interface TroubleLook {
   icon: string;
-  color: string;
+  messageKey: string;
 }

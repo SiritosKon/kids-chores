@@ -1,11 +1,10 @@
-import type { SyncStatus } from '../model/types';
-import type { StatusLook } from './types';
+import type { SyncFailure } from '../model/types';
+import type { TroubleLook } from './types';
 
-export const STATUS_LOOKS: Record<SyncStatus, StatusLook> = {
-  off: { icon: 'cloud_off', color: 'grey-6' },
-  syncing: { icon: 'sync', color: 'primary' },
-  synced: { icon: 'cloud_done', color: 'positive' },
-  offline: { icon: 'cloud_off', color: 'warning' },
-  failed: { icon: 'cloud_off', color: 'warning' },
-  signedOut: { icon: 'lock_clock', color: 'warning' },
+export const SYNC_FAILURES: readonly SyncFailure[] = ['offline', 'failed', 'signedOut'];
+
+export const TROUBLE_LOOKS: Record<SyncFailure, TroubleLook> = {
+  offline: { icon: 'cloud_off', messageKey: 'sync.offline' },
+  failed: { icon: 'cloud_off', messageKey: 'sync.failed' },
+  signedOut: { icon: 'lock_clock', messageKey: 'sync.signedOut' },
 };

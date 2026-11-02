@@ -13,7 +13,6 @@ export const useSyncStore = defineStore('sync', () => {
   const status = ref<SyncStatus>('off');
   const pending = ref(0);
   const rejected = ref(0);
-  const syncedAt = ref<number | null>(null);
   const revision = ref(0);
   const familyId = computed(() => account.me?.familyId ?? null);
 
@@ -43,7 +42,6 @@ export const useSyncStore = defineStore('sync', () => {
     }
     status.value = report.failure ?? 'synced';
     if (report.failure === undefined) {
-      syncedAt.value = Date.now();
       if (pending.value > 0) {
         schedule(CAPTURE_DELAY_MS);
       }
@@ -92,5 +90,5 @@ export const useSyncStore = defineStore('sync', () => {
     watch(familyId, () => void run(), { immediate: true });
   };
 
-  return { status, pending, rejected, syncedAt, revision, start, run };
+  return { status, pending, rejected, revision, start, run };
 });
