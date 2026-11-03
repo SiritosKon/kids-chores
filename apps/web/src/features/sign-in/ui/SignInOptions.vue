@@ -24,17 +24,29 @@
         @click="signInByPasskey"
       />
     </div>
-    <div v-if="server?.devLogin" class="sign-in-options__dev row items-center no-wrap q-gutter-sm q-mt-md">
+    <div v-if="server?.devLogin" class="sign-in-options__dev q-mt-md">
+      <div class="row items-center no-wrap q-gutter-sm">
+        <q-input
+          v-model="devName"
+          dense
+          outlined
+          dark
+          class="col"
+          :label="t('signIn.devName')"
+          @keyup.enter="signInAsDev"
+        />
+        <q-btn flat no-caps color="grey-5" :label="t('signIn.devSignIn')" :disable="!devName.trim()" @click="signInAsDev" />
+      </div>
       <q-input
-        v-model="devName"
+        v-model="devEmail"
         dense
         outlined
         dark
-        class="col"
-        :label="t('signIn.devName')"
+        type="email"
+        class="q-mt-sm"
+        :label="t('signIn.devEmail')"
         @keyup.enter="signInAsDev"
       />
-      <q-btn flat no-caps color="grey-5" :label="t('signIn.devSignIn')" :disable="!devName.trim()" @click="signInAsDev" />
     </div>
   </div>
 </template>
@@ -60,6 +72,7 @@ const hasGoogle = computed(() => server.value?.providers.includes('google') === 
 const passkeysSupported = browserSupportsWebAuthn();
 const busy = ref(false);
 const devName = ref('');
+const devEmail = ref('');
 
 const signInWithGoogle = (): void => {
   window.location.assign(providerStartUrl('google'));
@@ -87,7 +100,7 @@ const signInByPasskey = async (): Promise<void> => {
 const signInAsDev = async (): Promise<void> => {
   const name = devName.value.trim();
   if (name) {
-    await finish(await devSignIn(name), t('signIn.devFailed'));
+    await finish(await devSignIn(name, devEmail.value.trim()), t('signIn.devFailed'));
   }
 };
 </script>

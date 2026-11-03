@@ -14,6 +14,14 @@ export const ACCOUNT_NAME_MAX = 40;
 
 export const PROVIDER_PICTURE_HOST = /(^|\.)googleusercontent\.com$/;
 
+export const EMAIL_MAX = 254;
+
+export const MAIL_LOCALES = ['ru', 'en', 'es'] as const;
+
+export const PIN_CODE_LENGTH = 6;
+
+export const PIN_CODE_PATTERN = /^\d{6}$/;
+
 export const SYNC_KINDS = ['children', 'tasks', 'rewards', 'rewardVariants', 'settings', 'completions', 'spends'] as const;
 
 export const SYNC_SCHEMA_VERSION = 1;

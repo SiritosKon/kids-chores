@@ -2,12 +2,6 @@ import { defineMessages } from '../lib';
 
 export const editSettings = defineMessages({
   ru: {
-    pinSteps: {
-      current: 'Введите текущий PIN',
-      next: 'Придумайте новый PIN',
-      repeat: 'Повторите новый PIN',
-    },
-    pinChanged: 'PIN изменён',
     streakToggle: 'Награждать за дни подряд',
     streakHelp: 'Каждый этап срабатывает один раз за серию. Серия прервалась — этапы можно пройти заново.',
     stageDaysInRow: '{n} день подряд | {n} дня подряд | {n} дней подряд',
@@ -26,12 +20,6 @@ export const editSettings = defineMessages({
     removeStageMessage: 'Этап «{days}» пропадёт. Уже выданные призы останутся в истории.',
   },
   en: {
-    pinSteps: {
-      current: 'Enter your current PIN',
-      next: 'Choose a new PIN',
-      repeat: 'Repeat the new PIN',
-    },
-    pinChanged: 'PIN changed',
     streakToggle: 'Reward days in a row',
     streakHelp: 'Each stage is earned once per streak. If the streak breaks, the stages can be earned again.',
     stageDaysInRow: '{n} day in a row | {n} days in a row',
@@ -50,12 +38,6 @@ export const editSettings = defineMessages({
     removeStageMessage: 'The “{days}” stage will be removed. Prizes already given stay in the history.',
   },
   es: {
-    pinSteps: {
-      current: 'Escribe tu PIN actual',
-      next: 'Elige un PIN nuevo',
-      repeat: 'Repite el PIN nuevo',
-    },
-    pinChanged: 'PIN cambiado',
     streakToggle: 'Premiar los días seguidos',
     streakHelp: 'Cada etapa se gana una vez por racha. Si la racha se corta, las etapas se pueden ganar de nuevo.',
     stageDaysInRow: '{n} día seguido | {n} días seguidos',

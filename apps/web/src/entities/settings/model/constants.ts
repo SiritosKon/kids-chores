@@ -6,10 +6,6 @@ export const PARENT_PIN_LENGTH = 6;
 
 export const PIN_PATTERN = /^\d{6}$/;
 
-export const PIN_QUESTION_MAX = 100;
-
-export const PIN_ANSWER_MAX = 60;
-
 export const LEGACY_BONUS: BonusSettings = { enabled: true, points: 1 };
 
 export const LEGACY_STREAK: StreakSettings = { enabled: false, milestones: [] };

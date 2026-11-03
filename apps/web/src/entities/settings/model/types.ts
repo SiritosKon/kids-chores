@@ -1,7 +1,6 @@
 import type { z } from 'zod';
 import type {
   bonusSettingsSchema,
-  pinQuestionSchema,
   secretHashSchema,
   settingsSchema,
   streakMilestoneSchema,
@@ -17,10 +16,3 @@ export type StreakSettings = z.infer<typeof streakSettingsSchema>;
 export type Settings = z.infer<typeof settingsSchema>;
 
 export type SecretHash = z.infer<typeof secretHashSchema>;
-
-export type PinQuestion = z.infer<typeof pinQuestionSchema>;
-
-export interface PinRecovery {
-  question: string;
-  answer: string;
-}

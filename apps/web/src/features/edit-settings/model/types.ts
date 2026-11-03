@@ -1,5 +1,3 @@
-export type PinStep = 'current' | 'next' | 'repeat';
-
 export interface StageDraft {
   days: number;
   points: number;

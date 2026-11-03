@@ -18,7 +18,6 @@ export const onboardingPage = defineMessages({
     },
     choosePin: 'Придумайте PIN родителя',
     repeatPin: 'Повторите PIN',
-    questionStep: 'Секретный вопрос на случай, если забудете PIN',
     pinMismatch: 'PIN не совпал, попробуйте ещё раз',
   },
   en: {
@@ -38,7 +37,6 @@ export const onboardingPage = defineMessages({
     },
     choosePin: 'Choose a parent PIN',
     repeatPin: 'Repeat the PIN',
-    questionStep: 'A secret question in case you forget the PIN',
     pinMismatch: 'The PINs don’t match, try again',
   },
   es: {
@@ -58,7 +56,6 @@ export const onboardingPage = defineMessages({
     },
     choosePin: 'Crea un PIN de padres',
     repeatPin: 'Repite el PIN',
-    questionStep: 'Una pregunta secreta por si olvidas el PIN',
     pinMismatch: 'Los PIN no coinciden, inténtalo de nuevo',
   },
 });

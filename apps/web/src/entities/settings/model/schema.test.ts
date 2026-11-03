@@ -30,7 +30,6 @@ describe('storedSettingsSchema', () => {
       'locale',
       'parentPin',
       'pinHash',
-      'pinQuestion',
       'streak',
       'tourPending',
     ]);

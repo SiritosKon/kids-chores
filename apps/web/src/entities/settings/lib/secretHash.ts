@@ -23,6 +23,3 @@ export const hashSecret = async (
 
 export const secretMatches = async (secret: string, stored: SecretHash): Promise<boolean> =>
   (await hashSecret(secret, stored.salt, stored.iterations)).hash === stored.hash;
-
-export const normalizeAnswer = (answer: string): string =>
-  answer.trim().toLocaleLowerCase().replaceAll('ё', 'е').replace(/\s+/g, ' ');

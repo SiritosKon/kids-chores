@@ -56,4 +56,11 @@ export const googleProfileSchema = z.object({
   given_name: z.string().optional(),
   name: z.string().optional(),
   picture: z.string().optional(),
+  email: z.string().optional(),
+  email_verified: z.boolean().optional(),
+});
+
+export const storedPinCodeSchema = z.object({
+  hash: z.string().min(1),
+  attempts: z.coerce.number().int().nonnegative(),
 });

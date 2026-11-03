@@ -16,8 +16,8 @@ describe('family isolation in Postgres', () => {
     app = await createTestApp();
     prisma = app.get(PrismaService);
     const accounts = app.get(AccountsService);
-    a = await accounts.signIn('dev', randomUUID());
-    b = await accounts.signIn('dev', randomUUID());
+    a = await accounts.signIn('dev', randomUUID(), {});
+    b = await accounts.signIn('dev', randomUUID(), {});
   });
 
   afterAll(async () => {

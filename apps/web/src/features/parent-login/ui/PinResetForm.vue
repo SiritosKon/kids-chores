@@ -1,57 +1,54 @@
 <template>
   <div>
-    <div class="text-center text-grey-5 q-mb-md">{{ t(RESET_STEP_TITLES[step]) }}</div>
-    <div v-if="lockedMs > 0 && step === 'question'" class="text-center text-grey-4 q-py-md">
-      {{ t('parentLogin.locked', { time: lockedText }) }}
-    </div>
-    <div v-else-if="step === 'question'" class="form-stack">
-      <div class="text-center text-h6">{{ pinQuestion }}</div>
+    <div class="text-center text-grey-5 q-mb-md">{{ t(RESET_STEP_TITLES[step], { email: sentTo }) }}</div>
+    <form v-if="step === 'email'" class="form-stack" @submit.prevent="sendCode">
       <q-input
-        v-model="answer"
-        :label="t('parentLogin.answer')"
+        v-model="email"
+        type="email"
+        inputmode="email"
+        autocomplete="email"
+        autocapitalize="off"
+        spellcheck="false"
+        :maxlength="EMAIL_MAX"
+        :label="t('parentLogin.email')"
         autofocus
-        :error="checkError"
-        :error-message="t('parentLogin.wrongSecret')"
-        @keyup.enter="submitAnswer"
+        :error="emailError !== ''"
+        :error-message="emailError"
+        @update:model-value="emailError = ''"
       />
       <div class="row">
-        <q-btn flat no-caps :label="t('common.back')" @click="emit('cancel')" />
+        <q-btn v-if="cancellable" flat no-caps :label="t('common.back')" @click="emit('cancel')" />
         <q-space />
         <q-btn
+          type="submit"
           unelevated
           no-caps
           color="primary"
-          :label="t('common.next')"
-          :disable="answer.trim() === '' || checking"
-          :loading="checking"
-          @click="submitAnswer"
+          :label="t('parentLogin.sendCode')"
+          :loading="busy"
+          :disable="!emailValid"
         />
       </div>
-    </div>
-    <div v-else-if="step === 'check'" class="form-stack">
-      <div class="text-center text-h5">{{ t('parentLogin.question', { question: check.question }) }}</div>
+    </form>
+    <div v-else-if="step === 'code'" class="form-stack">
       <q-input
-        v-model="answer"
-        type="text"
+        :model-value="code"
         inputmode="numeric"
         pattern="[0-9]*"
-        :label="t('parentLogin.answer')"
+        autocomplete="one-time-code"
+        :maxlength="PIN_CODE_LENGTH"
+        :label="t('parentLogin.code')"
         autofocus
-        :error="checkError"
-        :error-message="t('parentLogin.wrongAnswer')"
-        @keyup.enter="submitCheck"
+        :loading="busy"
+        :readonly="busy"
+        :error="codeError !== ''"
+        :error-message="codeError"
+        @update:model-value="onCode"
       />
       <div class="row">
-        <q-btn flat no-caps :label="t('common.back')" @click="emit('cancel')" />
+        <q-btn flat dense no-caps color="grey-5" :label="t('parentLogin.otherEmail')" @click="step = 'email'" />
         <q-space />
-        <q-btn
-          unelevated
-          no-caps
-          color="primary"
-          :label="t('common.next')"
-          :disable="answer.trim() === ''"
-          @click="submitCheck"
-        />
+        <q-btn flat dense no-caps color="grey-5" :label="t('parentLogin.resend')" :disable="busy" @click="sendCode" />
       </div>
     </div>
     <PinInput v-else :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="pinError" @complete="onPin" />
@@ -59,61 +56,75 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useQuasar } from 'quasar';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { EMAIL_MAX, PIN_CODE_LENGTH, emailSchema } from '@kids-chores/contracts';
+import { currentLocale } from '@/shared/i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
-import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
-import { makeParentCheck } from '../lib/parentCheck';
-import { usePinLock } from '../model/usePinLock';
-import { RESET_STEP_TITLES } from '../model/constants';
+import { checkPinCode, requestPinCode } from '../model/pinCodes';
+import { CODE_FAILURES, EMAIL_FAILURES, RESET_STEP_TITLES } from '../model/constants';
 import type { ResetStep } from '../model/types';
 
+withDefaults(defineProps<{ cancellable?: boolean }>(), { cancellable: false });
 const emit = defineEmits<{ done: []; cancel: [] }>();
 
-const $q = useQuasar();
 const { t } = useI18n();
-const parentSession = useParentSessionStore();
 const settingsStore = useSettingsStore();
 
-const pinQuestion = settingsStore.settings?.pinQuestion?.question ?? null;
-const { lockedMs, lockedText, watchLock, fail, clear } = usePinLock();
-watchLock();
-
-const step = ref<ResetStep>(pinQuestion ? 'question' : 'check');
-const checking = ref(false);
-const check = ref(makeParentCheck());
-const answer = ref('');
-const checkError = ref(false);
+const step = ref<ResetStep>('email');
+const busy = ref(false);
+const email = ref('');
+const sentTo = ref('');
+const emailError = ref('');
+const code = ref('');
+const codeError = ref('');
 const pin = ref('');
 const nextPin = ref('');
 const pinError = ref(false);
 
-const submitAnswer = async (): Promise<void> => {
-  if (answer.value.trim() === '' || checking.value) {
+const emailValid = computed(() => emailSchema.safeParse(email.value.trim()).success);
+
+const sendCode = async (): Promise<void> => {
+  if (!emailValid.value || busy.value) {
     return;
   }
-  checking.value = true;
-  const right = await settingsStore.checkAnswer(answer.value);
-  checking.value = false;
-  if (right) {
-    step.value = 'next';
-    return;
+  busy.value = true;
+  const address = email.value.trim();
+  const reply = await requestPinCode(address, currentLocale());
+  busy.value = false;
+  if (reply === 'ok') {
+    sentTo.value = address;
+    code.value = '';
+    codeError.value = '';
+    step.value = 'code';
+  } else if (step.value === 'code') {
+    codeError.value = t(EMAIL_FAILURES[reply]);
+  } else {
+    emailError.value = t(EMAIL_FAILURES[reply]);
   }
-  fail();
-  answer.value = '';
-  checkError.value = true;
 };
 
-const submitCheck = (): void => {
-  if (Number(answer.value.trim()) === check.value.answer) {
+const submitCode = async (value: string): Promise<void> => {
+  busy.value = true;
+  const reply = await checkPinCode(value);
+  busy.value = false;
+  if (reply === 'ok') {
     step.value = 'next';
     return;
   }
-  check.value = makeParentCheck();
-  answer.value = '';
-  checkError.value = true;
+  code.value = '';
+  codeError.value = t(CODE_FAILURES[reply]);
+};
+
+const onCode = (value: string | number | null): void => {
+  code.value = String(value ?? '')
+    .replace(/\D/g, '')
+    .slice(0, PIN_CODE_LENGTH);
+  codeError.value = '';
+  if (code.value.length === PIN_CODE_LENGTH) {
+    void submitCode(code.value);
+  }
 };
 
 const onPin = async (value: string): Promise<void> => {
@@ -133,9 +144,6 @@ const onPin = async (value: string): Promise<void> => {
     return;
   }
   await settingsStore.changePin(value);
-  clear();
-  parentSession.unlock();
-  $q.notify({ type: 'positive', message: t('parentLogin.pinChanged') });
   emit('done');
 };
 </script>

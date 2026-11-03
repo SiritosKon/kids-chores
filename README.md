@@ -30,11 +30,12 @@ sync between devices and accounts (see the roadmap in the `research` branch).
   every N days. Changing tasks or the rule never rewrites past streaks or prizes.
 - **Bonus.** Optional extra points for a day with every task done.
 - **Parent mode.** Six-digit PIN, closes by itself after five idle minutes. The PIN is kept only
-  as a salted PBKDF2 hash, one per family when signed in, and five wrong tries in a row pause the
-  PIN window. A secret question set with the PIN lets a parent reset a forgotten one. Children, tasks and rewards are edited on their own pages; settings cover the streak,
-  the bonus and the PIN.
-- **First launch.** Where the backend is available, the app first offers to sign in or continue
-  without an account. The board opens with an editable example — a kid, three chores and three
+  as a salted PBKDF2 hash, one per family, and five wrong tries in a row pause the PIN window. The
+  PIN changes only by email: a code goes to the email the parent signs in with through Google.
+  Children, tasks and rewards are edited on their own pages; settings cover the streak, the bonus
+  and the PIN.
+- **First launch.** The app first asks to sign in with Google or Face ID; there is no guest mode.
+  The board opens with an editable example — a kid, three chores and three
   rewards — a PIN window over it and a four-step tour: kids, chores, rewards and the menu. A
   device that joins a family with data takes that data and skips the tour.
 - **Backup.** JSON export and import in parent mode. This is the only backup, so export regularly.
@@ -108,24 +109,24 @@ podman compose up -d --build      # the app with the backend on http://localhost
 podman compose down -v            # stop and delete the data
 ```
 
-It starts Postgres, Valkey, the migrations, `api`, `outbox-relay`, `notifications` and nginx
-with the built PWA. The `migrate` container applies the migrations and stops with exit code 0;
+It starts Postgres, Valkey, Mailpit, the migrations, `api`, `outbox-relay`, `notifications` and
+nginx with the built PWA. Mail never leaves the machine: Mailpit catches it, see it on
+<http://localhost:8025>. The `migrate` container applies the migrations and stops with exit code 0;
 `api` and `outbox-relay` start only after it. Host ports are set in `.env`; Valkey is on 6380 by
 default because 6379 is often taken. While the contour is up, `npm run dev` proxies `/v1` to it.
 
 To try sync, open <http://localhost:8080/kids-chores/> in two browsers (or a normal and a private
-window), open the menu → **Sign in** in each and sign in the same way in both: both windows join
-one family. A change is sent to the server a second after it is saved and shows up in the other
+window) and sign in the same way in both on the first screen: both windows join one family. A change is sent to the server a second after it is saved and shows up in the other
 window when you switch back to it. Google sign-in needs `GOOGLE_CLIENT_ID` and
 `GOOGLE_CLIENT_SECRET` in `.env` and `http://localhost:8080/v1/auth/google/callback` as an
 authorised redirect URI of that OAuth client. Without Google, set `DEV_LOGIN=true` in `.env` and
-run `podman compose up -d api`: the account page gets a sign-in by any name, and the same name
-means the same family.
+run `podman compose up -d api`: the first screen gets a sign-in by any name, and the same name
+means the same family. Add an email there to try the PIN change by email.
 
 The backend can also run on the host against the containers' Postgres and Valkey:
 
 ```sh
-podman compose up -d postgres valkey
+podman compose up -d postgres valkey mailpit
 cp apps/api/.env.example apps/api/.env       # once
 npm run dev -w apps/api                      # api with reload on http://localhost:3000
 API_URL=http://localhost:3000 npm run dev    # the PWA on :5173, /v1 goes to the api on the host

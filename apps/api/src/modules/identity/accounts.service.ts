@@ -4,7 +4,7 @@ import type { MeResponse, Session } from '@kids-chores/contracts';
 import { isUniqueViolation, PrismaService } from '../../platform/database';
 import { OutboxService } from '../../platform/outbox';
 import { FAMILY_DELETED_EVENT, FAMILY_DELETED_VERSION } from './constants';
-import type { SignedIn } from './types';
+import type { AccountProfile, SignedIn } from './types';
 
 @Injectable()
 export class AccountsService {
@@ -13,22 +13,22 @@ export class AccountsService {
     private readonly outbox: OutboxService
   ) {}
 
-  async signIn(provider: string, subjectHash: string, name?: string): Promise<SignedIn> {
+  async signIn(provider: string, subjectHash: string, profile: AccountProfile): Promise<SignedIn> {
     const account = await this.prisma.authAccount.findUnique({
       where: { provider_subjectHash: { provider, subjectHash } },
       select: { userId: true },
     });
     if (account) {
-      if (name) {
-        await this.prisma.user.update({ where: { id: account.userId }, data: { name } });
+      if (profile.name || profile.emailHash) {
+        await this.prisma.user.update({ where: { id: account.userId }, data: profile });
       }
       return this.addDevice(account.userId);
     }
     try {
-      return await this.createFamily(provider, subjectHash, name);
+      return await this.createFamily(provider, subjectHash, profile);
     } catch (error) {
       if (isUniqueViolation(error)) {
-        return this.signIn(provider, subjectHash, name);
+        return this.signIn(provider, subjectHash, profile);
       }
       throw error;
     }
@@ -75,11 +75,11 @@ export class AccountsService {
     });
   }
 
-  private async createFamily(provider: string, subjectHash: string, name?: string): Promise<SignedIn> {
+  private async createFamily(provider: string, subjectHash: string, profile: AccountProfile): Promise<SignedIn> {
     const signedIn: SignedIn = { userId: randomUUID(), familyId: randomUUID(), deviceId: randomUUID() };
     const { userId, familyId, deviceId } = signedIn;
     await this.prisma.inFamily(familyId, async (tx) => {
-      await tx.user.create({ data: { id: userId, name } });
+      await tx.user.create({ data: { id: userId, ...profile } });
       await tx.family.create({ data: { id: familyId } });
       await tx.membership.create({ data: { userId, familyId } });
       await tx.authAccount.create({ data: { id: randomUUID(), provider, subjectHash, userId } });

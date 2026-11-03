@@ -34,6 +34,8 @@ export const envSchema = z
     GOOGLE_CLIENT_SECRET: optionalText,
     WEBAUTHN_RP_ID: optionalText,
     DEV_LOGIN: z.stringbool().default(false),
+    SMTP_URL: z.url({ protocol: /^smtps?$/ }),
+    MAIL_FROM: z.string().min(3),
   })
   .superRefine((env, ctx) => {
     if (env.DEV_LOGIN && env.NODE_ENV === 'production') {

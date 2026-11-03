@@ -99,7 +99,7 @@ describe('identity over HTTP', () => {
     expect(first.name).toBe(name);
 
     const subject = subjectHash(app.get<AppConfig>(APP_CONFIG).AUTH_PEPPER, DEV_PROVIDER, name);
-    await app.get(AccountsService).signIn(DEV_PROVIDER, subject, 'Мама');
+    await app.get(AccountsService).signIn(DEV_PROVIDER, subject, { name: 'Мама' });
     expect(meResponseSchema.parse((await me(cookie)).body).name).toBe('Мама');
 
     const rename = await app.inject({
@@ -188,7 +188,7 @@ describe('identity over HTTP', () => {
     expect(location.origin).toBe('https://accounts.google.com');
     expect(location.searchParams.get('client_id')).toBe('integration-client');
     expect(location.searchParams.get('redirect_uri')).toBe(`${origin}/v1/auth/google/callback`);
-    expect(location.searchParams.get('scope')).toBe('openid profile');
+    expect(location.searchParams.get('scope')).toBe('openid profile email');
     expect(location.searchParams.get('code_challenge_method')).toBe('S256');
     expect(location.searchParams.get('state')).toBeTruthy();
     expect(response.cookies).toEqual([

@@ -3,8 +3,8 @@ import { table } from '@/shared/api/db';
 import type { Locale } from '@/shared/i18n';
 import { settingsSchema, storedSettingsSchema } from '../model/schema';
 import { SETTINGS_ID, INITIAL_BONUS, NO_STREAK } from '../model/constants';
-import { hashSecret, normalizeAnswer } from '../lib/secretHash';
-import type { PinQuestion, PinRecovery, Settings } from '../model/types';
+import { hashSecret } from '../lib/secretHash';
+import type { Settings } from '../model/types';
 
 export const settingsTable = table<Settings>('settings');
 
@@ -20,27 +20,12 @@ export const saveSettings = async (settings: Settings): Promise<void> => {
 export const watchSettings = (onNext: (settings: Settings | undefined) => void): Subscription =>
   liveQuery(getSettings).subscribe({ next: onNext });
 
-export const questionHash = async ({ question, answer }: PinRecovery): Promise<PinQuestion> => ({
-  question: question.trim(),
-  answer: await hashSecret(normalizeAnswer(answer)),
-});
-
-export const setupParentPin = async (pin: string, locale: Locale, recovery: PinRecovery | null = null): Promise<void> => {
+export const setupParentPin = async (pin: string, locale: Locale): Promise<void> => {
   const pinHash = await hashSecret(pin);
-  const pinQuestion = recovery ? await questionHash(recovery) : null;
   const existing = await getSettings();
   await saveSettings(
     existing
-      ? { ...existing, parentPin: null, pinHash, pinQuestion: pinQuestion ?? existing.pinQuestion }
-      : {
-          id: SETTINGS_ID,
-          parentPin: null,
-          pinHash,
-          pinQuestion,
-          bonus: INITIAL_BONUS,
-          streak: NO_STREAK,
-          tourPending: true,
-          locale,
-        }
+      ? { ...existing, parentPin: null, pinHash }
+      : { id: SETTINGS_ID, parentPin: null, pinHash, bonus: INITIAL_BONUS, streak: NO_STREAK, tourPending: true, locale }
   );
 };

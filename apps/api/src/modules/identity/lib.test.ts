@@ -2,11 +2,17 @@ import { describe, expect, it } from 'vitest';
 import type { AppConfig } from '../../platform/config';
 import {
   callbackUrl,
+  emailHash,
   failedSignInUrl,
   homeUrl,
+  newPinCode,
+  pinCodeHash,
+  pinCodeMail,
+  profileEmail,
   profileName,
   profilePicture,
   relyingPartyId,
+  sameHash,
   sessionCookieOptions,
   sessionKey,
   subjectHash,
@@ -30,6 +36,8 @@ const config = (overrides: Partial<AppConfig> = {}): AppConfig => ({
   GOOGLE_CLIENT_SECRET: undefined,
   WEBAUTHN_RP_ID: undefined,
   DEV_LOGIN: false,
+  SMTP_URL: 'smtp://localhost:1025',
+  MAIL_FROM: 'Little Big Deals <no-reply@localhost>',
   APP_VERSION: '0.6.0',
   ...overrides,
 });
@@ -107,5 +115,56 @@ describe('profilePicture', () => {
     expect(profilePicture({ sub: '1', picture: 'http://lh3.googleusercontent.com/a/x' })).toBeUndefined();
     expect(profilePicture({ sub: '1', picture: 'https://googleusercontent.com.evil.example/a' })).toBeUndefined();
     expect(profilePicture({ sub: '1', picture: 'javascript:alert(1)' })).toBeUndefined();
+  });
+});
+
+describe('profileEmail', () => {
+  it('passes on a verified email', () => {
+    expect(profileEmail({ sub: '1', email: 'anna@example.com', email_verified: true })).toBe('anna@example.com');
+  });
+
+  it('drops an unverified or broken email', () => {
+    expect(profileEmail({ sub: '1', email: 'anna@example.com' })).toBeUndefined();
+    expect(profileEmail({ sub: '1', email: 'anna@example.com', email_verified: false })).toBeUndefined();
+    expect(profileEmail({ sub: '1', email: 'not an email', email_verified: true })).toBeUndefined();
+  });
+});
+
+describe('emailHash', () => {
+  it('ignores case and spaces around the address', () => {
+    const pepper = config().AUTH_PEPPER;
+    expect(emailHash(pepper, ' Anna@Example.com ')).toBe(emailHash(pepper, 'anna@example.com'));
+    expect(emailHash(pepper, 'anna@example.com')).not.toBe(emailHash(pepper, 'ann@example.com'));
+    expect(emailHash(pepper, 'anna@example.com')).not.toContain('anna');
+  });
+});
+
+describe('sameHash', () => {
+  it('compares hex hashes', () => {
+    expect(sameHash('ab12', 'ab12')).toBe(true);
+    expect(sameHash('ab12', 'ab13')).toBe(false);
+    expect(sameHash('ab12', 'ab1234')).toBe(false);
+    expect(sameHash('', '')).toBe(false);
+  });
+});
+
+describe('pin codes', () => {
+  it('are six digits, leading zeros included', () => {
+    Array.from({ length: 50 }, newPinCode).forEach((code) => expect(code).toMatch(/^\d{6}$/));
+  });
+
+  it('hash differently for different accounts', () => {
+    const pepper = config().AUTH_PEPPER;
+    expect(pinCodeHash(pepper, 'a', '123456')).not.toBe(pinCodeHash(pepper, 'b', '123456'));
+    expect(pinCodeHash(pepper, 'a', '123456')).not.toContain('123456');
+  });
+
+  it('go out in the language of the app', () => {
+    expect(pinCodeMail('ru', '012345')).toEqual({
+      subject: 'Little Big Deals: код для смены PIN',
+      text: expect.stringContaining('PIN в Little Big Deals: 012345\n\nОн действует 10 минут.'),
+    });
+    expect(pinCodeMail('en', '012345').text).toContain('012345');
+    expect(pinCodeMail('es', '012345').text).toContain('10 minutos');
   });
 });

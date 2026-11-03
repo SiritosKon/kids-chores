@@ -21,7 +21,15 @@ import { AccountsService } from './accounts.service';
 import { PasskeyLoginDto, PasskeyRegisterDto } from './dto';
 import { GoogleService } from './google.service';
 import { AUTH_STATE_COOKIE } from './constants';
-import { authStateCookieOptions, CurrentSession, failedSignInUrl, homeUrl, publicOrigin, subjectHash } from './lib';
+import {
+  authStateCookieOptions,
+  CurrentSession,
+  emailHash,
+  failedSignInUrl,
+  homeUrl,
+  publicOrigin,
+  subjectHash,
+} from './lib';
 import { PasskeysService } from './passkeys.service';
 import { SessionsService } from './sessions.service';
 import type { PasskeyLoginOptions, PasskeyRegisterOptions } from './types';
@@ -60,8 +68,11 @@ export class AuthController {
     reply.clearCookie(AUTH_STATE_COOKIE, { path: authStateCookieOptions(this.config).path });
     try {
       const callbackAt = new URL(request.url, publicOrigin(this.config));
-      const { subject, name, picture } = await this.google.finish(callbackAt, browserState);
-      const signedIn = await this.accounts.signIn(known, subjectHash(this.config.AUTH_PEPPER, known, subject), name);
+      const { subject, name, picture, email } = await this.google.finish(callbackAt, browserState);
+      const signedIn = await this.accounts.signIn(known, subjectHash(this.config.AUTH_PEPPER, known, subject), {
+        name,
+        emailHash: email ? emailHash(this.config.AUTH_PEPPER, email) : undefined,
+      });
       await this.sessions.start(request, reply, signedIn);
       return reply.redirect(homeUrl(this.config, known, picture), 302);
     } catch (error) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hashSecret, normalizeAnswer, secretMatches } from './secretHash';
+import { hashSecret, secretMatches } from './secretHash';
 
 describe('hashSecret', () => {
   it('keeps no trace of the secret and salts every hash', async () => {
@@ -16,11 +16,5 @@ describe('hashSecret', () => {
 
     expect(await secretMatches('123456', stored)).toBe(true);
     expect(await secretMatches('654321', stored)).toBe(false);
-  });
-});
-
-describe('normalizeAnswer', () => {
-  it('ignores case, ё and extra spaces', () => {
-    expect(normalizeAnswer('  Ёлка   в  Сочи ')).toBe('елка в сочи');
   });
 });

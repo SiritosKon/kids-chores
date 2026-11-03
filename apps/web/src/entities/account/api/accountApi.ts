@@ -34,7 +34,8 @@ export const requestAccountRemoval = (): Promise<boolean> => apiOk('/me', 'DELET
 
 export const requestSignOut = (): Promise<boolean> => apiOk('/auth/logout', 'POST');
 
-export const devSignIn = (name: string): Promise<boolean> => apiOk('/dev/login', 'POST', { name });
+export const devSignIn = (name: string, email: string): Promise<boolean> =>
+  apiOk('/dev/login', 'POST', email ? { name, email } : { name });
 
 export const providerStartUrl = (provider: AuthProvider): string => `${API_PREFIX}/auth/${provider}/start`;
 

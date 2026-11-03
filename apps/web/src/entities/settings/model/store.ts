@@ -1,9 +1,9 @@
 import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
-import { getSettings, questionHash, saveSettings, watchSettings } from '../api/settingsRepo';
-import { hashSecret, normalizeAnswer, secretMatches } from '../lib/secretHash';
+import { getSettings, saveSettings, watchSettings } from '../api/settingsRepo';
+import { hashSecret, secretMatches } from '../lib/secretHash';
 import { NO_BONUS, NO_STREAK } from './constants';
-import type { PinRecovery, Settings } from './types';
+import type { Settings } from './types';
 
 export const useSettingsStore = defineStore('settings', () => {
   const settings = ref<Settings | null>(null);
@@ -35,15 +35,6 @@ export const useSettingsStore = defineStore('settings', () => {
     return current?.parentPin === pin;
   };
 
-  const changeQuestion = async (recovery: PinRecovery): Promise<void> => {
-    await update({ pinQuestion: await questionHash(recovery) });
-  };
-
-  const checkAnswer = async (answer: string): Promise<boolean> => {
-    const question = settings.value?.pinQuestion;
-    return question ? secretMatches(normalizeAnswer(answer), question.answer) : false;
-  };
-
   const hashLegacyPin = (row: Settings): void => {
     if (!row.parentPin || row.pinHash || hashingLegacyPin) {
       return;
@@ -63,5 +54,5 @@ export const useSettingsStore = defineStore('settings', () => {
   });
   onScopeDispose(() => subscription.unsubscribe());
 
-  return { settings, loaded, bonus, streak, hasPin, update, changePin, checkPin, changeQuestion, checkAnswer };
+  return { settings, loaded, bonus, streak, hasPin, update, changePin, checkPin };
 });

@@ -7,7 +7,7 @@
         <q-btn flat round dense icon="close" v-close-popup :aria-label="t('common.close')" />
       </q-card-section>
       <q-card-section v-if="modelValue && mode === 'reset'" class="q-pt-sm q-pb-lg">
-        <PinResetForm @done="close" @cancel="mode = 'login'" />
+        <PinResetForm cancellable @done="onReset" @cancel="mode = 'login'" />
       </q-card-section>
       <q-card-section v-else-if="modelValue" class="q-pt-sm q-pb-md">
         <div v-if="lockedMs > 0" class="text-center text-grey-4 q-py-md">
@@ -66,6 +66,13 @@ watch(
   },
   { immediate: true }
 );
+
+const onReset = (): void => {
+  clear();
+  parentSession.unlock();
+  $q.notify({ type: 'positive', message: t('parentLogin.pinChanged') });
+  close();
+};
 
 const submit = async (value: string): Promise<void> => {
   if (await settingsStore.checkPin(value)) {
