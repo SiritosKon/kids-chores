@@ -1,0 +1,61 @@
+import { describe, expect, it } from 'vitest';
+import { storedSettingsSchema } from './schema';
+
+describe('storedSettingsSchema', () => {
+  it('leaves the pin unset when a legacy password is not six digits', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPassword: '54694945' });
+
+    expect(settings.parentPin).toBeNull();
+  });
+
+  it('carries over a legacy password that already looks like a pin', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPassword: '123456' });
+
+    expect(settings.parentPin).toBe('123456');
+  });
+
+  it('fills the bonus and streak rules a row written by an older build lacks', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111' });
+
+    expect(settings.bonus).toEqual({ enabled: true, points: 1 });
+    expect(settings.streak).toEqual({ enabled: false, milestones: [] });
+  });
+
+  it('drops the legacy field from the parsed settings', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPassword: '222222' });
+
+    expect(Object.keys(settings).sort()).toEqual([
+      'bonus',
+      'id',
+      'locale',
+      'parentPin',
+      'pinHash',
+      'streak',
+      'tourPending',
+    ]);
+  });
+
+  it('keeps Russian for a row written before the app had other languages', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111' });
+
+    expect(settings.locale).toBe('ru');
+  });
+
+  it('keeps the stored language', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111', locale: 'es' });
+
+    expect(settings.locale).toBe('es');
+  });
+
+  it('reads a row without a pin hash as one that still has to get it', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111' });
+
+    expect(settings.pinHash).toBeNull();
+  });
+
+  it('treats a row written before the tour existed as already introduced', () => {
+    const settings = storedSettingsSchema.parse({ id: 'app', parentPin: '111111' });
+
+    expect(settings.tourPending).toBe(false);
+  });
+});
