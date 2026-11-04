@@ -1,6 +1,4 @@
 import type { ServerMetadata } from 'openid-client';
-import type { MailLocale } from '@kids-chores/contracts';
-import type { PinCodeMail } from './types';
 
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 
@@ -30,43 +28,7 @@ export const FAMILY_DELETED_VERSION = 1;
 
 export const HOME_ROUTE = '#/';
 
-export const GOOGLE_SCOPE = 'openid profile email';
-
-export const EMAIL_HASH_PREFIX = 'email:';
-
-export const PIN_CODE_TTL_SECONDS = 10 * 60;
-
-export const PIN_CODE_RESEND_SECONDS = 60;
-
-export const PIN_CODE_ATTEMPTS = 5;
-
-export const PIN_CODE_PREFIX = 'pin:code:';
-
-export const PIN_CODE_SENT_PREFIX = 'pin:sent:';
-
-export const PIN_CODE_MAILS: Readonly<Record<MailLocale, PinCodeMail>> = {
-  ru: {
-    subject: 'Little Big Deals: код для смены PIN',
-    paragraphs: [
-      'Код для смены родительского PIN в Little Big Deals: {code}',
-      'Он действует {minutes} минут. Если вы не меняли PIN, просто удалите это письмо.',
-    ],
-  },
-  en: {
-    subject: 'Little Big Deals: your PIN change code',
-    paragraphs: [
-      'Your code to change the parent PIN in Little Big Deals: {code}',
-      'It works for {minutes} minutes. If you did not ask to change the PIN, just delete this email.',
-    ],
-  },
-  es: {
-    subject: 'Little Big Deals: código para cambiar el PIN',
-    paragraphs: [
-      'Tu código para cambiar el PIN de padres en Little Big Deals: {code}',
-      'Sirve durante {minutes} minutos. Si no pediste cambiar el PIN, borra este correo.',
-    ],
-  },
-};
+export const GOOGLE_SCOPE = 'openid profile';
 
 export const GOOGLE_SERVER: ServerMetadata = {
   issuer: 'https://accounts.google.com',

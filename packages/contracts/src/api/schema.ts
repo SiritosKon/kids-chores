@@ -1,13 +1,5 @@
 import { z } from 'zod';
-import {
-  ACCOUNT_NAME_MAX,
-  AUTH_PROVIDERS,
-  EMAIL_MAX,
-  MAIL_LOCALES,
-  PIN_CODE_PATTERN,
-  PROVIDER_PICTURE_HOST,
-  REGIONS,
-} from '../constants.js';
+import { ACCOUNT_NAME_MAX, AUTH_PROVIDERS, PROVIDER_PICTURE_HOST, REGIONS } from '../constants.js';
 
 export const metaResponseSchema = z.object({
   version: z.string().min(1),
@@ -32,20 +24,8 @@ export const meResponseSchema = z.object({
 
 export const providerPictureSchema = z.url({ protocol: /^https$/, hostname: PROVIDER_PICTURE_HOST });
 
-export const emailSchema = z.email().max(EMAIL_MAX);
-
 export const devLoginRequestSchema = z.object({
   name: z.string().trim().min(1).max(40),
-  email: emailSchema.optional(),
-});
-
-export const pinCodeRequestSchema = z.object({
-  email: emailSchema,
-  locale: z.enum(MAIL_LOCALES),
-});
-
-export const pinCodeCheckSchema = z.object({
-  code: z.string().regex(PIN_CODE_PATTERN),
 });
 
 const passkeyTransports = z.array(z.enum(['ble', 'cable', 'hybrid', 'internal', 'nfc', 'smart-card', 'usb']));

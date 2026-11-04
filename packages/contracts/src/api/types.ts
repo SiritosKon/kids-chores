@@ -5,8 +5,6 @@ import type {
   metaResponseSchema,
   passkeyCreationOptionsSchema,
   passkeyLoginOptionsSchema,
-  pinCodeCheckSchema,
-  pinCodeRequestSchema,
 } from './schema.js';
 
 export type MetaResponse = z.infer<typeof metaResponseSchema>;
@@ -18,7 +16,3 @@ export type DevLoginRequest = z.infer<typeof devLoginRequestSchema>;
 export type PasskeyCreationOptions = z.infer<typeof passkeyCreationOptionsSchema>;
 
 export type PasskeyLoginOptions = z.infer<typeof passkeyLoginOptionsSchema>;
-
-export type PinCodeRequest = z.infer<typeof pinCodeRequestSchema>;
-
-export type PinCodeCheck = z.infer<typeof pinCodeCheckSchema>;

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { reactive } from 'vue';
 import { db } from '@/shared/api/db';
-import { secretMatches } from '../lib/secretHash';
+import { pinMatches } from '../lib/pinHash';
 import { getSettings, saveSettings, setupParentPin } from './settingsRepo';
 
 beforeEach(async () => {
@@ -24,7 +24,7 @@ describe('setupParentPin', () => {
       tourPending: true,
       locale: 'es',
     });
-    expect(settings?.pinHash && (await secretMatches('246810', settings.pinHash))).toBe(true);
+    expect(settings?.pinHash && (await pinMatches('246810', settings.pinHash))).toBe(true);
   });
 
   it('only sets the pin when settings already exist', async () => {
@@ -42,7 +42,7 @@ describe('setupParentPin', () => {
 
     const settings = await getSettings();
     expect(settings).toMatchObject({ parentPin: null, bonus: { enabled: true, points: 2 }, tourPending: false });
-    expect(settings?.pinHash && (await secretMatches('246810', settings.pinHash))).toBe(true);
+    expect(settings?.pinHash && (await pinMatches('246810', settings.pinHash))).toBe(true);
   });
 });
 

@@ -7,7 +7,7 @@
         <q-btn flat round dense icon="close" v-close-popup :aria-label="t('common.close')" />
       </q-card-section>
       <q-card-section v-if="modelValue && mode === 'reset'" class="q-pt-sm q-pb-lg">
-        <PinResetForm cancellable @done="onReset" @cancel="mode = 'login'" />
+        <PinResetForm @done="close" @cancel="mode = 'login'" />
       </q-card-section>
       <q-card-section v-else-if="modelValue" class="q-pt-sm q-pb-md">
         <div v-if="lockedMs > 0" class="text-center text-grey-4 q-py-md">
@@ -23,13 +23,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
-import { usePinLock } from '../model/usePinLock';
+import { clearPinFailures, pinLockedFor, recordPinFailure } from '../lib/pinLock';
 import PinResetForm from './PinResetForm.vue';
 import type { PinDialogMode } from '../model/types';
 
@@ -55,7 +55,30 @@ const close = (): void => {
   emit('update:modelValue', false);
 };
 
-const { lockedMs, lockedText, watchLock, fail, clear } = usePinLock();
+const lockedMs = ref(0);
+let ticker: ReturnType<typeof setInterval> | undefined;
+
+const lockedText = computed(() => {
+  const seconds = Math.ceil(lockedMs.value / 1000);
+  return seconds < 60
+    ? t('parentLogin.seconds', { count: seconds })
+    : t('parentLogin.minutes', { count: Math.ceil(seconds / 60) });
+});
+
+const tick = (): void => {
+  lockedMs.value = pinLockedFor(Date.now());
+  if (lockedMs.value === 0) {
+    clearInterval(ticker);
+    ticker = undefined;
+  }
+};
+
+const watchLock = (): void => {
+  tick();
+  if (lockedMs.value > 0 && ticker === undefined) {
+    ticker = setInterval(tick, 1000);
+  }
+};
 
 watch(
   () => props.modelValue,
@@ -67,22 +90,18 @@ watch(
   { immediate: true }
 );
 
-const onReset = (): void => {
-  clear();
-  parentSession.unlock();
-  $q.notify({ type: 'positive', message: t('parentLogin.pinChanged') });
-  close();
-};
+onBeforeUnmount(() => clearInterval(ticker));
 
 const submit = async (value: string): Promise<void> => {
   if (await settingsStore.checkPin(value)) {
-    clear();
+    clearPinFailures();
     parentSession.unlock();
     $q.notify({ type: 'positive', message: t('parentLogin.unlocked') });
     close();
     return;
   }
-  fail();
+  recordPinFailure(Date.now());
+  watchLock();
   error.value = false;
   requestAnimationFrame(() => {
     error.value = true;

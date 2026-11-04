@@ -3,7 +3,7 @@ import { table } from '@/shared/api/db';
 import type { Locale } from '@/shared/i18n';
 import { settingsSchema, storedSettingsSchema } from '../model/schema';
 import { SETTINGS_ID, INITIAL_BONUS, NO_STREAK } from '../model/constants';
-import { hashSecret } from '../lib/secretHash';
+import { hashPin } from '../lib/pinHash';
 import type { Settings } from '../model/types';
 
 export const settingsTable = table<Settings>('settings');
@@ -21,7 +21,7 @@ export const watchSettings = (onNext: (settings: Settings | undefined) => void):
   liveQuery(getSettings).subscribe({ next: onNext });
 
 export const setupParentPin = async (pin: string, locale: Locale): Promise<void> => {
-  const pinHash = await hashSecret(pin);
+  const pinHash = await hashPin(pin);
   const existing = await getSettings();
   await saveSettings(
     existing

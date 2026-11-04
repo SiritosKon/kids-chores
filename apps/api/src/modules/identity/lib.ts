@@ -1,28 +1,13 @@
-import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes } from 'node:crypto';
 import { createParamDecorator, type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyRequest } from 'fastify';
-import {
-  ACCOUNT_NAME_MAX,
-  API_PREFIX,
-  emailSchema,
-  PIN_CODE_LENGTH,
-  providerPictureSchema,
-  SESSION_KEY_PREFIX,
-  type MailLocale,
-  type Session,
-} from '@kids-chores/contracts';
+import { ACCOUNT_NAME_MAX, API_PREFIX, providerPictureSchema, SESSION_KEY_PREFIX, type Session } from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
-import type { MailMessage } from '../../platform/mail';
 import {
   AUTH_STATE_TTL_SECONDS,
-  EMAIL_HASH_PREFIX,
   FAMILY_SESSIONS_PREFIX,
   HOME_ROUTE,
-  PIN_CODE_MAILS,
-  PIN_CODE_PREFIX,
-  PIN_CODE_SENT_PREFIX,
-  PIN_CODE_TTL_SECONDS,
   SESSION_TOKEN_BYTES,
   SESSION_TTL_SECONDS,
 } from './constants';
@@ -37,30 +22,6 @@ export const familySessionsKey = (familyId: string): string => `${FAMILY_SESSION
 
 export const subjectHash = (pepper: string, provider: string, subject: string): string =>
   createHmac('sha256', pepper).update(`${provider}:${subject}`).digest('hex');
-
-export const emailHash = (pepper: string, email: string): string =>
-  createHmac('sha256', pepper).update(`${EMAIL_HASH_PREFIX}${email.trim().toLowerCase()}`).digest('hex');
-
-export const sameHash = (left: string, right: string): boolean => {
-  const a = Buffer.from(left, 'hex');
-  const b = Buffer.from(right, 'hex');
-  return a.length > 0 && a.length === b.length && timingSafeEqual(a, b);
-};
-
-export const newPinCode = (): string => randomInt(0, 10 ** PIN_CODE_LENGTH).toString().padStart(PIN_CODE_LENGTH, '0');
-
-export const pinCodeHash = (pepper: string, userId: string, code: string): string =>
-  createHmac('sha256', pepper).update(`pin:${userId}:${code}`).digest('hex');
-
-export const pinCodeKey = (userId: string): string => `${PIN_CODE_PREFIX}${userId}`;
-
-export const pinCodeSentKey = (userId: string): string => `${PIN_CODE_SENT_PREFIX}${userId}`;
-
-export const pinCodeMail = (locale: MailLocale, code: string): Omit<MailMessage, 'to'> => {
-  const { subject, paragraphs } = PIN_CODE_MAILS[locale];
-  const minutes = String(PIN_CODE_TTL_SECONDS / 60);
-  return { subject, text: paragraphs.join('\n\n').replace('{code}', code).replace('{minutes}', minutes) };
-};
 
 export const sessionCookieOptions = (config: AppConfig): CookieSerializeOptions => ({
   httpOnly: true,
@@ -99,13 +60,6 @@ export const profilePicture = (claims: unknown): string | undefined => {
   const profile = googleProfileSchema.safeParse(claims);
   const picture = providerPictureSchema.safeParse(profile.success ? profile.data.picture : undefined);
   return picture.success ? picture.data : undefined;
-};
-
-export const profileEmail = (claims: unknown): string | undefined => {
-  const profile = googleProfileSchema.safeParse(claims);
-  const verified = profile.success && profile.data.email_verified === true ? profile.data.email : undefined;
-  const email = emailSchema.safeParse(verified);
-  return email.success ? email.data : undefined;
 };
 
 export const homeUrl = (config: AppConfig, signedIn: string, picture?: string): string =>

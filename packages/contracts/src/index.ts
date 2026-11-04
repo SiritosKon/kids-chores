@@ -7,10 +7,6 @@ export {
   SESSION_KEY_PREFIX,
   ACCOUNT_NAME_MAX,
   PROVIDER_PICTURE_HOST,
-  EMAIL_MAX,
-  MAIL_LOCALES,
-  PIN_CODE_LENGTH,
-  PIN_CODE_PATTERN,
   SYNC_KINDS,
   SYNC_SCHEMA_VERSION,
   SYNC_PUSH_LIMIT,
@@ -19,16 +15,13 @@ export {
   SYNC_FIELDS_LIMIT,
   SYNC_RECORD_BYTES,
 } from './constants.js';
-export type { Region, AuthProvider, MailLocale } from './types.js';
+export type { Region, AuthProvider } from './types.js';
 export {
   metaResponseSchema,
   accountNameSchema,
   meResponseSchema,
   providerPictureSchema,
-  emailSchema,
   devLoginRequestSchema,
-  pinCodeRequestSchema,
-  pinCodeCheckSchema,
   passkeyCreationOptionsSchema,
   passkeyLoginOptionsSchema,
 } from './api/schema.js';
@@ -38,8 +31,6 @@ export type {
   DevLoginRequest,
   PasskeyCreationOptions,
   PasskeyLoginOptions,
-  PinCodeRequest,
-  PinCodeCheck,
 } from './api/types.js';
 export { eventEnvelopeSchema } from './events/schema.js';
 export type { EventEnvelope } from './events/types.js';

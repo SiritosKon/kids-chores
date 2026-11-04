@@ -44,20 +44,12 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 20
-      mailpit:
-        image: docker.io/axllent/mailpit:v1.27
-        ports:
-          - 1025:1025
-          - 8025:8025
     env:
       DATABASE_URL: postgresql://app_core:app-core-ci@localhost:5432/kids_chores?schema=core
       MIGRATOR_DATABASE_URL: postgresql://migrator:migrator-ci@localhost:5432/kids_chores?schema=core
       VALKEY_URL: redis://localhost:6379
       REGION: eu
       PUBLIC_ORIGIN: http://localhost:8080
-      SMTP_URL: smtp://localhost:1025
-      MAIL_FROM: Little Big Deals <no-reply@localhost>
-      MAILPIT_URL: http://localhost:8025
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

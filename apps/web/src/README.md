@@ -9,7 +9,7 @@
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
 | `pages` | Экраны целиком | `home`, `onboarding`, `settings`, `reward`, `task`, `child`, `spends`, `whats-new`, `install` |
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `side-menu`, `account-card` |
-| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets`, `sign-in`, `passkey-setup`, `pin-question`, `sync` |
+| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets`, `sign-in`, `passkey-setup`, `sync` |
 | `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session`, `account` |
 | `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets`, `i18n` |
 
@@ -138,7 +138,7 @@ IndexedDB шёл на нужном языке. Сменить язык — гл�
 приложением автовыход не срабатывает: тур идёт в родрежиме и выйти из него посреди шага нельзя.
 
 PIN хранится хешем: PBKDF2-SHA-256 из WebCrypto, 600 000 итераций, своя соль на каждый хеш
-(`entities/settings/lib/secretHash.ts`). Хеш, соль и число итераций лежат в настройках полем
+(`entities/settings/lib/pinHash.ts`). Хеш, соль и число итераций лежат в настройках полем
 `pinHash`; проверяет и меняет PIN стор настроек (`checkPin`, `changePin`). Открытый PIN прежних
 версий (`parentPin`) стор при первом чтении переводит в хеш и стирает. Хеш синхронизируется,
 поэтому PIN у семьи один: сменили на одном устройстве — новый приезжает на остальные.
@@ -147,21 +147,13 @@ PIN хранится хешем: PBKDF2-SHA-256 из WebCrypto, 600 000 итер
 вдвое дольше, но не больше 15 минут (`features/parent-login/lib/pinLock.ts`). Счётчик лежит в
 `localStorage` и переживает перезагрузку; верный PIN или сброс его обнуляют.
 
-PIN меняется только через почту, старый PIN для этого не спрашивается. «Сменить PIN» в настройках
-и «Забыли PIN?» в окне входа открывают одну и ту же форму `PinResetForm` из
-`features/parent-login`: родитель вводит почту, с которой входит через Google, сервер присылает
-на неё код из шести цифр, после кода — новый PIN дважды. Из «Забыли PIN?» родитель после этого
-сразу попадает в родрежим. Без связи с сервером PIN не сменить.
-
-Сервер почту не хранит: при входе через Google он берёт подтверждённую почту из профиля (право
-`email`) и кладёт в `users.email_hash` только её HMAC с `AUTH_PEPPER`, без регистра и пробелов по
-краям. Код уходит на тот адрес, который ввёл родитель, и только если его хеш совпал с хешем
-аккаунта. Код живёт 10 минут, в Valkey лежит только его HMAC; новый можно запросить раз в минуту,
-после пяти неверных кодов нужен новый. Ответы сервера: 422 — не та почта или неверный код, 409 —
-сервер ещё не знает почту аккаунта (аккаунт создан до этого и с тех пор не входил через Google),
-410 — кода нет или он кончился, 429 — слишком часто. Проверку кода делает сервер, а новый PIN
-задаёт само устройство, как и раньше; это защита на уровне MVP. Локально письма ловит Mailpit
-из `compose.yaml`: http://localhost:8025. На dev-входе почту можно указать вторым полем.
+В настройках PIN меняется через старый (`PinChangeForm` из `features/edit-settings`). Забытый
+PIN сбрасывается без почты: «Забыли PIN?» в окне входа задаёт пример
+(`features/parent-login/lib/parentCheck.ts`) — проверка для взрослых, как в детских приложениях.
+Вид примера каждый раз выбирается случайно из пяти: умножение двузначного на однозначное,
+сложение и вычитание трёхзначных, деление с ответом от 12 до 19 и пример в два действия
+`7 × 8 + 15`. Неверный ответ — новый пример, тоже случайного вида. Решил — придумывает новый
+PIN и сразу попадает в родрежим. Это защита на уровне MVP: школьник постарше пример решит.
 
 ## Задачи для конкретных детей
 

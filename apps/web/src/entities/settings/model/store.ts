@@ -1,7 +1,7 @@
 import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { getSettings, saveSettings, watchSettings } from '../api/settingsRepo';
-import { hashSecret, secretMatches } from '../lib/secretHash';
+import { hashPin, pinMatches } from '../lib/pinHash';
 import { NO_BONUS, NO_STREAK } from './constants';
 import type { Settings } from './types';
 
@@ -24,13 +24,13 @@ export const useSettingsStore = defineStore('settings', () => {
   };
 
   const changePin = async (pin: string): Promise<void> => {
-    await update({ parentPin: null, pinHash: await hashSecret(pin) });
+    await update({ parentPin: null, pinHash: await hashPin(pin) });
   };
 
   const checkPin = async (pin: string): Promise<boolean> => {
     const current = settings.value;
     if (current?.pinHash) {
-      return secretMatches(pin, current.pinHash);
+      return pinMatches(pin, current.pinHash);
     }
     return current?.parentPin === pin;
   };
