@@ -16,7 +16,8 @@ export class SessionGuard implements CanActivate {
     const http = context.switchToHttp();
     const request = http.getRequest<FastifyRequest>();
     const token = request.cookies[SESSION_COOKIE];
-    const session = token ? await this.sessions.touch(token) : null;
+    const stored = token ? await this.sessions.touch(token) : null;
+    const session = token && stored ? await this.sessions.confirm(token, stored) : null;
     if (token && session) {
       request.authSession = session;
       request.sessionToken = token;

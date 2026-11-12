@@ -2,8 +2,10 @@ import { randomUUID } from 'node:crypto';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { familyResponseSchema, meResponseSchema, type MeResponse } from '@kids-chores/contracts';
+import type { Redis } from 'ioredis';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { PrismaService } from '../../platform/database';
+import { VALKEY } from '../../platform/valkey';
 import { cookieHeader, createTestApp } from '../../testing';
 
 describe('family members over HTTP', () => {
@@ -221,5 +223,29 @@ describe('family members over HTTP', () => {
     expect(dadNow?.role).toBe('owner');
     const prisma = app.get(PrismaService);
     expect(await prisma.inFamily(familyId, (tx) => tx.family.count({ where: { id: familyId } }))).toBe(1);
+  });
+
+  it('trusts the membership in the database over a session that outlived it', async () => {
+    const tag = unique();
+    const mom = await devLogin(`mom-${tag}`);
+    const dad = await devLogin(`dad-${tag}`, { email: `dad-${tag}@example.com` });
+    const invite = await send(mom, 'POST', '/v1/family/invites', { contact: { kind: 'email', value: `dad-${tag}@example.com` } });
+    await send(dad, 'POST', `/v1/family/invites/${invite.json<{ id: string }>().id}/accept`);
+    const { familyId, userId } = (await me(dad)) ?? { familyId: '', userId: '' };
+    const valkey = app.get<Redis>(VALKEY);
+    const sessions = await valkey.smembers(`sessions:family:${familyId}`);
+    const dadSessions = (await Promise.all(sessions.map(async (key) => [key, await valkey.get(key)] as const))).filter(
+      ([, raw]) => raw?.includes(userId)
+    );
+    expect(dadSessions).toHaveLength(1);
+
+    await app.get(PrismaService).membership.deleteMany({ where: { userId } });
+    const pull = await app.inject({
+      method: 'GET',
+      url: '/v1/sync/pull?since=0',
+      headers: { cookie: dad, 'x-family-id': familyId },
+    });
+    expect(pull.statusCode).toBe(401);
+    expect(await valkey.exists(dadSessions[0]?.[0] ?? '')).toBe(0);
   });
 });

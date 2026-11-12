@@ -3,6 +3,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { Redis } from 'ioredis';
 import { API_PREFIX, SESSION_COOKIE, sessionSchema, type Session } from '@kids-chores/contracts';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
+import { PrismaService } from '../../platform/database';
 import { VALKEY } from '../../platform/valkey';
 import { SESSION_TTL_SECONDS } from './constants';
 import { familySessionsKey, newSessionToken, sessionCookieOptions, sessionKey } from './lib';
@@ -12,7 +13,8 @@ import type { SignedIn } from './types';
 export class SessionsService {
   constructor(
     @Inject(VALKEY) private readonly valkey: Redis,
-    @Inject(APP_CONFIG) private readonly config: AppConfig
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
+    private readonly prisma: PrismaService
   ) {}
 
   async touch(token: string): Promise<Session | null> {
@@ -26,6 +28,31 @@ export class SessionsService {
     }
     await this.valkey.expire(familySessionsKey(parsed.data.familyId), SESSION_TTL_SECONDS);
     return parsed.data;
+  }
+
+  async confirm(token: string, session: Session): Promise<Session | null> {
+    const membership = await this.prisma.membership.findUnique({
+      where: { userId: session.userId },
+      select: { familyId: true },
+    });
+    const key = sessionKey(token);
+    if (!membership) {
+      await this.valkey.multi().del(key).srem(familySessionsKey(session.familyId), key).exec();
+      return null;
+    }
+    if (membership.familyId === session.familyId) {
+      return session;
+    }
+    const moved: Session = { ...session, familyId: membership.familyId };
+    const target = familySessionsKey(moved.familyId);
+    await this.valkey
+      .multi()
+      .set(key, JSON.stringify(moved), 'KEEPTTL')
+      .srem(familySessionsKey(session.familyId), key)
+      .sadd(target, key)
+      .expire(target, SESSION_TTL_SECONDS)
+      .exec();
+    return moved;
   }
 
   async start(request: FastifyRequest, reply: FastifyReply, signedIn: SignedIn): Promise<void> {
