@@ -61,3 +61,8 @@ export const providerProfileSchema = z.object({
   phone_number: z.string().optional(),
   phone_number_verified: z.boolean().optional(),
 });
+
+export const storedEmailCodeSchema = z.object({
+  hash: z.string().min(1),
+  attempts: z.coerce.number().int().nonnegative(),
+});

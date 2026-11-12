@@ -9,3 +9,7 @@ export type InvitePreviewResult = { status: 'ready'; preview: InvitePreview } | 
 export type JoinRequestResult = 'sent' | 'tooMany' | 'failed';
 
 export type CreateInviteResult = { status: 'created'; invite: CreatedInvite } | { status: 'tooMany' } | { status: 'failed' };
+
+export type PinCodeSendResult = 'sent' | 'mismatch' | 'tooMany' | 'offline' | 'failed';
+
+export type PinCodeCheckResult = 'ok' | 'wrong' | 'gone' | 'offline' | 'failed';

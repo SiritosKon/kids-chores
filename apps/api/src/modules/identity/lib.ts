@@ -1,4 +1,4 @@
-import { createHash, createHmac, randomBytes } from 'node:crypto';
+import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { createParamDecorator, type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyRequest } from 'fastify';
@@ -18,6 +18,11 @@ import type { AppConfig } from '../../platform/config';
 import {
   AUTH_STATE_TTL_SECONDS,
   CONTACT_HASH_PREFIX,
+  EMAIL_CODE_LENGTH,
+  EMAIL_CODE_MAILS,
+  EMAIL_CODE_PREFIX,
+  EMAIL_CODE_SENT_PREFIX,
+  EMAIL_CODE_TTL_SECONDS,
   FAMILY_SESSIONS_PREFIX,
   GMAIL_DOMAINS,
   HOME_ROUTE,
@@ -31,7 +36,7 @@ import {
 } from './constants';
 import { providerProfileSchema } from './schema';
 import type { MailMessage } from '../../platform/mail';
-import type { ContactHash, EmailParts, MailText, ProviderCredentials, ProviderIdentity } from './types';
+import type { ContactHash, EmailCodePurpose, EmailParts, MailText, ProviderCredentials, ProviderIdentity } from './types';
 
 export const newSessionToken = (): string => randomBytes(SESSION_TOKEN_BYTES).toString('base64url');
 
@@ -70,6 +75,27 @@ export const newInviteToken = (): string => randomBytes(INVITE_TOKEN_BYTES).toSt
 
 export const inviteTokenHash = (pepper: string, token: string): string =>
   createHmac('sha256', pepper).update(`${INVITE_HASH_PREFIX}${token}`).digest('hex');
+
+export const sameHash = (left: string, right: string): boolean => {
+  const a = Buffer.from(left, 'hex');
+  const b = Buffer.from(right, 'hex');
+  return a.length > 0 && a.length === b.length && timingSafeEqual(a, b);
+};
+
+export const newEmailCode = (): string =>
+  randomInt(0, 10 ** EMAIL_CODE_LENGTH).toString().padStart(EMAIL_CODE_LENGTH, '0');
+
+export const emailCodeHash = (pepper: string, purpose: EmailCodePurpose, subject: string, code: string): string =>
+  createHmac('sha256', pepper).update(`${purpose}:${subject}:${code}`).digest('hex');
+
+export const emailCodeKey = (purpose: EmailCodePurpose, subject: string): string =>
+  `${EMAIL_CODE_PREFIX}${purpose}:${subject}`;
+
+export const emailCodeSentKey = (purpose: EmailCodePurpose, subject: string): string =>
+  `${EMAIL_CODE_SENT_PREFIX}${purpose}:${subject}`;
+
+export const emailCodeMail = (purpose: EmailCodePurpose, locale: MailLocale, code: string): Omit<MailMessage, 'to'> =>
+  fillMail(EMAIL_CODE_MAILS[purpose][locale], { code, minutes: String(EMAIL_CODE_TTL_SECONDS / 60) });
 
 export const inviteUrl = (config: AppConfig, token: string): string =>
   `${publicOrigin(config)}${config.APP_PATH}${JOIN_ROUTE}${token}`;

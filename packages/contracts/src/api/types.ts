@@ -7,6 +7,8 @@ import type {
   familyMemberSchema,
   familyResponseSchema,
   createInviteRequestSchema,
+  emailCodeCheckSchema,
+  emailCodeRequestSchema,
   createdInviteSchema,
   invitePreviewSchema,
   inviteTokenRequestSchema,
@@ -32,6 +34,10 @@ export type Contact = z.infer<typeof contactSchema>;
 export type ContactRequest = z.infer<typeof contactRequestSchema>;
 
 export type CreateInviteRequest = z.infer<typeof createInviteRequestSchema>;
+
+export type EmailCodeRequest = z.infer<typeof emailCodeRequestSchema>;
+
+export type EmailCodeCheck = z.infer<typeof emailCodeCheckSchema>;
 
 export type InviteTokenRequest = z.infer<typeof inviteTokenRequestSchema>;
 

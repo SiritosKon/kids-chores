@@ -31,7 +31,8 @@ sync between devices and accounts (see the roadmap in the `research` branch).
 - **Bonus.** Optional extra points for a day with every task done.
 - **Parent mode.** Six-digit PIN, closes by itself after five idle minutes. The PIN is kept only
   as a salted PBKDF2 hash, one per family, and five wrong tries in a row pause the PIN window. A
-  forgotten PIN is reset with a grown-ups-only sum. Children, tasks and rewards are edited on their
+  forgotten PIN is reset with a code sent to the parent's email (a grown-ups-only sum for accounts
+  without one). Children, tasks and rewards are edited on their
   own pages; settings cover the streak, the bonus and the PIN.
 - **First launch.** The app first asks to sign in with Google, Telegram or Face ID; there is no
   guest mode.

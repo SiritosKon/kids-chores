@@ -22,3 +22,4 @@ export {
   declineRequest,
   removeMember,
 } from './api/familyApi';
+export { requestPinCode, checkPinCode } from './api/pinCodeApi';

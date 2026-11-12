@@ -20,6 +20,8 @@ export const EMAIL_MAX = 254;
 
 export const MAIL_LOCALES = ['ru', 'en', 'es'] as const;
 
+export const EMAIL_CODE_PATTERN = /^\d{6}$/;
+
 export const PHONE_PATTERN = /^\+[1-9]\d{7,14}$/;
 
 export const PHONE_SEPARATORS = /[\s().-]/g;

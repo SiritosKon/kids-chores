@@ -64,8 +64,13 @@ declare module 'fastify' {
 export interface MailText {
   subject: string;
   paragraphs: readonly string[];
+}
+
+export interface InviteMailText extends MailText {
   someone: string;
 }
+
+export type EmailCodePurpose = 'pin' | 'signIn';
 
 export interface DailyLimit {
   name: string;

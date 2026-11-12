@@ -5,22 +5,25 @@ import { OutboxModule } from '../../platform/outbox';
 import { AccountsService } from './accounts.service';
 import { AuthController } from './auth.controller';
 import { DevController } from './dev.controller';
+import { EmailCodesService } from './email-codes.service';
 import { FamilyController } from './family.controller';
 import { FamilyService } from './family.service';
 import { MeController } from './me.controller';
 import { MembershipsService } from './memberships.service';
 import { OidcService } from './oidc.service';
+import { PinController } from './pin.controller';
 import { PasskeysService } from './passkeys.service';
 import { SessionGuard } from './session.guard';
 import { SessionsService } from './sessions.service';
 
 @Module({
   imports: [OutboxModule, MailModule],
-  controllers: [AuthController, MeController, FamilyController, DevController],
+  controllers: [AuthController, MeController, FamilyController, PinController, DevController],
   providers: [
     AccountsService,
     MembershipsService,
     FamilyService,
+    EmailCodesService,
     SessionsService,
     OidcService,
     PasskeysService,

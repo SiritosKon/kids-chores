@@ -56,6 +56,7 @@ export class AccountsService {
     );
     const passkeys = await this.prisma.passkey.count({ where: { userId: session.userId } });
     const members = await this.prisma.membership.count({ where: { familyId: session.familyId } });
+    const emails = await this.prisma.userContact.count({ where: { userId: session.userId, kind: 'email' } });
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: session.userId }, select: { name: true } });
     return {
       userId: session.userId,
@@ -65,6 +66,7 @@ export class AccountsService {
       hasPasskey: passkeys > 0,
       role: membership.role,
       members,
+      hasEmail: emails > 0,
       joinRequests: membership.role === 'owner' ? await this.family.pendingRequests(session) : 0,
     };
   }

@@ -3,6 +3,7 @@ import {
   ACCOUNT_NAME_MAX,
   AUTH_PROVIDERS,
   CONTACT_KINDS,
+  EMAIL_CODE_PATTERN,
   EMAIL_MAX,
   INVITE_TOKEN_PATTERN,
   MAIL_LOCALES,
@@ -50,6 +51,13 @@ export const createInviteRequestSchema = z.object({
   locale: mailLocaleSchema,
 });
 
+export const emailCodeRequestSchema = z.object({
+  email: emailSchema,
+  locale: mailLocaleSchema,
+});
+
+export const emailCodeCheckSchema = z.object({ code: z.string().regex(EMAIL_CODE_PATTERN) });
+
 export const inviteTokenRequestSchema = z.object({ token: z.string().regex(INVITE_TOKEN_PATTERN) });
 
 export const createdInviteSchema = z.object({
@@ -72,6 +80,7 @@ export const meResponseSchema = z.object({
   hasPasskey: z.boolean(),
   role: memberRoleSchema.default('owner'),
   members: z.number().int().positive().default(1),
+  hasEmail: z.boolean().default(false),
   joinRequests: z.number().int().nonnegative().default(0),
 });
 

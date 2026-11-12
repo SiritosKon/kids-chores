@@ -29,6 +29,6 @@ describe('meResponseSchema', () => {
       name: 'Мама',
       hasPasskey: false,
     });
-    expect(me).toMatchObject({ role: 'owner', members: 1, joinRequests: 0 });
+    expect(me).toMatchObject({ role: 'owner', members: 1, hasEmail: false, joinRequests: 0 });
   });
 });

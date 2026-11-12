@@ -10,6 +10,7 @@ const me = {
   hasPasskey: false,
   role: 'owner' as const,
   members: 2,
+  hasEmail: true,
   joinRequests: 0,
 };
 
@@ -38,7 +39,7 @@ describe('rememberedAccount', () => {
   it('reads an account remembered before families had several adults', () => {
     const older = { userId: me.userId, familyId: me.familyId, deviceId: me.deviceId, name: me.name, hasPasskey: false };
     localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(older));
-    expect(rememberedAccount()).toEqual({ ...older, role: 'owner', members: 1, joinRequests: 0 });
+    expect(rememberedAccount()).toEqual({ ...older, role: 'owner', members: 1, hasEmail: false, joinRequests: 0 });
   });
 
   it('ignores a damaged record', () => {

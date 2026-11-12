@@ -1,6 +1,6 @@
 import type { ServerMetadata } from 'openid-client';
 import type { AuthProvider, MailLocale } from '@kids-chores/contracts';
-import type { MailText, OidcProvider } from './types';
+import type { EmailCodePurpose, InviteMailText, MailText, OidcProvider } from './types';
 
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 
@@ -56,9 +56,70 @@ export const INVITE_MAILS_PER_IP = 20;
 
 export const INVITE_MAILS_PER_DAY_TOTAL = 300;
 
+export const EMAIL_CODE_LENGTH = 6;
+
+export const EMAIL_CODE_TTL_SECONDS = 10 * 60;
+
+export const EMAIL_CODE_RESEND_SECONDS = 60;
+
+export const EMAIL_CODE_ATTEMPTS = 5;
+
+export const EMAIL_CODE_PREFIX = 'code:';
+
+export const EMAIL_CODE_SENT_PREFIX = 'code:sent:';
+
+export const EMAIL_CODE_MAILS: Readonly<Record<EmailCodePurpose, Readonly<Record<MailLocale, MailText>>>> = {
+  pin: {
+    ru: {
+      subject: 'Little Big Deals: код для смены PIN',
+      paragraphs: [
+        'Код для смены родительского PIN в Little Big Deals: {code}',
+        'Он действует {minutes} минут. Если вы не меняли PIN, просто удалите это письмо.',
+      ],
+    },
+    en: {
+      subject: 'Little Big Deals: your PIN change code',
+      paragraphs: [
+        'Your code to change the parent PIN in Little Big Deals: {code}',
+        'It works for {minutes} minutes. If you did not ask to change the PIN, just delete this email.',
+      ],
+    },
+    es: {
+      subject: 'Little Big Deals: código para cambiar el PIN',
+      paragraphs: [
+        'Tu código para cambiar el PIN de padres en Little Big Deals: {code}',
+        'Sirve durante {minutes} minutos. Si no pediste cambiar el PIN, borra este correo.',
+      ],
+    },
+  },
+  signIn: {
+    ru: {
+      subject: 'Little Big Deals: код для входа',
+      paragraphs: [
+        'Код для входа в Little Big Deals: {code}',
+        'Он действует {minutes} минут. Если вы не входили в приложение, просто удалите это письмо.',
+      ],
+    },
+    en: {
+      subject: 'Little Big Deals: your sign-in code',
+      paragraphs: [
+        'Your code to sign in to Little Big Deals: {code}',
+        'It works for {minutes} minutes. If you did not try to sign in, just delete this email.',
+      ],
+    },
+    es: {
+      subject: 'Little Big Deals: código para entrar',
+      paragraphs: [
+        'Tu código para entrar en Little Big Deals: {code}',
+        'Sirve durante {minutes} minutos. Si no intentaste entrar, borra este correo.',
+      ],
+    },
+  },
+};
+
 export const MAIL_DATE_FORMAT: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
 
-export const INVITE_MAILS: Readonly<Record<MailLocale, MailText>> = {
+export const INVITE_MAILS: Readonly<Record<MailLocale, InviteMailText>> = {
   ru: {
     subject: 'Приглашение в семью в Little Big Deals',
     paragraphs: [

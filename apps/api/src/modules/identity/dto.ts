@@ -2,6 +2,8 @@ import { createZodDto } from 'nestjs-zod';
 import {
   contactRequestSchema,
   createInviteRequestSchema,
+  emailCodeCheckSchema,
+  emailCodeRequestSchema,
   devLoginRequestSchema,
   inviteTokenRequestSchema,
 } from '@kids-chores/contracts';
@@ -18,3 +20,7 @@ export class ContactRequestDto extends createZodDto(contactRequestSchema) {}
 export class InviteTokenDto extends createZodDto(inviteTokenRequestSchema) {}
 
 export class CreateInviteDto extends createZodDto(createInviteRequestSchema) {}
+
+export class EmailCodeRequestDto extends createZodDto(emailCodeRequestSchema) {}
+
+export class EmailCodeCheckDto extends createZodDto(emailCodeCheckSchema) {}
