@@ -50,7 +50,11 @@ export const INVITE_MAILS_PER_DAY = 10;
 
 export const INVITE_MAILS_PER_ADDRESS = 3;
 
-export const INVITE_MAILS_PER_DAY_TOTAL = 200;
+export const INVITE_MAILS_PER_ADDRESS_TOTAL = 10;
+
+export const INVITE_MAILS_PER_IP = 20;
+
+export const INVITE_MAILS_PER_DAY_TOTAL = 300;
 
 export const MAIL_DATE_FORMAT: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
 

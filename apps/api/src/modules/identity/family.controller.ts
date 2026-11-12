@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Res } from '@nestjs/common';
-import type { FastifyReply } from 'fastify';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Req, Res } from '@nestjs/common';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { CreatedInvite, FamilyResponse, InvitePreview, Session } from '@kids-chores/contracts';
 import { AuthRateLimit } from '../../platform/rate-limit';
 import { ContactRequestDto, CreateInviteDto, InviteTokenDto } from './dto';
@@ -21,8 +21,12 @@ export class FamilyController {
 
   @AuthRateLimit()
   @Post('invites')
-  invite(@CurrentSession() session: Session, @Body() body: CreateInviteDto): Promise<CreatedInvite> {
-    return this.family.invite(session, body);
+  invite(
+    @CurrentSession() session: Session,
+    @Body() body: CreateInviteDto,
+    @Req() request: FastifyRequest
+  ): Promise<CreatedInvite> {
+    return this.family.invite(session, body, request.ip);
   }
 
   @Delete('invites/:id')

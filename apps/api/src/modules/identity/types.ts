@@ -67,6 +67,11 @@ export interface MailText {
   someone: string;
 }
 
+export interface DailyLimit {
+  name: string;
+  perDay: number;
+}
+
 export interface RemovedUser {
   familyDropped: boolean;
 }

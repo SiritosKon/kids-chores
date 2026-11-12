@@ -166,11 +166,11 @@ describe('family members over HTTP', () => {
     }
     expect(toAunt).toEqual([201, 201, 201, 429]);
     const toOthers: number[] = [];
-    for (let attempt = 0; attempt < 6; attempt += 1) {
+    for (let attempt = 0; attempt < 8; attempt += 1) {
       const response = await send(mom, 'POST', '/v1/family/invites', { email: `guest-${attempt}-${tag}@example.com`, locale: 'ru' });
       toOthers.push(response.statusCode);
     }
-    expect(toOthers).toEqual([201, 201, 201, 201, 201, 429]);
+    expect(toOthers).toEqual([201, 201, 201, 201, 201, 201, 429, 429]);
     expect((await send(mom, 'POST', '/v1/family/invites', { locale: 'ru' })).statusCode).toBe(201);
   });
 
