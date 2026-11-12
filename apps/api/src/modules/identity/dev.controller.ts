@@ -30,12 +30,14 @@ export class DevController {
       throw new NotFoundException();
     }
     const pepper = this.config.AUTH_PEPPER;
+    const contacts = [
+      ...(body.email ? [contactHash(pepper, { kind: 'email', value: body.email })] : []),
+      ...(body.phone ? [contactHash(pepper, { kind: 'phone', value: body.phone })] : []),
+    ];
     const signedIn = await this.accounts.signIn(DEV_PROVIDER, subjectHash(pepper, DEV_PROVIDER, body.name), {
       name: body.name,
-      contacts: [
-        ...(body.email ? [contactHash(pepper, { kind: 'email', value: body.email })] : []),
-        ...(body.phone ? [contactHash(pepper, { kind: 'phone', value: body.phone })] : []),
-      ],
+      contacts,
+      linkable: contacts,
     });
     await this.sessions.start(request, reply, signedIn);
   }

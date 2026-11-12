@@ -118,6 +118,7 @@ enum ContactKind {
 model UserContact {
   kind      ContactKind
   hash      String
+  owned     Boolean     @default(false)
   userId    String      @map("user_id") @db.Uuid
   createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)

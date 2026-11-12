@@ -6,6 +6,7 @@ import { meResponseSchema, metaResponseSchema, SESSION_COOKIE } from '@kids-chor
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { VALKEY } from '../../platform/valkey';
 import { cookieHeader, createTestApp, lastMailTo } from '../../testing';
+import { AccountsService } from './accounts.service';
 import { contactHash, emailCodeSentKey } from './lib';
 
 describe('sign-in by an email code', () => {
@@ -84,5 +85,25 @@ describe('sign-in by an email code', () => {
     const viaCode = await me(await signIn(`gparent${tag}@gmail.com`));
     expect(viaCode.userId).toBe(viaGoogle.userId);
     expect(viaCode.familyId).toBe(viaGoogle.familyId);
+  });
+
+  it('keeps an address with the mailbox owner when a sign-in cannot vouch for it', async () => {
+    const tag = randomUUID().slice(0, 8);
+    const email = `owner-${tag}@example.com`;
+    const contact = contactHash(config.AUTH_PEPPER, { kind: 'email', value: email });
+    const owner = await me(await signIn(email));
+    const intruder = await app.get(AccountsService).signIn('google', randomUUID(), { contacts: [contact] });
+    expect(intruder.userId).not.toBe(owner.userId);
+    expect((await me(await signIn(email))).userId).toBe(owner.userId);
+  });
+
+  it('does not open an account that only claimed an address before its owner came', async () => {
+    const tag = randomUUID().slice(0, 8);
+    const email = `early-${tag}@example.com`;
+    const contact = contactHash(config.AUTH_PEPPER, { kind: 'email', value: email });
+    const squatter = await app.get(AccountsService).signIn('google', randomUUID(), { contacts: [contact] });
+    const owner = await me(await signIn(email));
+    expect(owner.userId).not.toBe(squatter.userId);
+    expect(owner.hasEmail).toBe(true);
   });
 });

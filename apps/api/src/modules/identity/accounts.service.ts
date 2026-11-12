@@ -79,7 +79,7 @@ export class AccountsService {
   private async linkByContact(provider: string, subjectHash: string, profile: AccountProfile): Promise<string | null> {
     for (const { kind, hash } of profile.linkable ?? []) {
       const holder = await this.prisma.userContact.findUnique({ where: { kind_hash: { kind, hash } } });
-      if (holder) {
+      if (holder?.owned) {
         await this.prisma.authAccount.createMany({
           data: [{ id: randomUUID(), provider, subjectHash, userId: holder.userId }],
           skipDuplicates: true,
@@ -91,12 +91,17 @@ export class AccountsService {
   }
 
   private async saveContacts(userId: string, profile: AccountProfile): Promise<void> {
+    const owned = new Set((profile.linkable ?? []).map(({ kind, hash }) => `${kind}:${hash}`));
     for (const { kind, hash } of profile.contacts) {
-      await this.prisma.userContact.upsert({
-        where: { kind_hash: { kind, hash } },
-        create: { kind, hash, userId },
-        update: { userId },
-      });
+      if (owned.has(`${kind}:${hash}`)) {
+        await this.prisma.userContact.upsert({
+          where: { kind_hash: { kind, hash } },
+          create: { kind, hash, userId, owned: true },
+          update: { userId, owned: true },
+        });
+      } else {
+        await this.prisma.userContact.createMany({ data: [{ kind, hash, userId }], skipDuplicates: true });
+      }
     }
   }
 
