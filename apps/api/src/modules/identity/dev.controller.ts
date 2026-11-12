@@ -6,7 +6,7 @@ import { AuthRateLimit } from '../../platform/rate-limit';
 import { AccountsService } from './accounts.service';
 import { DEV_PROVIDER } from './constants';
 import { DevLoginDto } from './dto';
-import { subjectHash } from './lib';
+import { contactHash, subjectHash } from './lib';
 import { SessionsService } from './sessions.service';
 
 @Controller('dev')
@@ -29,11 +29,14 @@ export class DevController {
     if (!this.config.DEV_LOGIN) {
       throw new NotFoundException();
     }
-    const signedIn = await this.accounts.signIn(
-      DEV_PROVIDER,
-      subjectHash(this.config.AUTH_PEPPER, DEV_PROVIDER, body.name),
-      body.name
-    );
+    const pepper = this.config.AUTH_PEPPER;
+    const signedIn = await this.accounts.signIn(DEV_PROVIDER, subjectHash(pepper, DEV_PROVIDER, body.name), {
+      name: body.name,
+      contacts: [
+        ...(body.email ? [contactHash(pepper, { kind: 'email', value: body.email })] : []),
+        ...(body.phone ? [contactHash(pepper, { kind: 'phone', value: body.phone })] : []),
+      ],
+    });
     await this.sessions.start(request, reply, signedIn);
   }
 }

@@ -2,16 +2,32 @@ import { createHash, createHmac, randomBytes } from 'node:crypto';
 import { createParamDecorator, type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyRequest } from 'fastify';
-import { ACCOUNT_NAME_MAX, API_PREFIX, providerPictureSchema, SESSION_KEY_PREFIX, type Session } from '@kids-chores/contracts';
+import {
+  ACCOUNT_NAME_MAX,
+  API_PREFIX,
+  CONTACT_HINT_MAX,
+  emailSchema,
+  phoneSchema,
+  providerPictureSchema,
+  SESSION_KEY_PREFIX,
+  type AuthProvider,
+  type Contact,
+  type Session,
+} from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
 import {
   AUTH_STATE_TTL_SECONDS,
+  CONTACT_HASH_PREFIX,
   FAMILY_SESSIONS_PREFIX,
+  GMAIL_DOMAINS,
+  HINT_MASK,
   HOME_ROUTE,
+  PHONE_HINT_DIGITS,
   SESSION_TOKEN_BYTES,
   SESSION_TTL_SECONDS,
 } from './constants';
-import { googleProfileSchema } from './schema';
+import { providerProfileSchema } from './schema';
+import type { ContactHash, EmailParts, ProviderCredentials, ProviderIdentity } from './types';
 
 export const newSessionToken = (): string => randomBytes(SESSION_TOKEN_BYTES).toString('base64url');
 
@@ -22,6 +38,37 @@ export const familySessionsKey = (familyId: string): string => `${FAMILY_SESSION
 
 export const subjectHash = (pepper: string, provider: string, subject: string): string =>
   createHmac('sha256', pepper).update(`${provider}:${subject}`).digest('hex');
+
+const splitEmail = (email: string): EmailParts => {
+  const at = email.lastIndexOf('@');
+  return { local: email.slice(0, at), domain: email.slice(at + 1) };
+};
+
+export const canonicalContact = (contact: Contact): string => {
+  if (contact.kind === 'phone') {
+    return contact.value;
+  }
+  const { local, domain } = splitEmail(contact.value);
+  if (!GMAIL_DOMAINS.includes(domain)) {
+    return contact.value;
+  }
+  return `${(local.split('+')[0] ?? local).replaceAll('.', '')}@gmail.com`;
+};
+
+export const contactHash = (pepper: string, contact: Contact): ContactHash => ({
+  kind: contact.kind,
+  hash: createHmac('sha256', pepper)
+    .update(`${CONTACT_HASH_PREFIX}${contact.kind}:${canonicalContact(contact)}`)
+    .digest('hex'),
+});
+
+export const contactHint = (contact: Contact): string => {
+  if (contact.kind === 'phone') {
+    return `${HINT_MASK}${contact.value.slice(-PHONE_HINT_DIGITS)}`;
+  }
+  const { local, domain } = splitEmail(contact.value);
+  return `${local.slice(0, 1)}${HINT_MASK}@${domain}`.slice(0, CONTACT_HINT_MAX);
+};
 
 export const sessionCookieOptions = (config: AppConfig): CookieSerializeOptions => ({
   httpOnly: true,
@@ -51,15 +98,51 @@ export const failedSignInUrl = (config: AppConfig, error: string): string =>
   `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?error=${encodeURIComponent(error)}`;
 
 export const profileName = (claims: unknown): string | undefined => {
-  const profile = googleProfileSchema.safeParse(claims);
+  const profile = providerProfileSchema.safeParse(claims);
   const name = profile.success ? (profile.data.given_name ?? profile.data.name)?.trim().slice(0, ACCOUNT_NAME_MAX).trim() : '';
   return name || undefined;
 };
 
 export const profilePicture = (claims: unknown): string | undefined => {
-  const profile = googleProfileSchema.safeParse(claims);
+  const profile = providerProfileSchema.safeParse(claims);
   const picture = providerPictureSchema.safeParse(profile.success ? profile.data.picture : undefined);
   return picture.success ? picture.data : undefined;
+};
+
+export const profileEmail = (claims: unknown): string | undefined => {
+  const profile = providerProfileSchema.safeParse(claims);
+  const verified = profile.success && profile.data.email_verified === true ? profile.data.email : undefined;
+  const email = emailSchema.safeParse(verified);
+  return email.success ? email.data : undefined;
+};
+
+export const profilePhone = (claims: unknown): string | undefined => {
+  const profile = providerProfileSchema.safeParse(claims);
+  const number = profile.success && profile.data.phone_number_verified !== false ? profile.data.phone_number : undefined;
+  const phone = phoneSchema.safeParse(number && !number.startsWith('+') ? `+${number}` : number);
+  return phone.success ? phone.data : undefined;
+};
+
+export const providerIdentity = (provider: AuthProvider, subject: string, claims: unknown): ProviderIdentity => {
+  const email = provider === 'google' ? profileEmail(claims) : undefined;
+  const phone = provider === 'telegram' ? profilePhone(claims) : undefined;
+  return {
+    subject,
+    name: profileName(claims),
+    picture: profilePicture(claims),
+    contacts: [
+      ...(email ? [{ kind: 'email' as const, value: email }] : []),
+      ...(phone ? [{ kind: 'phone' as const, value: phone }] : []),
+    ],
+  };
+};
+
+export const providerCredentials = (config: AppConfig, provider: AuthProvider): ProviderCredentials | null => {
+  const [clientId, clientSecret] =
+    provider === 'google'
+      ? [config.GOOGLE_CLIENT_ID, config.GOOGLE_CLIENT_SECRET]
+      : [config.TELEGRAM_CLIENT_ID, config.TELEGRAM_CLIENT_SECRET];
+  return clientId && clientSecret ? { clientId, clientSecret } : null;
 };
 
 export const homeUrl = (config: AppConfig, signedIn: string, picture?: string): string =>

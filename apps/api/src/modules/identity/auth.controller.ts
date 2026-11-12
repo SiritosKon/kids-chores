@@ -18,10 +18,18 @@ import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { Public } from '../../platform/http';
 import { AuthRateLimit } from '../../platform/rate-limit';
 import { AccountsService } from './accounts.service';
+import { OidcService } from './oidc.service';
 import { PasskeyLoginDto, PasskeyRegisterDto } from './dto';
-import { GoogleService } from './google.service';
 import { AUTH_STATE_COOKIE } from './constants';
-import { authStateCookieOptions, CurrentSession, failedSignInUrl, homeUrl, publicOrigin, subjectHash } from './lib';
+import {
+  authStateCookieOptions,
+  contactHash,
+  CurrentSession,
+  failedSignInUrl,
+  homeUrl,
+  publicOrigin,
+  subjectHash,
+} from './lib';
 import { PasskeysService } from './passkeys.service';
 import { SessionsService } from './sessions.service';
 import type { PasskeyLoginOptions, PasskeyRegisterOptions } from './types';
@@ -34,7 +42,7 @@ export class AuthController {
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     private readonly accounts: AccountsService,
     private readonly sessions: SessionsService,
-    private readonly google: GoogleService,
+    private readonly oidc: OidcService,
     private readonly passkeys: PasskeysService
   ) {}
 
@@ -42,8 +50,8 @@ export class AuthController {
   @AuthRateLimit()
   @Get(':provider/start')
   async start(@Param('provider') provider: string, @Res() reply: FastifyReply): Promise<FastifyReply> {
-    this.requireProvider(provider);
-    const { url, state } = await this.google.start();
+    const known = this.requireProvider(provider);
+    const { url, state } = await this.oidc.start(known);
     reply.setCookie(AUTH_STATE_COOKIE, state, authStateCookieOptions(this.config));
     return reply.redirect(url, 302);
   }
@@ -60,8 +68,12 @@ export class AuthController {
     reply.clearCookie(AUTH_STATE_COOKIE, { path: authStateCookieOptions(this.config).path });
     try {
       const callbackAt = new URL(request.url, publicOrigin(this.config));
-      const { subject, name, picture } = await this.google.finish(callbackAt, browserState);
-      const signedIn = await this.accounts.signIn(known, subjectHash(this.config.AUTH_PEPPER, known, subject), name);
+      const { subject, name, picture, contacts } = await this.oidc.finish(known, callbackAt, browserState);
+      const pepper = this.config.AUTH_PEPPER;
+      const signedIn = await this.accounts.signIn(known, subjectHash(pepper, known, subject), {
+        name,
+        contacts: contacts.map((contact) => contactHash(pepper, contact)),
+      });
       await this.sessions.start(request, reply, signedIn);
       return reply.redirect(homeUrl(this.config, known, picture), 302);
     } catch (error) {

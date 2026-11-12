@@ -183,4 +183,16 @@ describe('syncFamily', () => {
     expect(await syncFamily('family-1')).toMatchObject({ failure: 'offline' });
     expect(await pendingChanges()).toBe(1);
   });
+
+  it('names the family in every request and stops when the server says the parent moved', async () => {
+    await createChild({ name: 'Тимофей', carColor: '#0A84FF', photo: '' });
+    const moved = vi.fn((_input: string, init?: RequestInit) =>
+      Promise.resolve(new Response(null, { status: new Headers(init?.headers).get('x-family-id') === 'family-1' ? 409 : 200 }))
+    );
+    vi.stubGlobal('fetch', moved);
+
+    expect(await syncFamily('family-1')).toMatchObject({ failure: 'moved' });
+    expect(await pendingChanges()).toBe(1);
+    expect(moved).toHaveBeenCalledWith('/v1/sync/push', expect.objectContaining({ method: 'POST' }));
+  });
 });

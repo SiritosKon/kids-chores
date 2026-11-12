@@ -51,11 +51,50 @@ export class SessionsService {
     reply.clearCookie(SESSION_COOKIE, { path: API_PREFIX });
   }
 
+  async moveUser(from: string, to: string, userId: string): Promise<void> {
+    const source = familySessionsKey(from);
+    const target = familySessionsKey(to);
+    for (const key of await this.valkey.smembers(source)) {
+      const session = await this.read(key);
+      if (session === null) {
+        await this.valkey.srem(source, key);
+      } else if (session.userId === userId) {
+        await this.valkey
+          .multi()
+          .set(key, JSON.stringify({ ...session, familyId: to }), 'KEEPTTL')
+          .srem(source, key)
+          .sadd(target, key)
+          .expire(target, SESSION_TTL_SECONDS)
+          .exec();
+      }
+    }
+  }
+
+  async endUser(familyId: string, userId: string): Promise<void> {
+    const family = familySessionsKey(familyId);
+    for (const key of await this.valkey.smembers(family)) {
+      const session = await this.read(key);
+      if (session === null || session.userId === userId) {
+        await this.valkey.multi().del(key).srem(family, key).exec();
+      }
+    }
+  }
+
+  clearCookie(reply: FastifyReply): void {
+    reply.clearCookie(SESSION_COOKIE, { path: API_PREFIX });
+  }
+
   async endFamily(familyId: string, reply: FastifyReply): Promise<void> {
     const family = familySessionsKey(familyId);
     const keys = await this.valkey.smembers(family);
     await this.valkey.del(...keys, family);
     reply.clearCookie(SESSION_COOKIE, { path: API_PREFIX });
+  }
+
+  private async read(key: string): Promise<Session | null> {
+    const raw = await this.valkey.get(key);
+    const parsed = sessionSchema.safeParse(raw ? JSON.parse(raw) : null);
+    return parsed.success ? parsed.data : null;
   }
 
   private async forget(request: FastifyRequest): Promise<void> {

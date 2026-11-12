@@ -24,6 +24,7 @@ model Outbox {
 }
 
 enum MembershipRole {
+  owner
   parent
 
   @@map("membership_role")
@@ -38,6 +39,9 @@ model User {
   passkeys     Passkey[]
   memberships  Membership[]
   devices      Device[]
+  contacts     UserContact[]
+  invitesSent  FamilyInvite[]
+  joinRequests JoinRequest[]
 
   @@map("users")
   @@schema("core")
@@ -81,6 +85,8 @@ model Family {
   devices            Device[]
   records            FamilyRecord[]
   processedMutations ProcessedMutation[]
+  invites            FamilyInvite[]
+  joinRequests       JoinRequest[]
 
   @@map("families")
   @@schema("core")
@@ -95,8 +101,63 @@ model Membership {
   family    Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@id([userId, familyId])
+  @@unique([userId])
   @@index([familyId])
   @@map("memberships")
+  @@schema("core")
+}
+
+enum ContactKind {
+  email
+  phone
+
+  @@map("contact_kind")
+  @@schema("core")
+}
+
+model UserContact {
+  kind      ContactKind
+  hash      String
+  userId    String      @map("user_id") @db.Uuid
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([kind, hash])
+  @@index([userId])
+  @@map("user_contacts")
+  @@schema("core")
+}
+
+model FamilyInvite {
+  id          String      @id @db.Uuid
+  familyId    String      @map("family_id") @db.Uuid
+  kind        ContactKind
+  contactHash String      @map("contact_hash")
+  hint        String      @db.VarChar(60)
+  invitedBy   String      @map("invited_by") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt   DateTime    @map("expires_at") @db.Timestamptz(3)
+  family      Family      @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  inviter     User        @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, kind, contactHash])
+  @@index([kind, contactHash])
+  @@map("family_invites")
+  @@schema("core")
+}
+
+model JoinRequest {
+  id        String   @id @db.Uuid
+  familyId  String   @map("family_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, userId])
+  @@index([userId])
+  @@map("join_requests")
   @@schema("core")
 }
 

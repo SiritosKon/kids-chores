@@ -65,6 +65,15 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...env, AUTH_PROVIDERS: 'google', GOOGLE_CLIENT_ID: '' }, workspace().app)).toThrow();
   });
 
+  it('refuses telegram without its keys', () => {
+    expect(() => loadConfig({ ...env, AUTH_PROVIDERS: 'telegram', TELEGRAM_CLIENT_ID: 'bot' }, workspace().app)).toThrow();
+    const config = loadConfig(
+      { ...env, AUTH_PROVIDERS: 'google,telegram', GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret', TELEGRAM_CLIENT_ID: 'bot', TELEGRAM_CLIENT_SECRET: 'secret' },
+      workspace().app
+    );
+    expect(config.AUTH_PROVIDERS).toEqual(['google', 'telegram']);
+  });
+
   it('refuses a provider it does not know', () => {
     expect(() => loadConfig({ ...env, AUTH_PROVIDERS: 'myspace' }, workspace().app)).toThrow();
   });

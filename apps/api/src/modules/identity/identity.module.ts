@@ -4,19 +4,24 @@ import { OutboxModule } from '../../platform/outbox';
 import { AccountsService } from './accounts.service';
 import { AuthController } from './auth.controller';
 import { DevController } from './dev.controller';
-import { GoogleService } from './google.service';
+import { FamilyController } from './family.controller';
+import { FamilyService } from './family.service';
 import { MeController } from './me.controller';
+import { MembershipsService } from './memberships.service';
+import { OidcService } from './oidc.service';
 import { PasskeysService } from './passkeys.service';
 import { SessionGuard } from './session.guard';
 import { SessionsService } from './sessions.service';
 
 @Module({
   imports: [OutboxModule],
-  controllers: [AuthController, MeController, DevController],
+  controllers: [AuthController, MeController, FamilyController, DevController],
   providers: [
     AccountsService,
+    MembershipsService,
+    FamilyService,
     SessionsService,
-    GoogleService,
+    OidcService,
     PasskeysService,
     { provide: APP_GUARD, useClass: SessionGuard },
   ],

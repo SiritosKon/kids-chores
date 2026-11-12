@@ -33,17 +33,22 @@ sync between devices and accounts (see the roadmap in the `research` branch).
   as a salted PBKDF2 hash, one per family, and five wrong tries in a row pause the PIN window. A
   forgotten PIN is reset with a grown-ups-only sum. Children, tasks and rewards are edited on their
   own pages; settings cover the streak, the bonus and the PIN.
-- **First launch.** The app first asks to sign in with Google or Face ID; there is no guest mode.
+- **First launch.** The app first asks to sign in with Google, Telegram or Face ID; there is no
+  guest mode.
   The board opens with an editable example — a kid, three chores and three
   rewards — a PIN window over it and a four-step tour: kids, chores, rewards and the menu. A
-  device that joins a family with data takes that data and skips the tour.
+  device that joins a family with data takes that data and skips the tour. An adult who was
+  invited sees the invitation right after signing in, and anyone can ask a family to let them in.
 - **Backup.** JSON export and import in parent mode. This is the only backup, so export regularly.
 - **PWA.** Installable, works offline, splash screens for iPhone and iPad, and an in-app guide for
   adding it to the iOS home screen.
-- **Family account and sync** (local contour only). Sign in with Google, then with Face ID or
-  Touch ID. Kids, chores, rewards, marks and purchases go to the server and on to the family's
-  other devices; offline changes wait on the device. Signing in is optional, and photos never
-  leave the device.
+- **Family account and sync** (local contour only). Sign in with Google or Telegram, then with
+  Face ID or Touch ID. Kids, chores, rewards, marks and purchases go to the server and on to the
+  family's other devices; offline changes wait on the device. Photos never leave the device.
+- **Several adults in a family.** The adult who created the family invites others by email or
+  phone, approves requests to join and can remove members; anyone can leave. We send nothing:
+  the server keeps only a keyed hash of the address, and the parent shares the app link
+  themselves.
 
 ## Repository
 
@@ -118,7 +123,10 @@ window) and sign in the same way in both on the first screen: both windows join 
 change is sent to the server a second after it is saved and shows up in the other
 window when you switch back to it. Google sign-in needs `GOOGLE_CLIENT_ID` and
 `GOOGLE_CLIENT_SECRET` in `.env` and `http://localhost:8080/v1/auth/google/callback` as an
-authorised redirect URI of that OAuth client. Without Google, set `DEV_LOGIN=true` in `.env` and
+authorised redirect URI of that OAuth client. Telegram sign-in needs a bot: in @BotFather open
+the bot, then Login Widget, add the callback `<PUBLIC_ORIGIN>/v1/auth/telegram/callback` to the
+allowed URLs and put the client ID and secret into `TELEGRAM_CLIENT_ID` and
+`TELEGRAM_CLIENT_SECRET`; list the providers in `AUTH_PROVIDERS`, for example `google,telegram`. Without Google, set `DEV_LOGIN=true` in `.env` and
 run `podman compose up -d api`: the first screen gets a sign-in by any name, and the same name
 means the same family.
 
@@ -169,7 +177,8 @@ In the deployed build everything, including a child's photo, stays in the browse
 device the app runs on. On iOS a web app added to the home screen has its own storage, separate
 from Safari, and removing the icon deletes that data — export first.
 
-The backend is designed to keep as little personal data as possible: no passwords, no emails, only
-a hash of the provider's account id and the name the parent sees in the app. Request limits count
+The backend is designed to keep as little personal data as possible: no passwords, no emails or
+phone numbers, only a keyed hash of the provider's account id, keyed hashes of the verified email
+(Google) or phone (Telegram) to recognise invited adults, and the name the parent sees in the app. Request limits count
 by a keyed hash of the address and of the session, the counters live for a few minutes, and the
 logs carry no addresses.

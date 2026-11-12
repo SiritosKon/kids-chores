@@ -83,7 +83,8 @@ const confirmSignOut = async (): Promise<void> => {
 };
 
 const confirmRemoval = async (): Promise<void> => {
-  if (!(await ask(t('accountCard.removeTitle'), t('accountCard.removeMessage'), t('accountCard.removeConfirm')))) {
+  const message = (account.me?.members ?? 1) > 1 ? t('accountCard.removeMemberMessage') : t('accountCard.removeMessage');
+  if (!(await ask(t('accountCard.removeTitle'), message, t('accountCard.removeConfirm')))) {
     return;
   }
   busy.value = true;

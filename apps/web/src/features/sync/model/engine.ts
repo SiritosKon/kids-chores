@@ -5,11 +5,11 @@ import { pullRecords, pushMutations } from './transport';
 import { inSyncTransaction, queueTable, readQueue, readState, saveState, shadowTable } from './storage';
 import type { SyncReport, Transported } from './types';
 
-const pullEverything = async (): Promise<Transported<{ records: SyncRecord[]; cursor: number }>> => {
+const pullEverything = async (familyId: string): Promise<Transported<{ records: SyncRecord[]; cursor: number }>> => {
   const records: SyncRecord[] = [];
   let cursor = 0;
   for (;;) {
-    const page = await pullRecords(cursor);
+    const page = await pullRecords(familyId, cursor);
     if (!page.ok) {
       return page;
     }
@@ -24,7 +24,7 @@ const pullEverything = async (): Promise<Transported<{ records: SyncRecord[]; cu
 const attach = async (familyId: string, previous: string | null): Promise<Transported<boolean>> => {
   const switching = previous !== null;
   if (switching || (await isPristine())) {
-    const family = await pullEverything();
+    const family = await pullEverything(familyId);
     if (!family.ok) {
       return family;
     }
@@ -47,14 +47,14 @@ const attach = async (familyId: string, previous: string | null): Promise<Transp
   return { ok: true, value: false };
 };
 
-const pushQueue = async (): Promise<Transported<number>> => {
+const pushQueue = async (familyId: string): Promise<Transported<number>> => {
   let rejected = 0;
   for (;;) {
     const batch = await readQueue(SYNC_PUSH_LIMIT);
     if (batch.length === 0) {
       return { ok: true, value: rejected };
     }
-    const pushed = await pushMutations(batch.map(({ mutation }) => mutation));
+    const pushed = await pushMutations(familyId, batch.map(({ mutation }) => mutation));
     if (!pushed.ok) {
       return pushed;
     }
@@ -63,11 +63,11 @@ const pushQueue = async (): Promise<Transported<number>> => {
   }
 };
 
-const pullChanges = async (): Promise<Transported<boolean>> => {
+const pullChanges = async (familyId: string): Promise<Transported<boolean>> => {
   let changed = false;
   for (;;) {
     const { cursor } = await readState();
-    const page = await pullRecords(cursor);
+    const page = await pullRecords(familyId, cursor);
     if (!page.ok) {
       return page;
     }
@@ -95,11 +95,11 @@ export const syncFamily = async (familyId: string): Promise<SyncReport> => {
     changed = attached.value;
   }
   await inSyncTransaction(() => captureChanges());
-  const pushed = await pushQueue();
+  const pushed = await pushQueue(familyId);
   if (!pushed.ok) {
     return { failure: pushed.reason, changed, rejected: 0 };
   }
-  const pulled = await pullChanges();
+  const pulled = await pullChanges(familyId);
   if (!pulled.ok) {
     return { failure: pulled.reason, changed, rejected: pushed.value };
   }

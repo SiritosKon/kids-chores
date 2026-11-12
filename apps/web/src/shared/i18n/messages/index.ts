@@ -36,6 +36,9 @@ import { accountCard } from './accountCard';
 import { signIn } from './signIn';
 import { passkeySetup } from './passkeySetup';
 import { sync } from './sync';
+import { familyCard } from './familyCard';
+import { familyInvite } from './familyInvite';
+import { joinFamily } from './joinFamily';
 
 export const messages = {
   ru: {
@@ -77,6 +80,9 @@ export const messages = {
     signIn: signIn.ru,
     passkeySetup: passkeySetup.ru,
     sync: sync.ru,
+    familyCard: familyCard.ru,
+    familyInvite: familyInvite.ru,
+    joinFamily: joinFamily.ru,
   },
   en: {
     common: common.en,
@@ -117,6 +123,9 @@ export const messages = {
     signIn: signIn.en,
     passkeySetup: passkeySetup.en,
     sync: sync.en,
+    familyCard: familyCard.en,
+    familyInvite: familyInvite.en,
+    joinFamily: joinFamily.en,
   },
   es: {
     common: common.es,
@@ -157,5 +166,8 @@ export const messages = {
     signIn: signIn.es,
     passkeySetup: passkeySetup.es,
     sync: sync.es,
+    familyCard: familyCard.es,
+    familyInvite: familyInvite.es,
+    joinFamily: joinFamily.es,
   },
 };

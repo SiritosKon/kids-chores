@@ -4,13 +4,27 @@ export const REGIONS = ['eu', 'ru'] as const;
 
 export const EVENTS_STREAM = 'events';
 
-export const AUTH_PROVIDERS = ['google'] as const;
+export const AUTH_PROVIDERS = ['google', 'telegram'] as const;
 
 export const SESSION_COOKIE = 'lbd_session';
 
 export const SESSION_KEY_PREFIX = 'session:';
 
 export const ACCOUNT_NAME_MAX = 40;
+
+export const MEMBER_ROLES = ['owner', 'parent'] as const;
+
+export const CONTACT_KINDS = ['email', 'phone'] as const;
+
+export const EMAIL_MAX = 254;
+
+export const PHONE_PATTERN = /^\+[1-9]\d{7,14}$/;
+
+export const PHONE_SEPARATORS = /[\s().-]/g;
+
+export const CONTACT_HINT_MAX = 60;
+
+export const FAMILY_HEADER = 'x-family-id';
 
 export const PROVIDER_PICTURE_HOST = /(^|\.)googleusercontent\.com$/;
 

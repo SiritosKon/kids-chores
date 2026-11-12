@@ -20,7 +20,12 @@ export class MeController {
   @Delete()
   @HttpCode(204)
   async remove(@CurrentSession() session: Session, @Res({ passthrough: true }) reply: FastifyReply): Promise<void> {
-    await this.accounts.remove(session);
-    await this.sessions.endFamily(session.familyId, reply);
+    const { familyDropped } = await this.accounts.remove(session);
+    if (familyDropped) {
+      await this.sessions.endFamily(session.familyId, reply);
+      return;
+    }
+    await this.sessions.endUser(session.familyId, session.userId);
+    this.sessions.clearCookie(reply);
   }
 }

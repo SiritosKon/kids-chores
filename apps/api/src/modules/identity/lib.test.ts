@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest';
 import type { AppConfig } from '../../platform/config';
 import {
   callbackUrl,
+  canonicalContact,
+  contactHash,
+  contactHint,
   failedSignInUrl,
   homeUrl,
+  profileEmail,
   profileName,
+  profilePhone,
+  providerIdentity,
   profilePicture,
   relyingPartyId,
   sessionCookieOptions,
@@ -28,6 +34,8 @@ const config = (overrides: Partial<AppConfig> = {}): AppConfig => ({
   AUTH_PEPPER: 'a-local-pepper-that-is-long-enough',
   GOOGLE_CLIENT_ID: undefined,
   GOOGLE_CLIENT_SECRET: undefined,
+  TELEGRAM_CLIENT_ID: undefined,
+  TELEGRAM_CLIENT_SECRET: undefined,
   WEBAUTHN_RP_ID: undefined,
   DEV_LOGIN: false,
   APP_VERSION: '0.6.0',
@@ -107,5 +115,55 @@ describe('profilePicture', () => {
     expect(profilePicture({ sub: '1', picture: 'http://lh3.googleusercontent.com/a/x' })).toBeUndefined();
     expect(profilePicture({ sub: '1', picture: 'https://googleusercontent.com.evil.example/a' })).toBeUndefined();
     expect(profilePicture({ sub: '1', picture: 'javascript:alert(1)' })).toBeUndefined();
+  });
+});
+
+describe('contacts', () => {
+  const pepper = 'a-local-pepper-that-is-long-enough';
+
+  it('treats Gmail dots, plus tags and googlemail as one address', () => {
+    expect(canonicalContact({ kind: 'email', value: 'j.doe+chores@googlemail.com' })).toBe('jdoe@gmail.com');
+    expect(canonicalContact({ kind: 'email', value: 'j.doe+chores@example.com' })).toBe('j.doe+chores@example.com');
+    expect(contactHash(pepper, { kind: 'email', value: 'j.doe@gmail.com' })).toEqual(
+      contactHash(pepper, { kind: 'email', value: 'jdoe@gmail.com' })
+    );
+  });
+
+  it('keys the hash by kind and pepper', () => {
+    const email = contactHash(pepper, { kind: 'email', value: 'a@example.com' });
+    expect(email.kind).toBe('email');
+    expect(email.hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(contactHash('another-pepper-that-is-long-enough', { kind: 'email', value: 'a@example.com' }).hash).not.toBe(email.hash);
+  });
+
+  it('keeps only a hint of the address for the invite list', () => {
+    expect(contactHint({ kind: 'email', value: 'mama@example.com' })).toBe('m•••@example.com');
+    expect(contactHint({ kind: 'phone', value: '+79991234567' })).toBe('•••67');
+  });
+
+  it('takes the email from Google only when Google verified it', () => {
+    expect(profileEmail({ email: 'Mama@Example.com', email_verified: true })).toBe('mama@example.com');
+    expect(profileEmail({ email: 'mama@example.com', email_verified: false })).toBeUndefined();
+    expect(profileEmail({ email: 'mama@example.com' })).toBeUndefined();
+  });
+});
+
+describe('provider identity', () => {
+  it('takes the phone from Telegram in international format', () => {
+    expect(profilePhone({ phone_number: '79991234567', phone_number_verified: true })).toBe('+79991234567');
+    expect(profilePhone({ phone_number: '+34 600 123 456' })).toBe('+34600123456');
+    expect(profilePhone({ phone_number: '79991234567', phone_number_verified: false })).toBeUndefined();
+    expect(profilePhone({ phone_number: '12' })).toBeUndefined();
+  });
+
+  it('keeps only the contact each provider verifies', () => {
+    const claims = { given_name: 'Аня', email: 'anya@example.com', email_verified: true, phone_number: '79991234567' };
+    expect(providerIdentity('google', 'g-1', claims).contacts).toEqual([{ kind: 'email', value: 'anya@example.com' }]);
+    expect(providerIdentity('telegram', 't-1', claims)).toEqual({
+      subject: 't-1',
+      name: 'Аня',
+      picture: undefined,
+      contacts: [{ kind: 'phone', value: '+79991234567' }],
+    });
   });
 });

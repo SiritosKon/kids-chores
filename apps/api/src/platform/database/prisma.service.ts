@@ -11,9 +11,13 @@ export class PrismaService extends PrismaClient implements OnModuleDestroy {
 
   inFamily<T>(familyId: string, work: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
     return this.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT set_config('app.family_id', ${familyId}, true)`;
+      await this.enterFamily(tx, familyId);
       return work(tx);
     });
+  }
+
+  async enterFamily(tx: Prisma.TransactionClient, familyId: string): Promise<void> {
+    await tx.$queryRaw`SELECT set_config('app.family_id', ${familyId}, true)`;
   }
 
   async onModuleDestroy(): Promise<void> {

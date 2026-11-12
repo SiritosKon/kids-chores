@@ -34,7 +34,9 @@ export interface SyncSpec {
   clear: () => Promise<void>;
 }
 
-export type SyncFailure = 'offline' | 'signedOut' | 'failed';
+export type SyncFailure = 'offline' | 'signedOut' | 'failed' | 'moved';
+
+export type ShownFailure = Exclude<SyncFailure, 'moved'>;
 
 export type SyncStatus = 'off' | 'syncing' | 'synced' | SyncFailure;
 

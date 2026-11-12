@@ -1,11 +1,16 @@
 import { API_PREFIX } from '@kids-chores/contracts';
 
-export const apiRequest = async (path: string, method = 'GET', body?: unknown): Promise<Response | null> => {
+export const apiRequest = async (
+  path: string,
+  method = 'GET',
+  body?: unknown,
+  headers: Record<string, string> = {}
+): Promise<Response | null> => {
   try {
     return await fetch(`${API_PREFIX}${path}`, {
       method,
       credentials: 'same-origin',
-      headers: body === undefined ? undefined : { 'content-type': 'application/json' },
+      headers: body === undefined ? headers : { ...headers, 'content-type': 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {

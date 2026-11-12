@@ -1,6 +1,6 @@
 export { useAccountStore } from './model/store';
 export { default as AccountAvatar } from './ui/AccountAvatar.vue';
-export type { ServerAuth } from './model/types';
+export type { ServerAuth, InviteResult } from './model/types';
 export {
   devSignIn,
   providerStartUrl,
@@ -11,3 +11,13 @@ export {
   removePasskey,
 } from './api/accountApi';
 export { rememberedPasskeyId, rememberPasskeyId, forgetPasskeyId } from './lib/passkeyId';
+export {
+  fetchFamily,
+  sendInvite,
+  dropInvite,
+  acceptInvite,
+  requestToJoin,
+  approveRequest,
+  declineRequest,
+  removeMember,
+} from './api/familyApi';

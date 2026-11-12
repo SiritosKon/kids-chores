@@ -11,3 +11,5 @@ export const PARENT_MODE_ABILITY_KEYS = [
   'onboardingPage.abilities.award',
   'onboardingPage.abilities.setup',
 ] as const;
+
+export const WAIT_POLL_MS = 5000;

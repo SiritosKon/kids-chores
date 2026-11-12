@@ -6,6 +6,7 @@
         <div class="text-h6 text-weight-bold">{{ t('onboardingPage.welcome', { app: APP_NAME }) }}</div>
         <p v-if="stage === 'account'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.accountIntro') }}</p>
         <p v-else-if="stage === 'pin'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.intro') }}</p>
+        <p v-else-if="stage === 'invite'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.inviteIntro') }}</p>
       </q-card-section>
 
       <q-card-section v-if="stage === 'loading'" class="row justify-center q-pb-lg">
@@ -34,6 +35,19 @@
         </q-card-section>
       </template>
 
+      <template v-else-if="stage === 'invite'">
+        <IncomingInvites :confirm="false" @joined="onJoined" />
+        <q-card-section class="text-center">
+          <q-btn flat no-caps color="grey-5" :label="t('onboardingPage.ownFamily')" @click="skipInvites = true" />
+        </q-card-section>
+      </template>
+
+      <q-card-section v-else-if="stage === 'waiting'" class="text-center">
+        <q-spinner color="primary" size="32px" />
+        <p class="q-mt-md">{{ t('onboardingPage.waiting') }}</p>
+        <q-btn flat no-caps color="grey-5" :label="t('onboardingPage.ownFamily')" @click="stopWaiting" />
+      </q-card-section>
+
       <template v-else>
         <q-card-section class="q-pt-none text-grey-5">
           <div>{{ t('onboardingPage.abilitiesTitle') }}</div>
@@ -45,7 +59,11 @@
         <q-card-section>
           <div class="text-center text-subtitle1 q-mb-sm">{{ t(PIN_SETUP_TITLE_KEYS[step]) }}</div>
           <PinInput :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="error" @complete="onPin" />
+          <div class="text-center q-mt-sm">
+            <q-btn flat dense no-caps color="grey-5" :label="t('onboardingPage.joinExisting')" @click="joinOpen = true" />
+          </div>
         </q-card-section>
+        <JoinRequestDialog v-model="joinOpen" fresh @sent="startWaiting" />
       </template>
     </q-card>
   </q-dialog>
@@ -62,10 +80,11 @@ import PinInput from '@/shared/ui/PinInput.vue';
 import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { setupParentPin, useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
+import { IncomingInvites, JoinRequestDialog } from '@/features/join-family';
 import { SignInOptions } from '@/features/sign-in';
 import { seedPresets } from '@/features/starter-presets';
 import { useSyncStore } from '@/features/sync';
-import { PARENT_MODE_ABILITY_KEYS, PIN_SETUP_TITLE_KEYS } from '../model/constants';
+import { PARENT_MODE_ABILITY_KEYS, PIN_SETUP_TITLE_KEYS, WAIT_POLL_MS } from '../model/constants';
 import type { OnboardingStage, PinSetupStep } from '../model/types';
 
 const $q = useQuasar();
@@ -78,14 +97,43 @@ const hadPin = useSettingsStore().hasPin;
 
 const familyLoaded = ref(false);
 const retrying = ref(false);
+const joining = ref(false);
+const skipInvites = ref(false);
+const joinOpen = ref(false);
+const waiting = ref(false);
 let pinChosen = false;
+let poll: ReturnType<typeof setInterval> | undefined;
 
 const stage = computed<OnboardingStage>(() => {
   if (!account.signedIn) {
     return account.loaded ? 'account' : 'loading';
   }
-  return familyLoaded.value ? 'pin' : 'loading';
+  if (!familyLoaded.value || joining.value) {
+    return 'loading';
+  }
+  if (waiting.value) {
+    return 'waiting';
+  }
+  return !skipInvites.value && (account.me?.invites.length ?? 0) > 0 ? 'invite' : 'pin';
 });
+
+const onJoined = async (): Promise<void> => {
+  joining.value = true;
+  await sync.run();
+  joining.value = false;
+};
+
+const stopWaiting = (): void => {
+  clearInterval(poll);
+  waiting.value = false;
+};
+
+const startWaiting = (): void => {
+  joinOpen.value = false;
+  waiting.value = true;
+  clearInterval(poll);
+  poll = setInterval(() => void account.refresh(), WAIT_POLL_MS);
+};
 
 const retry = async (): Promise<void> => {
   retrying.value = true;
@@ -109,6 +157,7 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  clearInterval(poll);
   window.removeEventListener('online', retryOnline);
   if (account.signedIn && !hadPin && !pinChosen) {
     $q.notify({ type: 'info', message: t('onboardingPage.familyPin'), timeout: 8000 });

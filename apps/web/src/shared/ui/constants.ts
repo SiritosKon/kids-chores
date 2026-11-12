@@ -1,3 +1,5 @@
+import type { ContactKind } from '@kids-chores/contracts';
+
 export const COLOR_PALETTE = [
   '#42A5F5',
   '#EF5350',
@@ -87,3 +89,8 @@ export const METER_FIGURE_LABELS = {
   helicopter: 'shared.figures.helicopter',
   ball: 'shared.figures.ball',
 } as const;
+
+export const KIND_LABEL_KEYS: Readonly<Record<ContactKind, string>> = {
+  email: 'shared.contact.email',
+  phone: 'shared.contact.phone',
+};

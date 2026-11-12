@@ -32,6 +32,8 @@ export const envSchema = z
     AUTH_PEPPER: z.string().min(32),
     GOOGLE_CLIENT_ID: optionalText,
     GOOGLE_CLIENT_SECRET: optionalText,
+    TELEGRAM_CLIENT_ID: optionalText,
+    TELEGRAM_CLIENT_SECRET: optionalText,
     WEBAUTHN_RP_ID: optionalText,
     DEV_LOGIN: z.stringbool().default(false),
   })
@@ -41,5 +43,8 @@ export const envSchema = z
     }
     if (env.AUTH_PROVIDERS.includes('google') && (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET)) {
       ctx.addIssue({ code: 'custom', path: ['GOOGLE_CLIENT_ID'], message: 'google needs a client id and secret' });
+    }
+    if (env.AUTH_PROVIDERS.includes('telegram') && (!env.TELEGRAM_CLIENT_ID || !env.TELEGRAM_CLIENT_SECRET)) {
+      ctx.addIssue({ code: 'custom', path: ['TELEGRAM_CLIENT_ID'], message: 'telegram needs a client id and secret' });
     }
   });

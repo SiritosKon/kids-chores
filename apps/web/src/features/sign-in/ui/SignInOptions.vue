@@ -10,7 +10,18 @@
         icon="login"
         class="q-px-lg"
         :label="t('signIn.google')"
-        @click="signInWithGoogle"
+        @click="signInWith('google')"
+      />
+      <q-btn
+        v-if="hasTelegram"
+        unelevated
+        no-caps
+        color="light-blue-7"
+        text-color="white"
+        icon="send"
+        class="q-px-lg"
+        :label="t('signIn.telegram')"
+        @click="signInWith('telegram')"
       />
       <q-btn
         v-if="passkeysSupported"
@@ -46,6 +57,7 @@ import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
+import type { AuthProvider } from '@kids-chores/contracts';
 import { ROUTES } from '@/shared/config/constants';
 import { devSignIn, providerStartUrl, useAccountStore } from '@/entities/account';
 import { signInWithPasskey } from '../model/passkeySignIn';
@@ -57,12 +69,13 @@ const account = useAccountStore();
 const { server } = storeToRefs(account);
 
 const hasGoogle = computed(() => server.value?.providers.includes('google') === true);
+const hasTelegram = computed(() => server.value?.providers.includes('telegram') === true);
 const passkeysSupported = browserSupportsWebAuthn();
 const busy = ref(false);
 const devName = ref('');
 
-const signInWithGoogle = (): void => {
-  window.location.assign(providerStartUrl('google'));
+const signInWith = (provider: AuthProvider): void => {
+  window.location.assign(providerStartUrl(provider));
 };
 
 const finish = async (done: boolean, failure: string): Promise<void> => {

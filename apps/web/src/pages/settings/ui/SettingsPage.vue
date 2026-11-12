@@ -20,6 +20,9 @@
       </q-item>
     </section>
 
+    <div class="text-subtitle1 text-weight-bold q-mb-sm q-px-xs">{{ t('familyCard.title') }}</div>
+    <FamilyCard />
+
     <div class="text-subtitle1 text-weight-bold q-mb-sm q-px-xs">{{ t('settingsPage.account') }}</div>
     <AccountCard />
   </q-page>
@@ -34,6 +37,7 @@ import PageHeader from '@/shared/ui/PageHeader.vue';
 import { StreakStagesCard, BonusCard } from '@/features/edit-settings';
 import { recalculateStreaks } from '@/features/track-streak';
 import { AccountCard } from '@/widgets/account-card';
+import { FamilyCard } from '@/widgets/family-card';
 
 const { t } = useI18n();
 const router = useRouter();

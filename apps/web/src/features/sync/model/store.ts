@@ -47,6 +47,9 @@ export const useSyncStore = defineStore('sync', () => {
       }
     } else if (report.failure === 'signedOut') {
       await account.refresh();
+    } else if (report.failure === 'moved') {
+      await account.refresh();
+      schedule(RETRY_DELAY_MS);
     } else {
       schedule(RETRY_DELAY_MS);
     }

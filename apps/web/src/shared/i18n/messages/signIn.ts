@@ -3,6 +3,7 @@ import { defineMessages } from '../lib';
 export const signIn = defineMessages({
   ru: {
     google: 'Войти через Google',
+    telegram: 'Войти через Telegram',
     passkey: 'Войти по Face ID или Touch ID',
     passkeyFailed: 'Не получилось войти по Face ID или Touch ID',
     devName: 'Имя для dev-входа',
@@ -12,6 +13,7 @@ export const signIn = defineMessages({
   },
   en: {
     google: 'Sign in with Google',
+    telegram: 'Sign in with Telegram',
     passkey: 'Sign in with Face ID or Touch ID',
     passkeyFailed: "Couldn't sign in with Face ID or Touch ID",
     devName: 'Dev sign-in name',
@@ -21,6 +23,7 @@ export const signIn = defineMessages({
   },
   es: {
     google: 'Iniciar sesión con Google',
+    telegram: 'Iniciar sesión con Telegram',
     passkey: 'Iniciar sesión con Face ID o Touch ID',
     passkeyFailed: 'No se pudo iniciar sesión con Face ID o Touch ID',
     devName: 'Nombre para el acceso de desarrollo',

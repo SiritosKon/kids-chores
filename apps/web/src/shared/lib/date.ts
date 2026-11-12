@@ -33,6 +33,10 @@ export const formatTimestampNumeric = (timestamp: number): string => {
   });
 };
 
+export const formatTimestampLong = (timestamp: number): string => {
+  return new Date(timestamp).toLocaleDateString(dateLocale(), { day: 'numeric', month: 'long' });
+};
+
 export const formatTimestampShort = (timestamp: number): string => {
   return new Date(timestamp).toLocaleDateString(dateLocale(), { day: 'numeric', month: 'short' });
 };

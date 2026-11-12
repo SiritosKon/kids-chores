@@ -37,7 +37,11 @@ describe('identity over HTTP', () => {
 
   it('tells the app which sign-in methods are on', async () => {
     const response = await app.inject({ method: 'GET', url: '/v1/meta' });
-    expect(metaResponseSchema.parse(response.json()).auth).toEqual({ providers: ['google'], devLogin: true });
+    expect(metaResponseSchema.parse(response.json()).auth).toEqual({
+      providers: ['google', 'telegram'],
+      devLogin: true,
+      contacts: ['email', 'phone'],
+    });
   });
 
   it('closes the API without a session', async () => {
@@ -99,7 +103,7 @@ describe('identity over HTTP', () => {
     expect(first.name).toBe(name);
 
     const subject = subjectHash(app.get<AppConfig>(APP_CONFIG).AUTH_PEPPER, DEV_PROVIDER, name);
-    await app.get(AccountsService).signIn(DEV_PROVIDER, subject, 'Мама');
+    await app.get(AccountsService).signIn(DEV_PROVIDER, subject, { name: 'Мама', contacts: [] });
     expect(meResponseSchema.parse((await me(cookie)).body).name).toBe('Мама');
 
     const rename = await app.inject({
@@ -188,7 +192,7 @@ describe('identity over HTTP', () => {
     expect(location.origin).toBe('https://accounts.google.com');
     expect(location.searchParams.get('client_id')).toBe('integration-client');
     expect(location.searchParams.get('redirect_uri')).toBe(`${origin}/v1/auth/google/callback`);
-    expect(location.searchParams.get('scope')).toBe('openid profile');
+    expect(location.searchParams.get('scope')).toBe('openid profile email');
     expect(location.searchParams.get('code_challenge_method')).toBe('S256');
     expect(location.searchParams.get('state')).toBeTruthy();
     expect(response.cookies).toEqual([
@@ -199,6 +203,30 @@ describe('identity over HTTP', () => {
         path: '/v1/auth',
       }),
     ]);
+  });
+
+  it('sends the parent to Telegram for the name and the phone number', async () => {
+    const response = await app.inject({ method: 'GET', url: '/v1/auth/telegram/start' });
+    expect(response.statusCode).toBe(302);
+    const location = new URL(response.headers.location ?? '');
+    expect(`${location.origin}${location.pathname}`).toBe('https://oauth.telegram.org/auth');
+    expect(location.searchParams.get('client_id')).toBe('1234567890');
+    expect(location.searchParams.get('redirect_uri')).toBe(`${origin}/v1/auth/telegram/callback`);
+    expect(location.searchParams.get('scope')).toBe('openid profile phone');
+    expect(location.searchParams.get('code_challenge_method')).toBe('S256');
+    expect(location.searchParams.has('prompt')).toBe(false);
+  });
+
+  it('does not take a Google state to finish a Telegram sign-in', async () => {
+    const started = await app.inject({ method: 'GET', url: '/v1/auth/google/start' });
+    const state = new URL(started.headers.location ?? '').searchParams.get('state') ?? '';
+    const response = await app.inject({
+      method: 'GET',
+      url: `/v1/auth/telegram/callback?code=x&state=${state}`,
+      headers: { cookie: `lbd_auth_state=${state}` },
+    });
+    expect(response.headers.location).toBe(`${origin}/kids-chores/#/?error=telegram`);
+    expect(response.cookies.filter((cookie) => cookie.name === 'lbd_session')).toEqual([]);
   });
 
   it('refuses a callback that this browser did not start', async () => {

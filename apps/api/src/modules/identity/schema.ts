@@ -52,8 +52,12 @@ export const passkeyLoginSchema = z.object({ flowId: z.uuid(), response: authent
 
 export const passkeyTransportsSchema = transports;
 
-export const googleProfileSchema = z.object({
+export const providerProfileSchema = z.object({
   given_name: z.string().optional(),
   name: z.string().optional(),
   picture: z.string().optional(),
+  email: z.string().optional(),
+  email_verified: z.boolean().optional(),
+  phone_number: z.string().optional(),
+  phone_number_verified: z.boolean().optional(),
 });

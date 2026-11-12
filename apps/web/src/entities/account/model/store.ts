@@ -1,7 +1,8 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import type { MeResponse } from '@kids-chores/contracts';
+import type { ContactKind, MeResponse } from '@kids-chores/contracts';
 import { fetchMe, fetchServerAuth, requestAccountRemoval, requestSignOut } from '../api/accountApi';
+import { requestFamilyLeave } from '../api/familyApi';
 import { storeAccountPhoto, storedAccountPhoto } from '../lib/accountPhoto';
 import { downloadProviderPhoto, providerPhotoUrl } from '../lib/providerPhoto';
 import { forgetAccount, rememberAccount, rememberedAccount } from '../lib/rememberedAccount';
@@ -15,6 +16,8 @@ export const useAccountStore = defineStore('account', () => {
   const loaded = ref(false);
   const signedIn = computed(() => me.value !== null);
   const name = computed(() => me.value?.name ?? null);
+  const owner = computed(() => me.value?.role === 'owner');
+  const contactKinds = computed<readonly ContactKind[]>(() => server.value?.contacts ?? []);
 
   const refresh = async (): Promise<void> => {
     const [auth, result] = await Promise.all([fetchServerAuth(), fetchMe()]);
@@ -55,5 +58,21 @@ export const useAccountStore = defineStore('account', () => {
 
   const remove = (): Promise<boolean> => leave(requestAccountRemoval);
 
-  return { server, me, photo, loaded, signedIn, name, refresh, adoptProviderPhoto, signOut, remove };
+  const leaveFamily = (): Promise<boolean> => leave(requestFamilyLeave);
+
+  return {
+    server,
+    me,
+    photo,
+    loaded,
+    signedIn,
+    name,
+    owner,
+    contactKinds,
+    refresh,
+    adoptProviderPhoto,
+    signOut,
+    remove,
+    leaveFamily,
+  };
 });
