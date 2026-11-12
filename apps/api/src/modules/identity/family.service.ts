@@ -27,7 +27,15 @@ import { PrismaService } from '../../platform/database';
 import { MailService } from '../../platform/mail';
 import { RATE_LIMIT_PREFIX } from '../../platform/rate-limit';
 import { VALKEY } from '../../platform/valkey';
-import { DAY_SECONDS, INVITE_MAILS_PER_DAY, INVITE_TTL_MS, JOIN_REQUEST_TTL_MS, JOIN_REQUESTS_PER_DAY } from './constants';
+import {
+  DAY_SECONDS,
+  INVITE_MAILS_PER_ADDRESS,
+  INVITE_MAILS_PER_DAY,
+  INVITE_MAILS_PER_DAY_TOTAL,
+  INVITE_TTL_MS,
+  JOIN_REQUEST_TTL_MS,
+  JOIN_REQUESTS_PER_DAY,
+} from './constants';
 import { contactHash, inviteMail, inviteTokenHash, inviteUrl, newInviteToken } from './lib';
 import { MembershipsService } from './memberships.service';
 import { SessionsService } from './sessions.service';
@@ -96,7 +104,10 @@ export class FamilyService {
   async invite(session: Session, request: CreateInviteRequest): Promise<CreatedInvite> {
     await this.requireOwner(session);
     if (request.email) {
-      await this.limit(`mail:invite:${session.familyId}`, INVITE_MAILS_PER_DAY);
+      const recipient = contactHash(this.config.AUTH_PEPPER, { kind: 'email', value: request.email }).hash;
+      await this.limit(`mail:invite:family:${session.familyId}`, INVITE_MAILS_PER_DAY);
+      await this.limit(`mail:invite:to:${recipient}`, INVITE_MAILS_PER_ADDRESS);
+      await this.limit('mail:invite:all', INVITE_MAILS_PER_DAY_TOTAL);
     }
     const token = newInviteToken();
     const row = await this.prisma.familyInvite.create({

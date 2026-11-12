@@ -48,11 +48,15 @@ export const JOIN_REQUESTS_PER_DAY = 5;
 
 export const INVITE_MAILS_PER_DAY = 10;
 
+export const INVITE_MAILS_PER_ADDRESS = 3;
+
+export const INVITE_MAILS_PER_DAY_TOTAL = 200;
+
 export const MAIL_DATE_FORMAT: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
 
 export const INVITE_MAILS: Readonly<Record<MailLocale, MailText>> = {
   ru: {
-    subject: '{name} зовёт вас в семью в Little Big Deals',
+    subject: 'Приглашение в семью в Little Big Deals',
     paragraphs: [
       '{name} зовёт вас в семью в Little Big Deals — приложении, где дети отмечают домашние дела и копят баллы на награды.',
       'Откройте ссылку и войдите в приложение — после входа вы сразу окажетесь в семье:',
@@ -62,7 +66,7 @@ export const INVITE_MAILS: Readonly<Record<MailLocale, MailText>> = {
     someone: 'Родитель',
   },
   en: {
-    subject: '{name} invites you to their family in Little Big Deals',
+    subject: 'An invitation to a family in Little Big Deals',
     paragraphs: [
       '{name} invites you to their family in Little Big Deals, the app where kids tick off chores and save points for rewards.',
       "Open the link and sign in to the app — right after signing in you're in the family:",
@@ -72,7 +76,7 @@ export const INVITE_MAILS: Readonly<Record<MailLocale, MailText>> = {
     someone: 'A parent',
   },
   es: {
-    subject: '{name} te invita a su familia en Little Big Deals',
+    subject: 'Una invitación a una familia en Little Big Deals',
     paragraphs: [
       '{name} te invita a su familia en Little Big Deals, la app donde los niños marcan sus tareas y ahorran puntos para premios.',
       'Abre el enlace y entra en la app: justo después de entrar estarás en la familia:',

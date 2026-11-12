@@ -152,18 +152,25 @@ describe('family members over HTTP', () => {
     expect(invited.statusCode).toBe(201);
     const { token } = createdInviteSchema.parse(invited.json());
     const mail = await lastMailTo(email);
-    expect(mail.Subject).toBe(`Мама-${tag} invites you to their family in Little Big Deals`);
+    expect(mail.Subject).toBe('An invitation to a family in Little Big Deals');
+    expect(mail.Text).toContain(`Мама-${tag} invites you to their family`);
     expect(mail.Text).toContain(`${origin}/kids-chores/#/join/${token}`);
 
     const dad = await devLogin(`dad-${tag}`);
     expect((await send(dad, 'POST', '/v1/family/invites/accept', { token })).statusCode).toBe(204);
 
-    const statuses: number[] = [];
-    for (let attempt = 0; attempt < 10; attempt += 1) {
+    const toAunt: number[] = [];
+    for (let attempt = 0; attempt < 4; attempt += 1) {
       const response = await send(mom, 'POST', '/v1/family/invites', { email: `aunt-${tag}@example.com`, locale: 'ru' });
-      statuses.push(response.statusCode);
+      toAunt.push(response.statusCode);
     }
-    expect(statuses).toEqual([201, 201, 201, 201, 201, 201, 201, 201, 201, 429]);
+    expect(toAunt).toEqual([201, 201, 201, 429]);
+    const toOthers: number[] = [];
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const response = await send(mom, 'POST', '/v1/family/invites', { email: `guest-${attempt}-${tag}@example.com`, locale: 'ru' });
+      toOthers.push(response.statusCode);
+    }
+    expect(toOthers).toEqual([201, 201, 201, 201, 201, 429]);
     expect((await send(mom, 'POST', '/v1/family/invites', { locale: 'ru' })).statusCode).toBe(201);
   });
 
