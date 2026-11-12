@@ -34,9 +34,9 @@ export const CONTACT_HASH_PREFIX = 'contact:';
 
 export const GMAIL_DOMAINS: readonly string[] = ['gmail.com', 'googlemail.com'];
 
-export const HINT_MASK = '•••';
+export const INVITE_TOKEN_BYTES = 32;
 
-export const PHONE_HINT_DIGITS = 2;
+export const INVITE_HASH_PREFIX = 'invite:';
 
 export const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 

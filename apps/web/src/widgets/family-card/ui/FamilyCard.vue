@@ -1,8 +1,5 @@
 <template>
   <section class="ios-card q-mb-lg">
-    <IncomingInvites />
-    <q-separator v-if="incoming" />
-
     <div v-if="family === null" class="q-pa-md text-grey-5">
       <q-spinner v-if="loading" color="primary" size="24px" />
       <span v-else>{{ t('familyCard.offline') }}</span>
@@ -35,9 +32,9 @@
       </q-item>
 
       <q-item v-for="invite in family.invites" :key="invite.id">
-        <q-item-section avatar><q-icon name="schedule_send" color="grey-5" /></q-item-section>
+        <q-item-section avatar><q-icon name="qr_code_2" color="grey-5" /></q-item-section>
         <q-item-section>
-          <q-item-label>{{ t('familyCard.invitedTo', { hint: invite.hint }) }}</q-item-label>
+          <q-item-label>{{ t('familyCard.inviteLink') }}</q-item-label>
           <q-item-label caption>{{ t('familyCard.invitedUntil', { date: formatDate(invite.expiresAt) }) }}</q-item-label>
         </q-item-section>
         <q-item-section side>
@@ -65,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import type { FamilyMember, FamilyResponse, JoinRequest } from '@kids-chores/contracts';
@@ -79,7 +76,7 @@ import {
   useAccountStore,
 } from '@/entities/account';
 import { InviteDialog } from '@/features/family-invite';
-import { IncomingInvites, JoinRequestDialog } from '@/features/join-family';
+import { JoinRequestDialog } from '@/features/join-family';
 import { useSyncStore } from '@/features/sync';
 
 const $q = useQuasar();
@@ -91,7 +88,6 @@ const loading = ref(true);
 const busy = ref(false);
 const inviting = ref(false);
 const joining = ref(false);
-const incoming = computed(() => (account.me?.invites.length ?? 0) > 0);
 
 const load = async (): Promise<void> => {
   loading.value = true;

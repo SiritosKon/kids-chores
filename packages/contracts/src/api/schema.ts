@@ -2,9 +2,9 @@ import { z } from 'zod';
 import {
   ACCOUNT_NAME_MAX,
   AUTH_PROVIDERS,
-  CONTACT_HINT_MAX,
   CONTACT_KINDS,
   EMAIL_MAX,
+  INVITE_TOKEN_PATTERN,
   MEMBER_ROLES,
   PHONE_PATTERN,
   PHONE_SEPARATORS,
@@ -42,10 +42,18 @@ export const contactSchema = z.discriminatedUnion('kind', [
 
 export const contactRequestSchema = z.object({ contact: contactSchema });
 
-export const incomingInviteSchema = z.object({
+export const inviteTokenRequestSchema = z.object({ token: z.string().regex(INVITE_TOKEN_PATTERN) });
+
+export const createdInviteSchema = z.object({
   id: z.uuid(),
+  token: z.string().regex(INVITE_TOKEN_PATTERN),
+  expiresAt: z.iso.datetime(),
+});
+
+export const invitePreviewSchema = z.object({
   inviterName: accountNameSchema.nullable(),
   expiresAt: z.iso.datetime(),
+  sameFamily: z.boolean(),
 });
 
 export const meResponseSchema = z.object({
@@ -56,7 +64,6 @@ export const meResponseSchema = z.object({
   hasPasskey: z.boolean(),
   role: memberRoleSchema.default('owner'),
   members: z.number().int().positive().default(1),
-  invites: z.array(incomingInviteSchema).default([]),
   joinRequests: z.number().int().nonnegative().default(0),
 });
 
@@ -69,8 +76,7 @@ export const familyMemberSchema = z.object({
 
 export const familyInviteSchema = z.object({
   id: z.uuid(),
-  kind: z.enum(CONTACT_KINDS),
-  hint: z.string().max(CONTACT_HINT_MAX),
+  createdAt: z.iso.datetime(),
   expiresAt: z.iso.datetime(),
 });
 

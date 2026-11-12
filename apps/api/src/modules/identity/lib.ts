@@ -5,7 +5,6 @@ import type { FastifyRequest } from 'fastify';
 import {
   ACCOUNT_NAME_MAX,
   API_PREFIX,
-  CONTACT_HINT_MAX,
   emailSchema,
   phoneSchema,
   providerPictureSchema,
@@ -20,9 +19,9 @@ import {
   CONTACT_HASH_PREFIX,
   FAMILY_SESSIONS_PREFIX,
   GMAIL_DOMAINS,
-  HINT_MASK,
   HOME_ROUTE,
-  PHONE_HINT_DIGITS,
+  INVITE_HASH_PREFIX,
+  INVITE_TOKEN_BYTES,
   SESSION_TOKEN_BYTES,
   SESSION_TTL_SECONDS,
 } from './constants';
@@ -62,13 +61,10 @@ export const contactHash = (pepper: string, contact: Contact): ContactHash => ({
     .digest('hex'),
 });
 
-export const contactHint = (contact: Contact): string => {
-  if (contact.kind === 'phone') {
-    return `${HINT_MASK}${contact.value.slice(-PHONE_HINT_DIGITS)}`;
-  }
-  const { local, domain } = splitEmail(contact.value);
-  return `${local.slice(0, 1)}${HINT_MASK}@${domain}`.slice(0, CONTACT_HINT_MAX);
-};
+export const newInviteToken = (): string => randomBytes(INVITE_TOKEN_BYTES).toString('base64url');
+
+export const inviteTokenHash = (pepper: string, token: string): string =>
+  createHmac('sha256', pepper).update(`${INVITE_HASH_PREFIX}${token}`).digest('hex');
 
 export const sessionCookieOptions = (config: AppConfig): CookieSerializeOptions => ({
   httpOnly: true,

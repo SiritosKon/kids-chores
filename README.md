@@ -37,18 +37,19 @@ sync between devices and accounts (see the roadmap in the `research` branch).
   guest mode.
   The board opens with an editable example — a kid, three chores and three
   rewards — a PIN window over it and a four-step tour: kids, chores, rewards and the menu. A
-  device that joins a family with data takes that data and skips the tour. An adult who was
-  invited sees the invitation right after signing in, and anyone can ask a family to let them in.
+  device that joins a family with data takes that data and skips the tour. An adult who opened
+  an invitation link sees it right after signing in, and anyone can ask a family to let them in.
 - **Backup.** JSON export and import in parent mode. This is the only backup, so export regularly.
 - **PWA.** Installable, works offline, splash screens for iPhone and iPad, and an in-app guide for
   adding it to the iOS home screen.
 - **Family account and sync** (local contour only). Sign in with Google or Telegram, then with
   Face ID or Touch ID. Kids, chores, rewards, marks and purchases go to the server and on to the
   family's other devices; offline changes wait on the device. Photos never leave the device.
-- **Several adults in a family.** The adult who created the family invites others by email or
-  phone, approves requests to join and can remove members; anyone can leave. We send nothing:
-  the server keeps only a keyed hash of the address, and the parent shares the app link
-  themselves.
+- **Several adults in a family.** The adult who created the family invites others with a
+  one-time link shown as a QR code, approves requests to join (found by a parent's email or phone)
+  and can remove members; anyone can leave. We send nothing: the parent shares the link from
+  their own phone, and the server keeps only keyed hashes of the link token and of verified
+  contacts.
 
 ## Repository
 
@@ -179,6 +180,7 @@ from Safari, and removing the icon deletes that data — export first.
 
 The backend is designed to keep as little personal data as possible: no passwords, no emails or
 phone numbers, only a keyed hash of the provider's account id, keyed hashes of the verified email
-(Google) or phone (Telegram) to recognise invited adults, and the name the parent sees in the app. Request limits count
+(Google) or phone (Telegram) to find a family a person asks to join, and the name the parent sees
+in the app. Request limits count
 by a keyed hash of the address and of the session, the counters live for a few minutes, and the
 logs carry no addresses.

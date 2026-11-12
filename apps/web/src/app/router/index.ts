@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import { ROUTES } from '@/shared/config/constants';
 import { routeDepth } from '@/shared/lib/routes';
 import { useParentSessionStore } from '@/entities/parent-session';
+import { usePendingInviteStore } from '@/features/join-family';
 import { HomePage } from '@/pages/home';
 import { SettingsPage, StreakStagePage, StageRewardPage, PinPage } from '@/pages/settings';
 import { RewardPage } from '@/pages/reward';
@@ -31,6 +32,13 @@ export const router = createRouter({
     { path: ROUTES.spends, component: SpendsPage, meta: parentOnly },
     { path: ROUTES.whatsNew, component: WhatsNewPage },
     { path: ROUTES.install, component: InstallPage },
+    {
+      path: ROUTES.join,
+      redirect: (to) => {
+        usePendingInviteStore().remember(String(to.params.token));
+        return ROUTES.home;
+      },
+    },
     { path: '/:rest(.*)*', redirect: ROUTES.home },
   ],
 });

@@ -63,6 +63,7 @@
         </q-page-container>
       </q-layout>
       <OnboardingDialog v-if="welcome" />
+      <InviteLinkDialog v-else />
     </div>
   </div>
 </template>
@@ -84,7 +85,7 @@ import { useSettingsStore } from '@/entities/settings';
 import { useSelectedDateStore } from '@/features/select-date';
 import { useParentAutoLogout } from '@/features/parent-auto-logout';
 import { useLogout } from '@/features/parent-login';
-import { useJoinRequestNotice } from '@/features/join-family';
+import { InviteLinkDialog, useJoinRequestNotice } from '@/features/join-family';
 import { useSignedInNotice } from '@/features/sign-in';
 import { useSyncStore } from '@/features/sync';
 import { recalculateStreaks } from '@/features/track-streak';

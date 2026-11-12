@@ -22,7 +22,7 @@ export const PHONE_PATTERN = /^\+[1-9]\d{7,14}$/;
 
 export const PHONE_SEPARATORS = /[\s().-]/g;
 
-export const CONTACT_HINT_MAX = 60;
+export const INVITE_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 
 export const FAMILY_HEADER = 'x-family-id';
 

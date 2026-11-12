@@ -94,3 +94,7 @@ export const KIND_LABEL_KEYS: Readonly<Record<ContactKind, string>> = {
   email: 'shared.contact.email',
   phone: 'shared.contact.phone',
 };
+
+export const QR_ERROR_CORRECTION = 'M';
+
+export const QR_BORDER = 3;

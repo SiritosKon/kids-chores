@@ -65,7 +65,6 @@ export class AccountsService {
       hasPasskey: passkeys > 0,
       role: membership.role,
       members,
-      invites: await this.family.incoming(session.userId, session.familyId),
       joinRequests: membership.role === 'owner' ? await this.family.pendingRequests(session) : 0,
     };
   }

@@ -6,7 +6,9 @@ import type {
   familyInviteSchema,
   familyMemberSchema,
   familyResponseSchema,
-  incomingInviteSchema,
+  createdInviteSchema,
+  invitePreviewSchema,
+  inviteTokenRequestSchema,
   joinRequestSchema,
   meResponseSchema,
   metaResponseSchema,
@@ -28,7 +30,11 @@ export type Contact = z.infer<typeof contactSchema>;
 
 export type ContactRequest = z.infer<typeof contactRequestSchema>;
 
-export type IncomingInvite = z.infer<typeof incomingInviteSchema>;
+export type InviteTokenRequest = z.infer<typeof inviteTokenRequestSchema>;
+
+export type CreatedInvite = z.infer<typeof createdInviteSchema>;
+
+export type InvitePreview = z.infer<typeof invitePreviewSchema>;
 
 export type FamilyMember = z.infer<typeof familyMemberSchema>;
 

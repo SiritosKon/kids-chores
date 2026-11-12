@@ -4,7 +4,9 @@
       <q-card-section class="text-center">
         <div class="onboarding__emoji">🏁</div>
         <div class="text-h6 text-weight-bold">{{ t('onboardingPage.welcome', { app: APP_NAME }) }}</div>
-        <p v-if="stage === 'account'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.accountIntro') }}</p>
+        <p v-if="stage === 'account'" class="q-mt-sm q-mb-none">
+          {{ invite.token ? t('onboardingPage.invitedIntro') : t('onboardingPage.accountIntro') }}
+        </p>
         <p v-else-if="stage === 'pin'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.intro') }}</p>
         <p v-else-if="stage === 'invite'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.inviteIntro') }}</p>
       </q-card-section>
@@ -35,12 +37,9 @@
         </q-card-section>
       </template>
 
-      <template v-else-if="stage === 'invite'">
-        <IncomingInvites :confirm="false" @joined="onJoined" />
-        <q-card-section class="text-center">
-          <q-btn flat no-caps color="grey-5" :label="t('onboardingPage.ownFamily')" @click="skipInvites = true" />
-        </q-card-section>
-      </template>
+      <q-card-section v-else-if="stage === 'invite'" class="q-pt-none">
+        <PendingInvite :decline-label="t('onboardingPage.ownFamily')" @joined="onJoined" />
+      </q-card-section>
 
       <q-card-section v-else-if="stage === 'waiting'" class="text-center">
         <q-spinner color="primary" size="32px" />
@@ -80,7 +79,7 @@ import PinInput from '@/shared/ui/PinInput.vue';
 import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { setupParentPin, useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
-import { IncomingInvites, JoinRequestDialog } from '@/features/join-family';
+import { JoinRequestDialog, PendingInvite, usePendingInviteStore } from '@/features/join-family';
 import { SignInOptions } from '@/features/sign-in';
 import { seedPresets } from '@/features/starter-presets';
 import { useSyncStore } from '@/features/sync';
@@ -97,8 +96,8 @@ const hadPin = useSettingsStore().hasPin;
 
 const familyLoaded = ref(false);
 const retrying = ref(false);
+const invite = usePendingInviteStore();
 const joining = ref(false);
-const skipInvites = ref(false);
 const joinOpen = ref(false);
 const waiting = ref(false);
 let pinChosen = false;
@@ -114,7 +113,7 @@ const stage = computed<OnboardingStage>(() => {
   if (waiting.value) {
     return 'waiting';
   }
-  return !skipInvites.value && (account.me?.invites.length ?? 0) > 0 ? 'invite' : 'pin';
+  return invite.token !== null ? 'invite' : 'pin';
 });
 
 const onJoined = async (): Promise<void> => {

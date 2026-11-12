@@ -1,28 +1,38 @@
-import { familyInviteSchema, familyResponseSchema, type Contact, type FamilyResponse } from '@kids-chores/contracts';
+import {
+  createdInviteSchema,
+  familyResponseSchema,
+  invitePreviewSchema,
+  type Contact,
+  type CreatedInvite,
+  type FamilyResponse,
+} from '@kids-chores/contracts';
 import { apiJson, apiOk, apiRequest } from '@/shared/api/http';
-import type { InviteResult, JoinRequestResult } from '../model/types';
+import type { InvitePreviewResult, JoinRequestResult } from '../model/types';
 
 export const fetchFamily = (): Promise<FamilyResponse | null> =>
   apiJson('/family', (data) => familyResponseSchema.parse(data));
 
-export const sendInvite = async (contact: Contact): Promise<InviteResult> => {
-  const response = await apiRequest('/family/invites', 'POST', { contact });
-  if (response?.status === 409) {
-    return { status: 'member' };
+export const createInvite = (): Promise<CreatedInvite | null> =>
+  apiJson('/family/invites', (data) => createdInviteSchema.parse(data), 'POST');
+
+export const dropInvite = (id: string): Promise<boolean> => apiOk(`/family/invites/${id}`, 'DELETE');
+
+export const previewInvite = async (token: string): Promise<InvitePreviewResult> => {
+  const response = await apiRequest('/family/invites/preview', 'POST', { token });
+  if (response?.status === 404 || response?.status === 400) {
+    return { status: 'gone' };
   }
   if (!response?.ok) {
     return { status: 'failed' };
   }
   try {
-    return { status: 'sent', invite: familyInviteSchema.parse(await response.json()) };
+    return { status: 'ready', preview: invitePreviewSchema.parse(await response.json()) };
   } catch {
     return { status: 'failed' };
   }
 };
 
-export const dropInvite = (id: string): Promise<boolean> => apiOk(`/family/invites/${id}`, 'DELETE');
-
-export const acceptInvite = (id: string): Promise<boolean> => apiOk(`/family/invites/${id}/accept`, 'POST');
+export const acceptInvite = (token: string): Promise<boolean> => apiOk('/family/invites/accept', 'POST', { token });
 
 export const requestToJoin = async (contact: Contact): Promise<JoinRequestResult> => {
   const response = await apiRequest('/family/requests', 'POST', { contact });

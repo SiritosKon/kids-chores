@@ -2,6 +2,7 @@ import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequest
 import type { ServerMetadata } from 'openid-client';
 import type { z } from 'zod';
 import type { Contact, ContactKind, Session } from '@kids-chores/contracts';
+import type { FamilyInvite } from '../../generated/prisma/client';
 import type { authStateSchema } from './schema';
 
 export type AuthState = z.infer<typeof authStateSchema>;
@@ -63,3 +64,5 @@ declare module 'fastify' {
 export interface RemovedUser {
   familyDropped: boolean;
 }
+
+export type InviteWithInviter = FamilyInvite & { inviter: { name: string | null } };

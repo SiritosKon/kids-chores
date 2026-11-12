@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { INVITE_TOKEN_PATTERN } from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
 import {
   callbackUrl,
   canonicalContact,
   contactHash,
-  contactHint,
   failedSignInUrl,
   homeUrl,
+  inviteTokenHash,
+  newInviteToken,
   profileEmail,
   profileName,
   profilePhone,
@@ -136,9 +138,12 @@ describe('contacts', () => {
     expect(contactHash('another-pepper-that-is-long-enough', { kind: 'email', value: 'a@example.com' }).hash).not.toBe(email.hash);
   });
 
-  it('keeps only a hint of the address for the invite list', () => {
-    expect(contactHint({ kind: 'email', value: 'mama@example.com' })).toBe('m•••@example.com');
-    expect(contactHint({ kind: 'phone', value: '+79991234567' })).toBe('•••67');
+  it('makes invite tokens that fit the link and hashes them with the pepper', () => {
+    const token = newInviteToken();
+    expect(token).toMatch(INVITE_TOKEN_PATTERN);
+    expect(newInviteToken()).not.toBe(token);
+    expect(inviteTokenHash(pepper, token)).toMatch(/^[0-9a-f]{64}$/);
+    expect(inviteTokenHash('another-pepper-that-is-long-enough', token)).not.toBe(inviteTokenHash(pepper, token));
   });
 
   it('takes the email from Google only when Google verified it', () => {

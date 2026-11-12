@@ -9,7 +9,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { Contact, FamilyInvite, FamilyResponse, IncomingInvite, Session } from '@kids-chores/contracts';
+import type { Contact, CreatedInvite, FamilyInvite, FamilyResponse, InvitePreview, Session } from '@kids-chores/contracts';
 import type { Redis } from 'ioredis';
 import type { FamilyInvite as InviteRow } from '../../generated/prisma/client';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
@@ -17,14 +17,14 @@ import { PrismaService } from '../../platform/database';
 import { RATE_LIMIT_PREFIX } from '../../platform/rate-limit';
 import { VALKEY } from '../../platform/valkey';
 import { DAY_SECONDS, INVITE_TTL_MS, JOIN_REQUEST_TTL_MS, JOIN_REQUESTS_PER_DAY } from './constants';
-import { contactHash, contactHint } from './lib';
+import { contactHash, inviteTokenHash, newInviteToken } from './lib';
 import { MembershipsService } from './memberships.service';
 import { SessionsService } from './sessions.service';
+import type { InviteWithInviter } from './types';
 
 const toInvite = (row: InviteRow): FamilyInvite => ({
   id: row.id,
-  kind: row.kind,
-  hint: row.hint,
+  createdAt: row.createdAt.toISOString(),
   expiresAt: row.expiresAt.toISOString(),
 });
 
@@ -75,74 +75,51 @@ export class FamilyService {
     };
   }
 
-  async incoming(userId: string, familyId: string): Promise<IncomingInvite[]> {
-    const contacts = await this.prisma.userContact.findMany({ where: { userId }, select: { kind: true, hash: true } });
-    if (contacts.length === 0) {
-      return [];
-    }
-    const invites = await this.prisma.familyInvite.findMany({
-      where: {
-        OR: contacts.map(({ kind, hash }) => ({ kind, contactHash: hash })),
-        familyId: { not: familyId },
-        expiresAt: { gt: new Date() },
-      },
-      include: { inviter: { select: { name: true } } },
-      orderBy: { createdAt: 'desc' },
-    });
-    return invites.map((invite) => ({
-      id: invite.id,
-      inviterName: invite.inviter.name,
-      expiresAt: invite.expiresAt.toISOString(),
-    }));
-  }
-
   async pendingRequests(session: Session): Promise<number> {
     return this.prisma.joinRequest.count({ where: { familyId: session.familyId, expiresAt: { gt: new Date() } } });
   }
 
-  async invite(session: Session, contact: Contact): Promise<FamilyInvite> {
+  async invite(session: Session): Promise<CreatedInvite> {
     await this.requireOwner(session);
-    const { kind, hash } = contactHash(this.config.AUTH_PEPPER, contact);
-    const holder = await this.prisma.userContact.findUnique({ where: { kind_hash: { kind, hash } }, select: { userId: true } });
-    if (holder) {
-      const member = await this.prisma.membership.findUnique({ where: { userId: holder.userId } });
-      if (member?.familyId === session.familyId) {
-        throw new ConflictException();
-      }
-    }
-    const expiresAt = new Date(Date.now() + INVITE_TTL_MS);
-    const hint = contactHint(contact);
-    const row = await this.prisma.familyInvite.upsert({
-      where: { familyId_kind_contactHash: { familyId: session.familyId, kind, contactHash: hash } },
-      create: { id: randomUUID(), familyId: session.familyId, kind, contactHash: hash, hint, invitedBy: session.userId, expiresAt },
-      update: { hint, invitedBy: session.userId, expiresAt },
+    const token = newInviteToken();
+    const row = await this.prisma.familyInvite.create({
+      data: {
+        id: randomUUID(),
+        familyId: session.familyId,
+        tokenHash: inviteTokenHash(this.config.AUTH_PEPPER, token),
+        invitedBy: session.userId,
+        expiresAt: new Date(Date.now() + INVITE_TTL_MS),
+      },
     });
-    return toInvite(row);
+    return { id: row.id, token, expiresAt: row.expiresAt.toISOString() };
   }
 
   async dropInvite(session: Session, id: string): Promise<void> {
-    const invite = await this.prisma.familyInvite.findUnique({ where: { id } });
-    const allowed =
-      invite !== null &&
-      (invite.familyId === session.familyId ? await this.isOwner(session) : await this.addressedTo(session.userId, invite));
-    if (!allowed) {
+    await this.requireOwner(session);
+    const { count } = await this.prisma.familyInvite.deleteMany({ where: { id, familyId: session.familyId } });
+    if (count === 0) {
       throw new NotFoundException();
     }
-    await this.prisma.familyInvite.deleteMany({ where: { id } });
   }
 
-  async acceptInvite(session: Session, id: string): Promise<void> {
-    const invite = await this.prisma.familyInvite.findUnique({ where: { id } });
-    if (
-      !invite ||
-      invite.expiresAt <= new Date() ||
-      invite.familyId === session.familyId ||
-      !(await this.addressedTo(session.userId, invite))
-    ) {
+  async previewInvite(session: Session, token: string): Promise<InvitePreview> {
+    const invite = await this.findInvite(token);
+    return {
+      inviterName: invite.inviter.name,
+      expiresAt: invite.expiresAt.toISOString(),
+      sameFamily: invite.familyId === session.familyId,
+    };
+  }
+
+  async acceptInvite(session: Session, token: string): Promise<void> {
+    const invite = await this.findInvite(token);
+    const { count } = await this.prisma.familyInvite.deleteMany({ where: { id: invite.id } });
+    if (count === 0) {
       throw new NotFoundException();
     }
-    await this.join(session.userId, invite.familyId);
-    await this.prisma.familyInvite.deleteMany({ where: { id } });
+    if (invite.familyId !== session.familyId) {
+      await this.join(session.userId, invite.familyId);
+    }
   }
 
   async requestToJoin(session: Session, contact: Contact): Promise<void> {
@@ -223,11 +200,14 @@ export class FamilyService {
     }
   }
 
-  private async addressedTo(userId: string, invite: InviteRow): Promise<boolean> {
-    const contact = await this.prisma.userContact.findUnique({
-      where: { kind_hash: { kind: invite.kind, hash: invite.contactHash } },
-      select: { userId: true },
+  private async findInvite(token: string): Promise<InviteWithInviter> {
+    const invite = await this.prisma.familyInvite.findUnique({
+      where: { tokenHash: inviteTokenHash(this.config.AUTH_PEPPER, token) },
+      include: { inviter: { select: { name: true } } },
     });
-    return contact?.userId === userId;
+    if (!invite || invite.expiresAt <= new Date()) {
+      throw new NotFoundException();
+    }
+    return invite;
   }
 }

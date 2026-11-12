@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Res } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
-import type { FamilyInvite, FamilyResponse, Session } from '@kids-chores/contracts';
+import type { CreatedInvite, FamilyResponse, InvitePreview, Session } from '@kids-chores/contracts';
 import { AuthRateLimit } from '../../platform/rate-limit';
-import { ContactRequestDto } from './dto';
+import { ContactRequestDto, InviteTokenDto } from './dto';
 import { FamilyService } from './family.service';
 import { CurrentSession } from './lib';
 import { SessionsService } from './sessions.service';
@@ -21,8 +21,8 @@ export class FamilyController {
 
   @AuthRateLimit()
   @Post('invites')
-  invite(@CurrentSession() session: Session, @Body() body: ContactRequestDto): Promise<FamilyInvite> {
-    return this.family.invite(session, body.contact);
+  invite(@CurrentSession() session: Session): Promise<CreatedInvite> {
+    return this.family.invite(session);
   }
 
   @Delete('invites/:id')
@@ -31,10 +31,18 @@ export class FamilyController {
     return this.family.dropInvite(session, id);
   }
 
-  @Post('invites/:id/accept')
+  @AuthRateLimit()
+  @Post('invites/preview')
+  @HttpCode(200)
+  preview(@CurrentSession() session: Session, @Body() body: InviteTokenDto): Promise<InvitePreview> {
+    return this.family.previewInvite(session, body.token);
+  }
+
+  @AuthRateLimit()
+  @Post('invites/accept')
   @HttpCode(204)
-  accept(@CurrentSession() session: Session, @Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.family.acceptInvite(session, id);
+  accept(@CurrentSession() session: Session, @Body() body: InviteTokenDto): Promise<void> {
+    return this.family.acceptInvite(session, body.token);
   }
 
   @AuthRateLimit()
