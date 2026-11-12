@@ -22,6 +22,7 @@ export const metaResponseSchema = z.object({
   auth: z.object({
     providers: z.array(z.enum(AUTH_PROVIDERS)),
     devLogin: z.boolean(),
+    emailSignIn: z.boolean().default(false),
     contacts: z.array(z.enum(CONTACT_KINDS)).default([]),
   }),
 });
@@ -57,6 +58,11 @@ export const emailCodeRequestSchema = z.object({
 });
 
 export const emailCodeCheckSchema = z.object({ code: z.string().regex(EMAIL_CODE_PATTERN) });
+
+export const emailSignInSchema = z.object({
+  email: emailSchema,
+  code: z.string().regex(EMAIL_CODE_PATTERN),
+});
 
 export const inviteTokenRequestSchema = z.object({ token: z.string().regex(INVITE_TOKEN_PATTERN) });
 

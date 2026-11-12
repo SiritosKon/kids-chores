@@ -37,6 +37,7 @@ export const envSchema = z
     WEBAUTHN_RP_ID: optionalText,
     SMTP_URL: z.url({ protocol: /^smtps?$/ }),
     MAIL_FROM: z.string().min(3),
+    EMAIL_SIGN_IN: z.stringbool().default(false),
     DEV_LOGIN: z.stringbool().default(false),
   })
   .superRefine((env, ctx) => {

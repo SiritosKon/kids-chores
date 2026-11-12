@@ -40,6 +40,7 @@ describe('identity over HTTP', () => {
     expect(metaResponseSchema.parse(response.json()).auth).toEqual({
       providers: ['google', 'telegram'],
       devLogin: true,
+      emailSignIn: true,
       contacts: ['email', 'phone'],
     });
   });

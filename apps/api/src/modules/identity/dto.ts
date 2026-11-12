@@ -4,6 +4,7 @@ import {
   createInviteRequestSchema,
   emailCodeCheckSchema,
   emailCodeRequestSchema,
+  emailSignInSchema,
   devLoginRequestSchema,
   inviteTokenRequestSchema,
 } from '@kids-chores/contracts';
@@ -24,3 +25,5 @@ export class CreateInviteDto extends createZodDto(createInviteRequestSchema) {}
 export class EmailCodeRequestDto extends createZodDto(emailCodeRequestSchema) {}
 
 export class EmailCodeCheckDto extends createZodDto(emailCodeCheckSchema) {}
+
+export class EmailSignInDto extends createZodDto(emailSignInSchema) {}

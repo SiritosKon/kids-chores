@@ -64,6 +64,14 @@ export const EMAIL_CODE_RESEND_SECONDS = 60;
 
 export const EMAIL_CODE_ATTEMPTS = 5;
 
+export const CODE_MAILS_PER_ADDRESS = 10;
+
+export const CODE_MAILS_PER_IP = 20;
+
+export const CODE_MAILS_PER_DAY_TOTAL = 300;
+
+export const EMAIL_PROVIDER = 'email';
+
 export const EMAIL_CODE_PREFIX = 'code:';
 
 export const EMAIL_CODE_SENT_PREFIX = 'code:sent:';

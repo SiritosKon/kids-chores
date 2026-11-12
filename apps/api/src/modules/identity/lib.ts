@@ -57,9 +57,10 @@ export const canonicalContact = (contact: Contact): string => {
   if (contact.kind === 'phone') {
     return contact.value;
   }
-  const { local, domain } = splitEmail(contact.value);
+  const email = contact.value.trim().toLowerCase();
+  const { local, domain } = splitEmail(email);
   if (!GMAIL_DOMAINS.includes(domain)) {
-    return contact.value;
+    return email;
   }
   return `${(local.split('+')[0] ?? local).replaceAll('.', '')}@gmail.com`;
 };

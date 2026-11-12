@@ -1,4 +1,5 @@
-import { Body, ConflictException, Controller, HttpCode, Inject, Post, UnprocessableEntityException } from '@nestjs/common';
+import { Body, ConflictException, Controller, HttpCode, Inject, Post, Req, UnprocessableEntityException } from '@nestjs/common';
+import type { FastifyRequest } from 'fastify';
 import type { Session } from '@kids-chores/contracts';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { PrismaService } from '../../platform/database';
@@ -18,7 +19,11 @@ export class PinController {
   @AuthRateLimit()
   @Post('code')
   @HttpCode(204)
-  async send(@CurrentSession() session: Session, @Body() body: EmailCodeRequestDto): Promise<void> {
+  async send(
+    @CurrentSession() session: Session,
+    @Body() body: EmailCodeRequestDto,
+    @Req() request: FastifyRequest
+  ): Promise<void> {
     const emails = await this.prisma.userContact.count({ where: { userId: session.userId, kind: 'email' } });
     if (emails === 0) {
       throw new ConflictException();
@@ -28,7 +33,7 @@ export class PinController {
     if (owner?.userId !== session.userId) {
       throw new UnprocessableEntityException();
     }
-    await this.codes.send('pin', session.userId, body.email, body.locale);
+    await this.codes.send('pin', session.userId, body.email, body.locale, request.ip);
   }
 
   @AuthRateLimit()

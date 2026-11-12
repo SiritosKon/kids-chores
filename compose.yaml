@@ -24,6 +24,7 @@ x-api-env: &api-env
   SMTP_URL: ${SMTP_URL:-smtp://mailpit:1025}
   MAIL_FROM: ${MAIL_FROM:-Little Big Deals <no-reply@localhost>}
   WEBAUTHN_RP_ID: ${WEBAUTHN_RP_ID:-}
+  EMAIL_SIGN_IN: ${EMAIL_SIGN_IN:-true}
   DEV_LOGIN: ${DEV_LOGIN:-false}
 
 services:

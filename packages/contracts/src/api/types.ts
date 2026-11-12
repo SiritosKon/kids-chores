@@ -9,6 +9,7 @@ import type {
   createInviteRequestSchema,
   emailCodeCheckSchema,
   emailCodeRequestSchema,
+  emailSignInSchema,
   createdInviteSchema,
   invitePreviewSchema,
   inviteTokenRequestSchema,
@@ -38,6 +39,8 @@ export type CreateInviteRequest = z.infer<typeof createInviteRequestSchema>;
 export type EmailCodeRequest = z.infer<typeof emailCodeRequestSchema>;
 
 export type EmailCodeCheck = z.infer<typeof emailCodeCheckSchema>;
+
+export type EmailSignIn = z.infer<typeof emailSignInSchema>;
 
 export type InviteTokenRequest = z.infer<typeof inviteTokenRequestSchema>;
 

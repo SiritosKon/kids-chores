@@ -41,6 +41,7 @@ const config = (overrides: Partial<AppConfig> = {}): AppConfig => ({
   WEBAUTHN_RP_ID: undefined,
   SMTP_URL: 'smtp://localhost:1025',
   MAIL_FROM: 'Little Big Deals <no-reply@localhost>',
+  EMAIL_SIGN_IN: false,
   DEV_LOGIN: false,
   APP_VERSION: '0.6.0',
   ...overrides,
@@ -128,6 +129,7 @@ describe('contacts', () => {
   it('treats Gmail dots, plus tags and googlemail as one address', () => {
     expect(canonicalContact({ kind: 'email', value: 'j.doe+chores@googlemail.com' })).toBe('jdoe@gmail.com');
     expect(canonicalContact({ kind: 'email', value: 'j.doe+chores@example.com' })).toBe('j.doe+chores@example.com');
+    expect(canonicalContact({ kind: 'email', value: ' Mama@Example.COM' })).toBe('mama@example.com');
     expect(contactHash(pepper, { kind: 'email', value: 'j.doe@gmail.com' })).toEqual(
       contactHash(pepper, { kind: 'email', value: 'jdoe@gmail.com' })
     );

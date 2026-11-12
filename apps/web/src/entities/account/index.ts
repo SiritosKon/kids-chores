@@ -23,3 +23,4 @@ export {
   removeMember,
 } from './api/familyApi';
 export { requestPinCode, checkPinCode } from './api/pinCodeApi';
+export { requestSignInCode, verifySignInCode } from './api/emailSignInApi';

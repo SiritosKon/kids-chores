@@ -1,6 +1,9 @@
 <template>
   <div>
-    <div class="sign-in-options__buttons">
+    <div v-if="emailOpen" class="row justify-center">
+      <EmailSignIn @cancel="emailOpen = false" @signed-in="finish(true, '')" />
+    </div>
+    <div v-else class="sign-in-options__buttons">
       <q-btn
         v-if="hasGoogle"
         unelevated
@@ -22,6 +25,16 @@
         class="q-px-lg"
         :label="t('signIn.telegram')"
         @click="signInWith('telegram')"
+      />
+      <q-btn
+        v-if="server?.emailSignIn"
+        outline
+        no-caps
+        color="grey-5"
+        icon="mail"
+        class="q-px-lg"
+        :label="t('signIn.email')"
+        @click="emailOpen = true"
       />
       <q-btn
         v-if="passkeysSupported"
@@ -61,6 +74,7 @@ import type { AuthProvider } from '@kids-chores/contracts';
 import { ROUTES } from '@/shared/config/constants';
 import { devSignIn, providerStartUrl, useAccountStore } from '@/entities/account';
 import { signInWithPasskey } from '../model/passkeySignIn';
+import EmailSignIn from './EmailSignIn.vue';
 
 const $q = useQuasar();
 const { t } = useI18n();
@@ -73,6 +87,7 @@ const hasTelegram = computed(() => server.value?.providers.includes('telegram') 
 const passkeysSupported = browserSupportsWebAuthn();
 const busy = ref(false);
 const devName = ref('');
+const emailOpen = ref(false);
 
 const signInWith = (provider: AuthProvider): void => {
   window.location.assign(providerStartUrl(provider));

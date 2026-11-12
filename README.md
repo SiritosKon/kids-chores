@@ -34,8 +34,8 @@ sync between devices and accounts (see the roadmap in the `research` branch).
   forgotten PIN is reset with a code sent to the parent's email (a grown-ups-only sum for accounts
   without one). Children, tasks and rewards are edited on their
   own pages; settings cover the streak, the bonus and the PIN.
-- **First launch.** The app first asks to sign in with Google, Telegram or Face ID; there is no
-  guest mode.
+- **First launch.** The app first asks to sign in with Google, Telegram, a code sent by email or
+  Face ID; there is no guest mode.
   The board opens with an editable example — a kid, three chores and three
   rewards — a PIN window over it and a four-step tour: kids, chores, rewards and the menu. A
   device that joins a family with data takes that data and skips the tour. An adult who opened

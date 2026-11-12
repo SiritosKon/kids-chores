@@ -15,6 +15,7 @@ export class MetaService {
       auth: {
         providers: this.config.AUTH_PROVIDERS,
         devLogin: this.config.DEV_LOGIN,
+        emailSignIn: this.config.EMAIL_SIGN_IN,
         contacts: this.contacts(),
       },
     };
@@ -22,7 +23,7 @@ export class MetaService {
 
   private contacts(): ContactKind[] {
     const verified = new Set<ContactKind>();
-    if (this.config.AUTH_PROVIDERS.includes('google')) {
+    if (this.config.AUTH_PROVIDERS.includes('google') || this.config.EMAIL_SIGN_IN) {
       verified.add('email');
     }
     if (this.config.AUTH_PROVIDERS.includes('telegram')) {

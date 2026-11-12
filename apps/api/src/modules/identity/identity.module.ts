@@ -6,6 +6,7 @@ import { AccountsService } from './accounts.service';
 import { AuthController } from './auth.controller';
 import { DailyLimitsService } from './daily-limits.service';
 import { DevController } from './dev.controller';
+import { EmailAuthController } from './email-auth.controller';
 import { EmailCodesService } from './email-codes.service';
 import { FamilyController } from './family.controller';
 import { FamilyService } from './family.service';
@@ -19,7 +20,7 @@ import { SessionsService } from './sessions.service';
 
 @Module({
   imports: [OutboxModule, MailModule],
-  controllers: [AuthController, MeController, FamilyController, PinController, DevController],
+  controllers: [AuthController, EmailAuthController, MeController, FamilyController, PinController, DevController],
   providers: [
     AccountsService,
     MembershipsService,

@@ -15,6 +15,7 @@ export default defineConfig({
     env: {
       LOG_LEVEL: 'silent',
       DEV_LOGIN: 'true',
+      EMAIL_SIGN_IN: 'true',
       AUTH_PEPPER: 'integration-pepper-that-is-long-enough',
       AUTH_PROVIDERS: 'google,telegram',
       GOOGLE_CLIENT_ID: 'integration-client',

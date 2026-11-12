@@ -19,12 +19,13 @@ export class AccountsService {
       where: { provider_subjectHash: { provider, subjectHash } },
       select: { userId: true },
     });
-    if (account) {
+    const userId = account?.userId ?? (await this.linkByContact(provider, subjectHash, profile));
+    if (userId) {
       if (profile.name) {
-        await this.prisma.user.update({ where: { id: account.userId }, data: { name: profile.name } });
+        await this.prisma.user.update({ where: { id: userId }, data: { name: profile.name } });
       }
-      await this.saveContacts(account.userId, profile);
-      return this.addDevice(account.userId);
+      await this.saveContacts(userId, profile);
+      return this.addDevice(userId);
     }
     try {
       const signedIn = await this.createAccount(provider, subjectHash, profile.name);
@@ -73,6 +74,20 @@ export class AccountsService {
 
   remove(session: Session): Promise<RemovedUser> {
     return this.memberships.removeUser(session.userId, session.familyId);
+  }
+
+  private async linkByContact(provider: string, subjectHash: string, profile: AccountProfile): Promise<string | null> {
+    for (const { kind, hash } of profile.contacts) {
+      const holder = await this.prisma.userContact.findUnique({ where: { kind_hash: { kind, hash } } });
+      if (holder) {
+        await this.prisma.authAccount.createMany({
+          data: [{ id: randomUUID(), provider, subjectHash, userId: holder.userId }],
+          skipDuplicates: true,
+        });
+        return holder.userId;
+      }
+    }
+    return null;
   }
 
   private async saveContacts(userId: string, profile: AccountProfile): Promise<void> {

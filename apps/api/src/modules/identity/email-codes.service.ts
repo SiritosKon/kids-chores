@@ -13,10 +13,18 @@ import type { MailLocale } from '@kids-chores/contracts';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { MailService } from '../../platform/mail';
 import { VALKEY } from '../../platform/valkey';
-import { EMAIL_CODE_ATTEMPTS, EMAIL_CODE_RESEND_SECONDS, EMAIL_CODE_TTL_SECONDS } from './constants';
-import { emailCodeHash, emailCodeKey, emailCodeMail, emailCodeSentKey, newEmailCode, sameHash } from './lib';
+import {
+  CODE_MAILS_PER_ADDRESS,
+  CODE_MAILS_PER_DAY_TOTAL,
+  CODE_MAILS_PER_IP,
+  EMAIL_CODE_ATTEMPTS,
+  EMAIL_CODE_RESEND_SECONDS,
+  EMAIL_CODE_TTL_SECONDS,
+} from './constants';
+import { DailyLimitsService } from './daily-limits.service';
+import { emailCodeHash, emailCodeKey, emailCodeMail, emailCodeSentKey, newEmailCode, sameHash, subjectHash } from './lib';
 import { storedEmailCodeSchema } from './schema';
-import type { EmailCodePurpose } from './types';
+import type { DailyLimit, EmailCodePurpose } from './types';
 
 @Injectable()
 export class EmailCodesService {
@@ -25,13 +33,21 @@ export class EmailCodesService {
   constructor(
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     @Inject(VALKEY) private readonly valkey: Redis,
-    private readonly mail: MailService
+    private readonly mail: MailService,
+    private readonly limits: DailyLimitsService
   ) {}
 
-  async send(purpose: EmailCodePurpose, subject: string, email: string, locale: MailLocale): Promise<void> {
+  async send(purpose: EmailCodePurpose, subject: string, email: string, locale: MailLocale, ip: string): Promise<void> {
     const sent = emailCodeSentKey(purpose, subject);
     if ((await this.valkey.set(sent, '1', 'EX', EMAIL_CODE_RESEND_SECONDS, 'NX')) !== 'OK') {
       throw new HttpException('Too Many Requests', HttpStatus.TOO_MANY_REQUESTS);
+    }
+    const limits = this.mailLimits(purpose, subject, ip);
+    try {
+      await this.limits.reserve(limits);
+    } catch (error) {
+      await this.valkey.del(sent);
+      throw error;
     }
     const code = newEmailCode();
     const key = emailCodeKey(purpose, subject);
@@ -44,10 +60,19 @@ export class EmailCodesService {
     try {
       await this.mail.send({ to: email, ...emailCodeMail(purpose, locale, code) });
     } catch (error) {
+      await this.limits.release(limits);
       await this.valkey.del(key, sent);
       this.logger.warn(`${purpose} code mail failed: ${error instanceof Error ? error.name : 'unknown error'}`);
       throw new ServiceUnavailableException();
     }
+  }
+
+  private mailLimits(purpose: EmailCodePurpose, subject: string, ip: string): DailyLimit[] {
+    return [
+      { name: `mail:code:${purpose}:${subject}`, perDay: CODE_MAILS_PER_ADDRESS },
+      { name: `mail:code:ip:${subjectHash(this.config.AUTH_PEPPER, 'ip', ip)}`, perDay: CODE_MAILS_PER_IP },
+      { name: 'mail:code:all', perDay: CODE_MAILS_PER_DAY_TOTAL },
+    ];
   }
 
   async check(purpose: EmailCodePurpose, subject: string, code: string): Promise<void> {
