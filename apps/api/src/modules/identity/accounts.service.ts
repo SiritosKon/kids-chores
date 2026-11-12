@@ -77,7 +77,7 @@ export class AccountsService {
   }
 
   private async linkByContact(provider: string, subjectHash: string, profile: AccountProfile): Promise<string | null> {
-    for (const { kind, hash } of profile.contacts) {
+    for (const { kind, hash } of profile.linkable ?? []) {
       const holder = await this.prisma.userContact.findUnique({ where: { kind_hash: { kind, hash } } });
       if (holder) {
         await this.prisma.authAccount.createMany({

@@ -68,11 +68,12 @@ export class AuthController {
     reply.clearCookie(AUTH_STATE_COOKIE, { path: authStateCookieOptions(this.config).path });
     try {
       const callbackAt = new URL(request.url, publicOrigin(this.config));
-      const { subject, name, picture, contacts } = await this.oidc.finish(known, callbackAt, browserState);
+      const { subject, name, picture, contacts, linkable } = await this.oidc.finish(known, callbackAt, browserState);
       const pepper = this.config.AUTH_PEPPER;
       const signedIn = await this.accounts.signIn(known, subjectHash(pepper, known, subject), {
         name,
         contacts: contacts.map((contact) => contactHash(pepper, contact)),
+        linkable: linkable.map((contact) => contactHash(pepper, contact)),
       });
       await this.sessions.start(request, reply, signedIn);
       return reply.redirect(homeUrl(this.config, known, picture), 302);

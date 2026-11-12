@@ -67,4 +67,18 @@ describe('PIN codes by email', () => {
     expect(statuses).toEqual([422, 422, 422, 422, 410]);
     expect((await send(dad, '/v1/pin/code/check', { code })).statusCode).toBe(410);
   });
+
+  it('counts every try before comparing, even when the tries come at once', async () => {
+    const tag = randomUUID().slice(0, 8);
+    const email = `racer-${tag}@example.com`;
+    const racer = await devLogin(`racer-${tag}`, email);
+    await send(racer, '/v1/pin/code', { email, locale: 'en' });
+    const code = codeFrom((await lastMailTo(email)).Text);
+    const miss = code === '123456' ? '654321' : '123456';
+    const statuses = await Promise.all(
+      Array.from({ length: 12 }, () => send(racer, '/v1/pin/code/check', { code: miss }).then((response) => response.statusCode))
+    );
+    expect(statuses.filter((status) => status === 422)).toHaveLength(4);
+    expect(statuses.filter((status) => status === 410)).toHaveLength(8);
+  });
 });

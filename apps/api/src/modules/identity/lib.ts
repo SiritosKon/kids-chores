@@ -174,17 +174,21 @@ export const profilePhone = (claims: unknown): string | undefined => {
   return phone.success ? phone.data : undefined;
 };
 
+export const googleOwnsMailbox = (email: string, claims: unknown): boolean => {
+  const profile = providerProfileSchema.safeParse(claims);
+  return GMAIL_DOMAINS.includes(splitEmail(email).domain) || (profile.success && profile.data.hd !== undefined);
+};
+
 export const providerIdentity = (provider: AuthProvider, subject: string, claims: unknown): ProviderIdentity => {
   const email = provider === 'google' ? profileEmail(claims) : undefined;
   const phone = provider === 'telegram' ? profilePhone(claims) : undefined;
+  const emailContact: Contact[] = email ? [{ kind: 'email', value: email }] : [];
   return {
     subject,
     name: profileName(claims),
     picture: profilePicture(claims),
-    contacts: [
-      ...(email ? [{ kind: 'email' as const, value: email }] : []),
-      ...(phone ? [{ kind: 'phone' as const, value: phone }] : []),
-    ],
+    contacts: [...emailContact, ...(phone ? [{ kind: 'phone' as const, value: phone }] : [])],
+    linkable: email && googleOwnsMailbox(email, claims) ? emailContact : [],
   };
 };
 

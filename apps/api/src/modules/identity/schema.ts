@@ -58,11 +58,9 @@ export const providerProfileSchema = z.object({
   picture: z.string().optional(),
   email: z.string().optional(),
   email_verified: z.boolean().optional(),
+  hd: z.string().optional(),
   phone_number: z.string().optional(),
   phone_number_verified: z.boolean().optional(),
 });
 
-export const storedEmailCodeSchema = z.object({
-  hash: z.string().min(1),
-  attempts: z.coerce.number().int().nonnegative(),
-});
+export const checkedCodeSchema = z.tuple([z.string().min(1), z.number().int().positive()]);

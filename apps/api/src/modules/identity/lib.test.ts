@@ -173,6 +173,14 @@ describe('provider identity', () => {
       name: 'Аня',
       picture: undefined,
       contacts: [{ kind: 'phone', value: '+79991234567' }],
+      linkable: [],
     });
+  });
+
+  it('links to an existing account only by a mailbox Google itself runs', () => {
+    const verified = { email_verified: true };
+    expect(providerIdentity('google', 'g', { ...verified, email: 'anya@gmail.com' }).linkable).toHaveLength(1);
+    expect(providerIdentity('google', 'g', { ...verified, email: 'anya@school.org', hd: 'school.org' }).linkable).toHaveLength(1);
+    expect(providerIdentity('google', 'g', { ...verified, email: 'anya@example.com' }).linkable).toEqual([]);
   });
 });

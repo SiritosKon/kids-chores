@@ -68,7 +68,7 @@ export const CODE_MAILS_PER_ADDRESS = 10;
 
 export const CODE_MAILS_PER_IP = 20;
 
-export const CODE_MAILS_PER_DAY_TOTAL = 300;
+export const CODE_MAILS_PER_DAY_TOTAL = 1000;
 
 export const EMAIL_PROVIDER = 'email';
 
@@ -174,6 +174,18 @@ for _, key in ipairs(KEYS) do
   end
 end
 return 1
+`;
+
+export const CHECK_CODE_SCRIPT = `
+if redis.call('EXISTS', KEYS[1]) == 0 then
+  return false
+end
+local attempts = redis.call('HINCRBY', KEYS[1], 'attempts', 1)
+if attempts > tonumber(ARGV[1]) then
+  redis.call('DEL', KEYS[1])
+  return false
+end
+return { redis.call('HGET', KEYS[1], 'hash'), attempts }
 `;
 
 export const RELEASE_LIMITS_SCRIPT = `

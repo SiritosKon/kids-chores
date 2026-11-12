@@ -17,13 +17,14 @@ import {
   CODE_MAILS_PER_ADDRESS,
   CODE_MAILS_PER_DAY_TOTAL,
   CODE_MAILS_PER_IP,
+  CHECK_CODE_SCRIPT,
   EMAIL_CODE_ATTEMPTS,
   EMAIL_CODE_RESEND_SECONDS,
   EMAIL_CODE_TTL_SECONDS,
 } from './constants';
 import { DailyLimitsService } from './daily-limits.service';
 import { emailCodeHash, emailCodeKey, emailCodeMail, emailCodeSentKey, newEmailCode, sameHash, subjectHash } from './lib';
-import { storedEmailCodeSchema } from './schema';
+import { checkedCodeSchema } from './schema';
 import type { DailyLimit, EmailCodePurpose } from './types';
 
 @Injectable()
@@ -71,21 +72,22 @@ export class EmailCodesService {
     return [
       { name: `mail:code:${purpose}:${subject}`, perDay: CODE_MAILS_PER_ADDRESS },
       { name: `mail:code:ip:${subjectHash(this.config.AUTH_PEPPER, 'ip', ip)}`, perDay: CODE_MAILS_PER_IP },
-      { name: 'mail:code:all', perDay: CODE_MAILS_PER_DAY_TOTAL },
+      { name: `mail:code:${purpose}:all`, perDay: CODE_MAILS_PER_DAY_TOTAL },
     ];
   }
 
   async check(purpose: EmailCodePurpose, subject: string, code: string): Promise<void> {
     const key = emailCodeKey(purpose, subject);
-    const stored = storedEmailCodeSchema.safeParse(await this.valkey.hgetall(key));
-    if (!stored.success) {
+    const checked = checkedCodeSchema.safeParse(await this.valkey.eval(CHECK_CODE_SCRIPT, 1, key, EMAIL_CODE_ATTEMPTS));
+    if (!checked.success) {
       throw new GoneException();
     }
-    if (sameHash(stored.data.hash, emailCodeHash(this.config.AUTH_PEPPER, purpose, subject, code))) {
+    const [hash, attempts] = checked.data;
+    if (sameHash(hash, emailCodeHash(this.config.AUTH_PEPPER, purpose, subject, code))) {
       await this.valkey.del(key);
       return;
     }
-    if ((await this.valkey.hincrby(key, 'attempts', 1)) >= EMAIL_CODE_ATTEMPTS) {
+    if (attempts >= EMAIL_CODE_ATTEMPTS) {
       await this.valkey.del(key);
       throw new GoneException();
     }

@@ -14,6 +14,7 @@ export interface ProviderIdentity {
   name?: string;
   picture?: string;
   contacts: Contact[];
+  linkable: Contact[];
 }
 
 export interface OidcProvider {
@@ -40,6 +41,7 @@ export interface EmailParts {
 export interface AccountProfile {
   name?: string;
   contacts: readonly ContactHash[];
+  linkable?: readonly ContactHash[];
 }
 
 export interface ProviderStart {
