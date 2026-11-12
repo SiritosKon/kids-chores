@@ -154,6 +154,29 @@ export const INVITE_MAILS: Readonly<Record<MailLocale, InviteMailText>> = {
 
 export const DAY_SECONDS = 24 * 60 * 60;
 
+export const RESERVE_LIMITS_SCRIPT = `
+for index, key in ipairs(KEYS) do
+  if tonumber(redis.call('GET', key) or '0') >= tonumber(ARGV[index + 1]) then
+    return 0
+  end
+end
+for _, key in ipairs(KEYS) do
+  if redis.call('INCR', key) == 1 then
+    redis.call('EXPIRE', key, ARGV[1])
+  end
+end
+return 1
+`;
+
+export const RELEASE_LIMITS_SCRIPT = `
+for _, key in ipairs(KEYS) do
+  if redis.call('EXISTS', key) == 1 and redis.call('DECR', key) <= 0 then
+    redis.call('DEL', key)
+  end
+end
+return 1
+`;
+
 const GOOGLE_SERVER: ServerMetadata = {
   issuer: 'https://accounts.google.com',
   authorization_endpoint: 'https://accounts.google.com/o/oauth2/v2/auth',

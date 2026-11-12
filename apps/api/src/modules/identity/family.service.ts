@@ -3,8 +3,6 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
-  HttpException,
-  HttpStatus,
   Inject,
   Injectable,
   Logger,
@@ -20,15 +18,11 @@ import type {
   InvitePreview,
   Session,
 } from '@kids-chores/contracts';
-import type { Redis } from 'ioredis';
 import type { FamilyInvite as InviteRow } from '../../generated/prisma/client';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { PrismaService } from '../../platform/database';
 import { MailService } from '../../platform/mail';
-import { RATE_LIMIT_PREFIX } from '../../platform/rate-limit';
-import { VALKEY } from '../../platform/valkey';
 import {
-  DAY_SECONDS,
   INVITE_MAILS_PER_ADDRESS,
   INVITE_MAILS_PER_ADDRESS_TOTAL,
   INVITE_MAILS_PER_DAY,
@@ -38,6 +32,7 @@ import {
   JOIN_REQUEST_TTL_MS,
   JOIN_REQUESTS_PER_DAY,
 } from './constants';
+import { DailyLimitsService } from './daily-limits.service';
 import { contactHash, inviteMail, inviteTokenHash, inviteUrl, newInviteToken, subjectHash } from './lib';
 import { MembershipsService } from './memberships.service';
 import { SessionsService } from './sessions.service';
@@ -55,11 +50,11 @@ export class FamilyService {
 
   constructor(
     @Inject(APP_CONFIG) private readonly config: AppConfig,
-    @Inject(VALKEY) private readonly valkey: Redis,
     private readonly prisma: PrismaService,
     private readonly memberships: MembershipsService,
     private readonly sessions: SessionsService,
-    private readonly mail: MailService
+    private readonly mail: MailService,
+    private readonly limits: DailyLimitsService
   ) {}
 
   async family(session: Session): Promise<FamilyResponse> {
@@ -106,7 +101,7 @@ export class FamilyService {
   async invite(session: Session, request: CreateInviteRequest, ip: string): Promise<CreatedInvite> {
     await this.requireOwner(session);
     const limits = request.email ? this.mailLimits(session, request.email, ip) : [];
-    await this.reserve(limits);
+    await this.limits.reserve(limits);
     const token = newInviteToken();
     const row = await this.prisma.familyInvite.create({
       data: {
@@ -123,7 +118,7 @@ export class FamilyService {
       try {
         await this.mail.send({ to: request.email, ...inviteMail(request.locale, inviter.name, link, row.expiresAt) });
       } catch (error) {
-        await this.release(limits);
+        await this.limits.release(limits);
         await this.prisma.familyInvite.deleteMany({ where: { id: row.id } });
         this.logger.warn(`invite mail failed: ${error instanceof Error ? error.name : 'unknown error'}`);
         throw new ServiceUnavailableException();
@@ -161,7 +156,7 @@ export class FamilyService {
   }
 
   async requestToJoin(session: Session, contact: Contact): Promise<void> {
-    await this.reserve([{ name: `join:${session.userId}`, perDay: JOIN_REQUESTS_PER_DAY }]);
+    await this.limits.reserve([{ name: `join:${session.userId}`, perDay: JOIN_REQUESTS_PER_DAY }]);
     const { kind, hash } = contactHash(this.config.AUTH_PEPPER, contact);
     const holder = await this.prisma.userContact.findUnique({ where: { kind_hash: { kind, hash } }, select: { userId: true } });
     const target = holder ? await this.prisma.membership.findUnique({ where: { userId: holder.userId } }) : null;
@@ -226,34 +221,6 @@ export class FamilyService {
       { name: `mail:invite:ip:${subjectHash(pepper, 'ip', ip)}`, perDay: INVITE_MAILS_PER_IP },
       { name: 'mail:invite:all', perDay: INVITE_MAILS_PER_DAY_TOTAL },
     ];
-  }
-
-  private async reserve(limits: readonly DailyLimit[]): Promise<void> {
-    if (limits.length === 0) {
-      return;
-    }
-    const multi = this.valkey.multi();
-    for (const { name } of limits) {
-      const key = `${RATE_LIMIT_PREFIX}${name}`;
-      multi.set(key, 0, 'EX', DAY_SECONDS, 'NX').incr(key);
-    }
-    const replies = (await multi.exec()) ?? [];
-    const over = limits.some(({ perDay }, index) => Number(replies[index * 2 + 1]?.[1] ?? 0) > perDay);
-    if (over) {
-      await this.release(limits);
-      throw new HttpException('Too Many Requests', HttpStatus.TOO_MANY_REQUESTS);
-    }
-  }
-
-  private async release(limits: readonly DailyLimit[]): Promise<void> {
-    if (limits.length === 0) {
-      return;
-    }
-    const multi = this.valkey.multi();
-    for (const { name } of limits) {
-      multi.decr(`${RATE_LIMIT_PREFIX}${name}`);
-    }
-    await multi.exec();
   }
 
   private async join(userId: string, familyId: string): Promise<void> {

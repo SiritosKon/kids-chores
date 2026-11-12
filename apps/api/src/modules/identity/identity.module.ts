@@ -4,6 +4,7 @@ import { MailModule } from '../../platform/mail';
 import { OutboxModule } from '../../platform/outbox';
 import { AccountsService } from './accounts.service';
 import { AuthController } from './auth.controller';
+import { DailyLimitsService } from './daily-limits.service';
 import { DevController } from './dev.controller';
 import { EmailCodesService } from './email-codes.service';
 import { FamilyController } from './family.controller';
@@ -24,6 +25,7 @@ import { SessionsService } from './sessions.service';
     MembershipsService,
     FamilyService,
     EmailCodesService,
+    DailyLimitsService,
     SessionsService,
     OidcService,
     PasskeysService,
