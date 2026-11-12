@@ -45,7 +45,7 @@ export const saveVariants = async (
       updatedAt: now,
     });
     if (photos.get(id) !== draft.photo) {
-      changedPhotos.push({ id, photo: draft.photo });
+      changedPhotos.push({ id, photo: draft.photo, photoPending: true });
     }
   });
 

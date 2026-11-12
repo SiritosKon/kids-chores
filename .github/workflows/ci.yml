@@ -58,12 +58,24 @@ jobs:
       SMTP_URL: smtp://localhost:1025
       MAIL_FROM: Little Big Deals <no-reply@localhost>
       MAILPIT_URL: http://localhost:8025
+      S3_ENDPOINT: http://localhost:8333
+      S3_BUCKET: media
+      S3_ACCESS_KEY: local
+      S3_SECRET_KEY: local-secret
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
       - run: npm ci
+      - name: Start SeaweedFS as object storage
+        run: |
+          docker run -d --name storage -p 8333:8333 docker.io/chrislusf/seaweedfs:4.03 \
+            server -s3 -dir=/data -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=64 -volume.max=50
+          for attempt in $(seq 1 60); do
+            curl -fs http://localhost:8333/healthz && break
+            sleep 2
+          done
       - name: Create database roles and schemas
         run: sh infra/postgres/init.sh
         env:

@@ -30,6 +30,10 @@ export const INVITE_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 
 export const FAMILY_HEADER = 'x-family-id';
 
+export const MEDIA_TYPE = 'image/jpeg';
+
+export const MEDIA_MAX_BYTES = 1024 * 1024;
+
 export const PROVIDER_PICTURE_HOST = /(^|\.)googleusercontent\.com$/;
 
 export const SYNC_KINDS = ['children', 'tasks', 'rewards', 'rewardVariants', 'settings', 'completions', 'spends'] as const;

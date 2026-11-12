@@ -87,6 +87,7 @@ model Family {
   processedMutations ProcessedMutation[]
   invites            FamilyInvite[]
   joinRequests       JoinRequest[]
+  media              Media[]
 
   @@map("families")
   @@schema("core")
@@ -200,5 +201,17 @@ model ProcessedMutation {
 
   @@id([familyId, mutationId])
   @@map("processed_mutations")
+  @@schema("core")
+}
+
+model Media {
+  id        String   @id @db.Uuid
+  familyId  String   @map("family_id") @db.Uuid
+  bytes     Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@map("media")
   @@schema("core")
 }

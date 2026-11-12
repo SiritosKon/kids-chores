@@ -7,7 +7,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     notes: {
       ru: [
         'Выпуск 0.7: аккаунт семьи — данные хранятся в нём и есть на всех устройствах семьи. Вход через Google или Telegram, а дальше — по Face ID или Touch ID. Без сети приложение работает как обычно',
-        'Приложение работает только с аккаунтом: при первом запуске нужно войти через Google, Telegram или по Face ID. Фото детей и вариантов наград остаются на устройстве',
+        'Приложение работает только с аккаунтом: при первом запуске нужно войти через Google, Telegram или по Face ID. Фото родителя остаётся на устройстве',
         'В знакомстве с приложением подсказки крупнее, у каждой есть кнопка «Пропустить», а нажатие мимо подсказки тоже предлагает пропустить знакомство',
         'На широком экране меню всегда открыто слева, в нём название приложения. На узком меню открывается кнопкой, а шапка теперь от края до края',
         'Наверху меню — имя и аватарка аккаунта, а если нет связи с сервером — предупреждение. Имя и фото берутся из Google, править их не нужно; фото хранится только на этом устройстве',
@@ -18,6 +18,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'Выход из аккаунта стирает данные семьи с этого устройства, и приложение начинается заново, как при первом запуске. В аккаунте всё остаётся. Без сети выйти нельзя, а если какие-то изменения не дошли до сервера, приложение предупредит',
         'В семье может быть несколько взрослых: тот, кто завёл семью, приглашает других одноразовой ссылкой: QR-кодом, через «Отправить» или письмом на почту. Он же принимает запросы на вступление и может убрать человека из семьи. Открыл ссылку и вошёл — сразу видишь приглашение',
         'Можно попроситься в семью, которая уже есть: при первом запуске или в настройках укажите почту или телефон родителя из этой семьи — он увидит запрос и примет вас. Адреса и номера мы не храним, только их зашифрованные отпечатки',
+        'Фото детей и картинки вариантов наград теперь есть на всех устройствах семьи. Они хранятся в закрытом хранилище, открыть их может только ваша семья',
         'Войти можно и без Google и Telegram — по коду, который приходит на почту. Та же почта, что в Google, открывает тот же аккаунт',
         'Забытый PIN сбрасывается кодом, который приходит на почту аккаунта. В настройках PIN по-прежнему меняется через текущий, а если его забыли — тоже кодом на почту',
         'На заставке при запуске осталось только название Little Big Deals',
@@ -25,7 +26,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       ],
       en: [
         'Release 0.7: a family account — your data lives in it and is on every family device. Sign in with Google or Telegram, then with Face ID or Touch ID. Offline the app works as usual',
-        'The app works only with an account: on first launch you sign in with Google, Telegram or Face ID. Photos of kids and reward variants stay on the device',
+        "The app works only with an account: on first launch you sign in with Google, Telegram or Face ID. The parent's photo stays on the device",
         'The app tour has bigger tips, each with a Skip button, and tapping outside a tip also offers to skip the tour',
         'On wide screens the menu stays open on the left with the app name in it. On narrow screens the menu opens with a button, and the top bar now runs edge to edge',
         'The account sits at the top of the menu with its name and picture, plus a warning when there is no connection to the server. The name and photo come from Google, nothing to edit; the photo stays on this device',
@@ -36,6 +37,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         "Signing out removes the family's data from this device, and the app starts over as on first launch. Everything stays in the account. You can't sign out offline, and the app warns you if some changes haven't reached the server",
         'A family can have several adults: whoever created the family invites others with a one-time link: a QR code, the share sheet or an email. They also accept requests to join and can remove someone from the family. Open the link and sign in, and the invitation is right there',
         "You can ask to join a family that already exists: on first launch or in settings, enter the email or phone of a parent from that family — they'll see the request and let you in. We don't keep addresses or numbers, only their encrypted fingerprints",
+        "Photos of kids and reward variant pictures now appear on every family device. They're kept in closed storage that only your family can open",
         'You can also sign in without Google or Telegram, with a code sent to your email. The same email as in Google opens the same account',
         "A forgotten PIN is reset with a code sent to the account's email. In settings you still change the PIN with the current one, and if you forgot it, with an email code too",
         'The launch screen now shows only the name Little Big Deals',
@@ -43,7 +45,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       ],
       es: [
         'Versión 0.7: una cuenta familiar: tus datos se guardan en ella y están en todos los dispositivos de la familia. Inicia sesión con Google o Telegram y después con Face ID o Touch ID. Sin conexión la app funciona como siempre',
-        'La app solo funciona con cuenta: la primera vez hay que iniciar sesión con Google, Telegram o Face ID. Las fotos de los niños y de las variantes de premios se quedan en el dispositivo',
+        'La app solo funciona con cuenta: la primera vez hay que iniciar sesión con Google, Telegram o Face ID. La foto del padre o la madre se queda en el dispositivo',
         'El recorrido por la app tiene consejos más grandes, cada uno con un botón Saltar, y tocar fuera de un consejo también ofrece saltar el recorrido',
         'En pantallas anchas el menú queda abierto a la izquierda con el nombre de la app. En pantallas estrechas se abre con un botón, y la barra superior ahora va de borde a borde',
         'La cuenta está arriba en el menú con su nombre y su foto, y un aviso si no hay conexión con el servidor. El nombre y la foto vienen de Google, no hay nada que editar; la foto se queda en este dispositivo',
@@ -54,6 +56,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'Al cerrar sesión los datos de la familia se borran de este dispositivo y la app empieza de nuevo, como la primera vez. En la cuenta todo se queda. Sin conexión no se puede cerrar sesión, y si algunos cambios no llegaron al servidor, la app avisa',
         'Una familia puede tener varios adultos: quien creó la familia invita a otros con un enlace de un solo uso: un código QR, el menú Compartir o un correo. También acepta solicitudes para unirse y puede quitar a alguien de la familia. Abre el enlace, entra y verás la invitación',
         'Puedes pedir unirte a una familia que ya existe: la primera vez o en los ajustes, indica el correo o el teléfono de un padre o una madre de esa familia; verá la solicitud y te aceptará. No guardamos direcciones ni números, solo sus huellas cifradas',
+        'Las fotos de los niños y las imágenes de las variantes de premios ahora están en todos los dispositivos de la familia. Se guardan en un almacenamiento cerrado que solo tu familia puede abrir',
         'También puedes entrar sin Google ni Telegram, con un código que llega a tu correo. El mismo correo que en Google abre la misma cuenta',
         'Un PIN olvidado se restablece con un código que llega al correo de la cuenta. En los ajustes el PIN se sigue cambiando con el actual y, si lo olvidaste, también con un código por correo',
         'La pantalla de inicio ahora muestra solo el nombre Little Big Deals',

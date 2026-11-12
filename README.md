@@ -45,7 +45,8 @@ sync between devices and accounts (see the roadmap in the `research` branch).
   adding it to the iOS home screen.
 - **Family account and sync** (local contour only). Sign in with Google or Telegram, then with
   Face ID or Touch ID. Kids, chores, rewards, marks and purchases go to the server and on to the
-  family's other devices; offline changes wait on the device. Photos never leave the device.
+  family's other devices; offline changes wait on the device. Photos of kids and reward variants
+  go to a closed storage bucket and reach only the family's devices.
 - **Several adults in a family.** The adult who created the family invites others with a
   one-time link shown as a QR code or emailed by the server, approves requests to join (found by a parent's email or phone)
   and can remove members; anyone can leave. The server keeps only keyed hashes of the link token
@@ -114,7 +115,7 @@ podman compose up -d --build      # the app with the backend on http://localhost
 podman compose down -v            # stop and delete the data
 ```
 
-It starts Postgres, Valkey, Mailpit, the migrations, `api`, `outbox-relay`, `notifications` and nginx
+It starts Postgres, Valkey, Mailpit, SeaweedFS for photos, the migrations, `api`, `outbox-relay`, `notifications` and nginx
 with the built PWA. The `migrate` container applies the migrations and stops with exit code 0;
 `api` and `outbox-relay` start only after it. Host ports are set in `.env`; Valkey is on 6380 by
 default because 6379 is often taken. Mail never leaves the machine: Mailpit catches it at
@@ -135,7 +136,7 @@ means the same family.
 The backend can also run on the host against the containers' Postgres and Valkey:
 
 ```sh
-podman compose up -d postgres valkey mailpit
+podman compose up -d postgres valkey mailpit storage
 cp apps/api/.env.example apps/api/.env       # once
 npm run dev -w apps/api                      # api with reload on http://localhost:3000
 API_URL=http://localhost:3000 npm run dev    # the PWA on :5173, /v1 goes to the api on the host
@@ -175,8 +176,10 @@ branch, not in `main`.
 
 ## Data and privacy
 
-In the deployed build everything, including a child's photo, stays in the browser storage of the
-device the app runs on. On iOS a web app added to the home screen has its own storage, separate
+In the Pages build without a server everything, including a child's photo, stays in the browser
+storage of the device the app runs on. With the server, photos of kids and reward variants are
+kept in a closed object storage bucket (SeaweedFS locally, Hetzner Object Storage in production)
+and only the family's own sessions can read them. On iOS a web app added to the home screen has its own storage, separate
 from Safari, and removing the icon deletes that data — export first.
 
 The backend is designed to keep as little personal data as possible: no passwords, no emails or

@@ -21,6 +21,10 @@ const env = {
   AUTH_PEPPER: 'a-local-pepper-that-is-long-enough',
   SMTP_URL: 'smtp://localhost:1025',
   MAIL_FROM: 'Little Big Deals <no-reply@localhost>',
+  S3_ENDPOINT: 'http://localhost:8333',
+  S3_BUCKET: 'media',
+  S3_ACCESS_KEY: 'local',
+  S3_SECRET_KEY: 'local-secret',
 };
 
 describe('readProductVersion', () => {

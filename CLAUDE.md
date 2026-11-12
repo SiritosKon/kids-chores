@@ -9,7 +9,7 @@ Little Big Deals — PWA-трекер домашних дел для детей.
 | `apps/api` | Бэкенд: NestJS на Fastify, Prisma, Valkey; HTTP API и `outbox-relay` |
 | `apps/notifications` | Сервис уведомлений: читает события из Valkey; пока каркас |
 | `packages/contracts` | zod-схемы, общие для фронта и сервисов |
-| `infra/`, `compose.yaml` | Локальный контур: Postgres, Valkey, Mailpit, сервисы и nginx в контейнерах |
+| `infra/`, `compose.yaml` | Локальный контур: Postgres, Valkey, Mailpit, SeaweedFS (S3 для фото), сервисы и nginx в контейнерах |
 
 Node — версия из `.nvmrc`, она же в CI.
 
@@ -42,7 +42,7 @@ podman compose down -v               # снести вместе с данным
 `api` на машине, без контейнера, — против Postgres и Valkey из Compose:
 
 ```
-podman compose up -d postgres valkey mailpit
+podman compose up -d postgres valkey mailpit storage
 cp apps/api/.env.example apps/api/.env       # один раз
 npm run dev -w apps/api                      # api на http://localhost:3000
 API_URL=http://localhost:3000 npm run dev    # PWA на :5173, /v1 уходит в api на машине

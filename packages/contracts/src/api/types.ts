@@ -11,6 +11,7 @@ import type {
   emailCodeRequestSchema,
   emailSignInSchema,
   createdInviteSchema,
+  mediaCreatedSchema,
   invitePreviewSchema,
   inviteTokenRequestSchema,
   joinRequestSchema,
@@ -45,6 +46,8 @@ export type EmailSignIn = z.infer<typeof emailSignInSchema>;
 export type InviteTokenRequest = z.infer<typeof inviteTokenRequestSchema>;
 
 export type CreatedInvite = z.infer<typeof createdInviteSchema>;
+
+export type MediaCreated = z.infer<typeof mediaCreatedSchema>;
 
 export type InvitePreview = z.infer<typeof invitePreviewSchema>;
 

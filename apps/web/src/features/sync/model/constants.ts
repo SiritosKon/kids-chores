@@ -24,7 +24,7 @@ export const SYNC_SPECS: Record<SyncKind, SyncSpec> = {
     schema: childSchema,
     read: childrenCatalogue.read,
     timeFields: ['updatedAt'],
-    localFields: ['photo'],
+    localFields: ['photo', 'photoSyncedId', 'photoPending'],
     localDefaults: () => ({ photo: '' }),
   }),
   tasks: defineSpec({

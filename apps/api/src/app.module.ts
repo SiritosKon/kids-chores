@@ -6,9 +6,11 @@ import { ValkeyModule } from './platform/valkey';
 import { RateLimitModule } from './platform/rate-limit';
 import { OutboxModule } from './platform/outbox';
 import { HttpModule } from './platform/http';
+import { StorageModule } from './platform/storage';
 import { MetaModule } from './modules/meta';
 import { IdentityModule } from './modules/identity';
 import { SyncModule } from './modules/sync';
+import { MediaModule } from './modules/media';
 
 @Module({
   imports: [
@@ -19,9 +21,11 @@ import { SyncModule } from './modules/sync';
     RateLimitModule,
     OutboxModule,
     HttpModule,
+    StorageModule,
     MetaModule,
     IdentityModule,
     SyncModule,
+    MediaModule,
   ],
 })
 export class AppModule {}

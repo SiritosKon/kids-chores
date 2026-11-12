@@ -64,6 +64,8 @@ export const emailSignInSchema = z.object({
   code: z.string().regex(EMAIL_CODE_PATTERN),
 });
 
+export const mediaCreatedSchema = z.object({ id: z.uuid() });
+
 export const inviteTokenRequestSchema = z.object({ token: z.string().regex(INVITE_TOKEN_PATTERN) });
 
 export const createdInviteSchema = z.object({

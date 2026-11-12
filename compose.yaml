@@ -23,6 +23,11 @@ x-api-env: &api-env
   TELEGRAM_CLIENT_SECRET: ${TELEGRAM_CLIENT_SECRET:-}
   SMTP_URL: ${SMTP_URL:-smtp://mailpit:1025}
   MAIL_FROM: ${MAIL_FROM:-Little Big Deals <no-reply@localhost>}
+  S3_ENDPOINT: ${S3_ENDPOINT:-http://storage:8333}
+  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_BUCKET: ${S3_BUCKET:-media}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-local}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-local-secret}
   WEBAUTHN_RP_ID: ${WEBAUTHN_RP_ID:-}
   EMAIL_SIGN_IN: ${EMAIL_SIGN_IN:-true}
   DEV_LOGIN: ${DEV_LOGIN:-false}
@@ -83,6 +88,19 @@ services:
       timeout: 3s
       retries: 20
 
+  storage:
+    image: docker.io/chrislusf/seaweedfs:4.03
+    command: [server, -s3, -dir=/data, -ip.bind=0.0.0.0, -master.volumeSizeLimitMB=64, -volume.max=50]
+    volumes:
+      - storagedata:/data
+    ports:
+      - 127.0.0.1:${S3_HOST_PORT:-8333}:8333
+    healthcheck:
+      test: [CMD, wget, -qO-, http://127.0.0.1:8333/healthz]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
   migrate:
     <<: *api-image
     command: [npm, run, migrate:deploy]
@@ -102,6 +120,8 @@ services:
       valkey:
         condition: service_healthy
       mailpit:
+        condition: service_healthy
+      storage:
         condition: service_healthy
     healthcheck:
       test: [CMD, wget, -qO-, http://127.0.0.1:3000/v1/meta]
@@ -152,3 +172,4 @@ services:
 volumes:
   pgdata:
   valkeydata:
+  storagedata:

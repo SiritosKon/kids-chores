@@ -86,6 +86,7 @@ import { useSelectedDateStore } from '@/features/select-date';
 import { useParentAutoLogout } from '@/features/parent-auto-logout';
 import { useLogout } from '@/features/parent-login';
 import { InviteLinkDialog, useJoinRequestNotice } from '@/features/join-family';
+import { useMediaSyncStore } from '@/features/media-sync';
 import { useSignedInNotice } from '@/features/sign-in';
 import { useSyncStore } from '@/features/sync';
 import { recalculateStreaks } from '@/features/track-streak';
@@ -101,6 +102,7 @@ const appVersion = __APP_VERSION__;
 const settingsStore = useSettingsStore();
 const account = useAccountStore();
 const sync = useSyncStore();
+const mediaSync = useMediaSyncStore();
 const menuOpen = ref(false);
 const confirmLogout = useLogout();
 const tourPending = computed(() => settingsStore.settings?.tourPending === true);
@@ -141,7 +143,13 @@ declare global {
 
 onMounted(async () => {
   void account.refresh();
-  sync.start({ afterRemoteChanges: recalculateStreaks });
+  sync.start({
+    afterRemoteChanges: async () => {
+      await recalculateStreaks();
+      void mediaSync.run();
+    },
+  });
+  mediaSync.start();
   try {
     const { isNew, hadHistory } = await recordVersion(appVersion);
     if (isNew && hadHistory) {

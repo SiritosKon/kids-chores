@@ -26,6 +26,7 @@ export const rewardVariantSchema = z.object({
   name: z.string().min(1),
   order: z.number().int().nonnegative(),
   active: z.boolean(),
+  photoId: z.string().optional(),
   createdAt: timestamp,
   updatedAt: timestamp,
   archivedAt: timestamp.optional(),
@@ -34,4 +35,6 @@ export const rewardVariantSchema = z.object({
 export const variantPhotoSchema = z.object({
   id: z.string().min(1),
   photo: z.string(),
+  photoSyncedId: z.string().optional(),
+  photoPending: z.boolean().optional(),
 });
