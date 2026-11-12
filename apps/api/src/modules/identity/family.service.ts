@@ -106,7 +106,7 @@ export class FamilyService {
   async invite(session: Session, request: CreateInviteRequest, ip: string): Promise<CreatedInvite> {
     await this.requireOwner(session);
     const limits = request.email ? this.mailLimits(session, request.email, ip) : [];
-    await this.ensureAllowed(limits);
+    await this.reserve(limits);
     const token = newInviteToken();
     const row = await this.prisma.familyInvite.create({
       data: {
@@ -123,11 +123,11 @@ export class FamilyService {
       try {
         await this.mail.send({ to: request.email, ...inviteMail(request.locale, inviter.name, link, row.expiresAt) });
       } catch (error) {
+        await this.release(limits);
         await this.prisma.familyInvite.deleteMany({ where: { id: row.id } });
         this.logger.warn(`invite mail failed: ${error instanceof Error ? error.name : 'unknown error'}`);
         throw new ServiceUnavailableException();
       }
-      await this.consume(limits);
     }
     return { id: row.id, token, expiresAt: row.expiresAt.toISOString() };
   }
@@ -161,9 +161,7 @@ export class FamilyService {
   }
 
   async requestToJoin(session: Session, contact: Contact): Promise<void> {
-    const limits = [{ name: `join:${session.userId}`, perDay: JOIN_REQUESTS_PER_DAY }];
-    await this.ensureAllowed(limits);
-    await this.consume(limits);
+    await this.reserve([{ name: `join:${session.userId}`, perDay: JOIN_REQUESTS_PER_DAY }]);
     const { kind, hash } = contactHash(this.config.AUTH_PEPPER, contact);
     const holder = await this.prisma.userContact.findUnique({ where: { kind_hash: { kind, hash } }, select: { userId: true } });
     const target = holder ? await this.prisma.membership.findUnique({ where: { userId: holder.userId } }) : null;
@@ -230,21 +228,30 @@ export class FamilyService {
     ];
   }
 
-  private async ensureAllowed(limits: readonly DailyLimit[]): Promise<void> {
+  private async reserve(limits: readonly DailyLimit[]): Promise<void> {
     if (limits.length === 0) {
       return;
     }
-    const counts = await this.valkey.mget(limits.map(({ name }) => `${RATE_LIMIT_PREFIX}${name}`));
-    if (limits.some(({ perDay }, index) => Number(counts[index] ?? 0) >= perDay)) {
-      throw new HttpException('Too Many Requests', HttpStatus.TOO_MANY_REQUESTS);
-    }
-  }
-
-  private async consume(limits: readonly DailyLimit[]): Promise<void> {
     const multi = this.valkey.multi();
     for (const { name } of limits) {
       const key = `${RATE_LIMIT_PREFIX}${name}`;
       multi.set(key, 0, 'EX', DAY_SECONDS, 'NX').incr(key);
+    }
+    const replies = (await multi.exec()) ?? [];
+    const over = limits.some(({ perDay }, index) => Number(replies[index * 2 + 1]?.[1] ?? 0) > perDay);
+    if (over) {
+      await this.release(limits);
+      throw new HttpException('Too Many Requests', HttpStatus.TOO_MANY_REQUESTS);
+    }
+  }
+
+  private async release(limits: readonly DailyLimit[]): Promise<void> {
+    if (limits.length === 0) {
+      return;
+    }
+    const multi = this.valkey.multi();
+    for (const { name } of limits) {
+      multi.decr(`${RATE_LIMIT_PREFIX}${name}`);
     }
     await multi.exec();
   }
