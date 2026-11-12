@@ -18,6 +18,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'Выход из аккаунта стирает данные семьи с этого устройства, и приложение начинается заново, как при первом запуске. В аккаунте всё остаётся. Без сети выйти нельзя, а если какие-то изменения не дошли до сервера, приложение предупредит',
         'В семье может быть несколько взрослых: тот, кто завёл семью, приглашает других одноразовой ссылкой: QR-кодом, через «Отправить» или письмом на почту. Он же принимает запросы на вступление и может убрать человека из семьи. Открыл ссылку и вошёл — сразу видишь приглашение',
         'Можно попроситься в семью, которая уже есть: при первом запуске или в настройках укажите почту или телефон родителя из этой семьи — он увидит запрос и примет вас. Адреса и номера мы не храним, только их зашифрованные отпечатки',
+        'На заставке при запуске осталось только название Little Big Deals',
         'Аккаунт заработает в опубликованном приложении, когда у него появится свой сервер. Пока его можно попробовать в локальной сборке',
       ],
       en: [
@@ -33,6 +34,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         "Signing out removes the family's data from this device, and the app starts over as on first launch. Everything stays in the account. You can't sign out offline, and the app warns you if some changes haven't reached the server",
         'A family can have several adults: whoever created the family invites others with a one-time link: a QR code, the share sheet or an email. They also accept requests to join and can remove someone from the family. Open the link and sign in, and the invitation is right there',
         "You can ask to join a family that already exists: on first launch or in settings, enter the email or phone of a parent from that family — they'll see the request and let you in. We don't keep addresses or numbers, only their encrypted fingerprints",
+        'The launch screen now shows only the name Little Big Deals',
         'The account will work in the published app once it has its own server. For now you can try it in a local build',
       ],
       es: [
@@ -48,6 +50,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
         'Al cerrar sesión los datos de la familia se borran de este dispositivo y la app empieza de nuevo, como la primera vez. En la cuenta todo se queda. Sin conexión no se puede cerrar sesión, y si algunos cambios no llegaron al servidor, la app avisa',
         'Una familia puede tener varios adultos: quien creó la familia invita a otros con un enlace de un solo uso: un código QR, el menú Compartir o un correo. También acepta solicitudes para unirse y puede quitar a alguien de la familia. Abre el enlace, entra y verás la invitación',
         'Puedes pedir unirte a una familia que ya existe: la primera vez o en los ajustes, indica el correo o el teléfono de un padre o una madre de esa familia; verá la solicitud y te aceptará. No guardamos direcciones ni números, solo sus huellas cifradas',
+        'La pantalla de inicio ahora muestra solo el nombre Little Big Deals',
         'La cuenta funcionará en la app publicada cuando tenga su propio servidor. Por ahora puedes probarla en una versión local',
       ],
     },
