@@ -39,6 +39,8 @@ const config = (overrides: Partial<AppConfig> = {}): AppConfig => ({
   TELEGRAM_CLIENT_ID: undefined,
   TELEGRAM_CLIENT_SECRET: undefined,
   WEBAUTHN_RP_ID: undefined,
+  SMTP_URL: 'smtp://localhost:1025',
+  MAIL_FROM: 'Little Big Deals <no-reply@localhost>',
   DEV_LOGIN: false,
   APP_VERSION: '0.6.0',
   ...overrides,

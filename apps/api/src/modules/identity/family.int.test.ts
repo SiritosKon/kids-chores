@@ -12,7 +12,7 @@ import type { Redis } from 'ioredis';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { PrismaService } from '../../platform/database';
 import { VALKEY } from '../../platform/valkey';
-import { cookieHeader, createTestApp } from '../../testing';
+import { cookieHeader, createTestApp, lastMailTo } from '../../testing';
 
 describe('family members over HTTP', () => {
   let app: NestFastifyApplication;
@@ -55,7 +55,7 @@ describe('family members over HTTP', () => {
     app.inject({ method, url, headers: { origin, cookie }, payload });
 
   const createInvite = async (cookie: string) => {
-    const response = await send(cookie, 'POST', '/v1/family/invites');
+    const response = await send(cookie, 'POST', '/v1/family/invites', { locale: 'ru' });
     expect(response.statusCode).toBe(201);
     return createdInviteSchema.parse(response.json());
   };
@@ -133,7 +133,7 @@ describe('family members over HTTP', () => {
     const dad = await devLogin(`dad-${tag}`);
     await join(mom, dad);
 
-    expect((await send(dad, 'POST', '/v1/family/invites')).statusCode).toBe(403);
+    expect((await send(dad, 'POST', '/v1/family/invites', { locale: 'ru' })).statusCode).toBe(403);
     expect((await family(dad)).invites).toEqual([]);
     const { token } = await createInvite(mom);
     const own = await send(dad, 'POST', '/v1/family/invites/preview', { token });
@@ -142,6 +142,29 @@ describe('family members over HTTP', () => {
     const forged = 'A'.repeat(43);
     expect((await send(dad, 'POST', '/v1/family/invites/preview', { token: forged })).statusCode).toBe(404);
     expect((await send(dad, 'POST', '/v1/family/invites/accept', { token: 'short' })).statusCode).toBe(400);
+  });
+
+  it('mails the link when the owner gives an address, ten times a day at most', async () => {
+    const tag = unique();
+    const mom = await devLogin(`Мама-${tag}`);
+    const email = `dad-${tag}@example.com`;
+    const invited = await send(mom, 'POST', '/v1/family/invites', { email: ` Dad-${tag}@Example.com `, locale: 'en' });
+    expect(invited.statusCode).toBe(201);
+    const { token } = createdInviteSchema.parse(invited.json());
+    const mail = await lastMailTo(email);
+    expect(mail.Subject).toBe(`Мама-${tag} invites you to their family in Little Big Deals`);
+    expect(mail.Text).toContain(`${origin}/kids-chores/#/join/${token}`);
+
+    const dad = await devLogin(`dad-${tag}`);
+    expect((await send(dad, 'POST', '/v1/family/invites/accept', { token })).statusCode).toBe(204);
+
+    const statuses: number[] = [];
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const response = await send(mom, 'POST', '/v1/family/invites', { email: `aunt-${tag}@example.com`, locale: 'ru' });
+      statuses.push(response.statusCode);
+    }
+    expect(statuses).toEqual([201, 201, 201, 201, 201, 201, 201, 201, 201, 429]);
+    expect((await send(mom, 'POST', '/v1/family/invites', { locale: 'ru' })).statusCode).toBe(201);
   });
 
   it('lets the owner cancel a link before anyone opens it', async () => {

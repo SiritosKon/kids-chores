@@ -5,6 +5,7 @@ import {
   CONTACT_KINDS,
   EMAIL_MAX,
   INVITE_TOKEN_PATTERN,
+  MAIL_LOCALES,
   MEMBER_ROLES,
   PHONE_PATTERN,
   PHONE_SEPARATORS,
@@ -41,6 +42,13 @@ export const contactSchema = z.discriminatedUnion('kind', [
 ]);
 
 export const contactRequestSchema = z.object({ contact: contactSchema });
+
+export const mailLocaleSchema = z.enum(MAIL_LOCALES);
+
+export const createInviteRequestSchema = z.object({
+  email: emailSchema.optional(),
+  locale: mailLocaleSchema,
+});
 
 export const inviteTokenRequestSchema = z.object({ token: z.string().regex(INVITE_TOKEN_PATTERN) });
 

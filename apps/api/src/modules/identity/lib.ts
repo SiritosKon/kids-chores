@@ -11,6 +11,7 @@ import {
   SESSION_KEY_PREFIX,
   type AuthProvider,
   type Contact,
+  type MailLocale,
   type Session,
 } from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
@@ -21,12 +22,16 @@ import {
   GMAIL_DOMAINS,
   HOME_ROUTE,
   INVITE_HASH_PREFIX,
+  INVITE_MAILS,
   INVITE_TOKEN_BYTES,
+  JOIN_ROUTE,
+  MAIL_DATE_FORMAT,
   SESSION_TOKEN_BYTES,
   SESSION_TTL_SECONDS,
 } from './constants';
 import { providerProfileSchema } from './schema';
-import type { ContactHash, EmailParts, ProviderCredentials, ProviderIdentity } from './types';
+import type { MailMessage } from '../../platform/mail';
+import type { ContactHash, EmailParts, MailText, ProviderCredentials, ProviderIdentity } from './types';
 
 export const newSessionToken = (): string => randomBytes(SESSION_TOKEN_BYTES).toString('base64url');
 
@@ -65,6 +70,29 @@ export const newInviteToken = (): string => randomBytes(INVITE_TOKEN_BYTES).toSt
 
 export const inviteTokenHash = (pepper: string, token: string): string =>
   createHmac('sha256', pepper).update(`${INVITE_HASH_PREFIX}${token}`).digest('hex');
+
+export const inviteUrl = (config: AppConfig, token: string): string =>
+  `${publicOrigin(config)}${config.APP_PATH}${JOIN_ROUTE}${token}`;
+
+export const fillMail = (text: MailText, values: Readonly<Record<string, string>>): Omit<MailMessage, 'to'> => {
+  const fill = (template: string): string =>
+    Object.entries(values).reduce((result, [key, value]) => result.replaceAll(`{${key}}`, value), template);
+  return { subject: fill(text.subject), text: text.paragraphs.map(fill).join('\n\n') };
+};
+
+export const inviteMail = (
+  locale: MailLocale,
+  inviterName: string | null,
+  link: string,
+  expiresAt: Date
+): Omit<MailMessage, 'to'> => {
+  const text = INVITE_MAILS[locale];
+  return fillMail(text, {
+    name: inviterName ?? text.someone,
+    link,
+    date: new Intl.DateTimeFormat(locale, MAIL_DATE_FORMAT).format(expiresAt),
+  });
+};
 
 export const sessionCookieOptions = (config: AppConfig): CookieSerializeOptions => ({
   httpOnly: true,

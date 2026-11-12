@@ -46,10 +46,9 @@ sync between devices and accounts (see the roadmap in the `research` branch).
   Face ID or Touch ID. Kids, chores, rewards, marks and purchases go to the server and on to the
   family's other devices; offline changes wait on the device. Photos never leave the device.
 - **Several adults in a family.** The adult who created the family invites others with a
-  one-time link shown as a QR code, approves requests to join (found by a parent's email or phone)
-  and can remove members; anyone can leave. We send nothing: the parent shares the link from
-  their own phone, and the server keeps only keyed hashes of the link token and of verified
-  contacts.
+  one-time link shown as a QR code or emailed by the server, approves requests to join (found by a parent's email or phone)
+  and can remove members; anyone can leave. The server keeps only keyed hashes of the link token
+  and of verified contacts; an emailed address is used once to send the mail and is not stored.
 
 ## Repository
 
@@ -114,10 +113,11 @@ podman compose up -d --build      # the app with the backend on http://localhost
 podman compose down -v            # stop and delete the data
 ```
 
-It starts Postgres, Valkey, the migrations, `api`, `outbox-relay`, `notifications` and nginx
+It starts Postgres, Valkey, Mailpit, the migrations, `api`, `outbox-relay`, `notifications` and nginx
 with the built PWA. The `migrate` container applies the migrations and stops with exit code 0;
 `api` and `outbox-relay` start only after it. Host ports are set in `.env`; Valkey is on 6380 by
-default because 6379 is often taken. While the contour is up, `npm run dev` proxies `/v1` to it.
+default because 6379 is often taken. Mail never leaves the machine: Mailpit catches it at
+<http://localhost:8025>. While the contour is up, `npm run dev` proxies `/v1` to it.
 
 To try sync, open <http://localhost:8080/kids-chores/> in two browsers (or a normal and a private
 window) and sign in the same way in both on the first screen: both windows join one family. A
@@ -134,7 +134,7 @@ means the same family.
 The backend can also run on the host against the containers' Postgres and Valkey:
 
 ```sh
-podman compose up -d postgres valkey
+podman compose up -d postgres valkey mailpit
 cp apps/api/.env.example apps/api/.env       # once
 npm run dev -w apps/api                      # api with reload on http://localhost:3000
 API_URL=http://localhost:3000 npm run dev    # the PWA on :5173, /v1 goes to the api on the host

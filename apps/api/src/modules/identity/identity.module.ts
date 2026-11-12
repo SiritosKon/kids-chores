@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { MailModule } from '../../platform/mail';
 import { OutboxModule } from '../../platform/outbox';
 import { AccountsService } from './accounts.service';
 import { AuthController } from './auth.controller';
@@ -14,7 +15,7 @@ import { SessionGuard } from './session.guard';
 import { SessionsService } from './sessions.service';
 
 @Module({
-  imports: [OutboxModule],
+  imports: [OutboxModule, MailModule],
   controllers: [AuthController, MeController, FamilyController, DevController],
   providers: [
     AccountsService,

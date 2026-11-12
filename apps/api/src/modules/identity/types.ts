@@ -61,6 +61,12 @@ declare module 'fastify' {
   }
 }
 
+export interface MailText {
+  subject: string;
+  paragraphs: readonly string[];
+  someone: string;
+}
+
 export interface RemovedUser {
   familyDropped: boolean;
 }

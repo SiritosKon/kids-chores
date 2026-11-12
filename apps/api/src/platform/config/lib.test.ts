@@ -19,6 +19,8 @@ const env = {
   REGION: 'eu',
   PUBLIC_ORIGIN: 'http://localhost:8080',
   AUTH_PEPPER: 'a-local-pepper-that-is-long-enough',
+  SMTP_URL: 'smtp://localhost:1025',
+  MAIL_FROM: 'Little Big Deals <no-reply@localhost>',
 };
 
 describe('readProductVersion', () => {
@@ -80,6 +82,11 @@ describe('loadConfig', () => {
 
   it('refuses dev login in production', () => {
     expect(() => loadConfig({ ...env, NODE_ENV: 'production', DEV_LOGIN: 'true' }, workspace().app)).toThrow();
+  });
+
+  it('refuses to start without a mail server', () => {
+    expect(() => loadConfig({ ...env, SMTP_URL: '' }, workspace().app)).toThrow();
+    expect(() => loadConfig({ ...env, SMTP_URL: 'http://localhost:1025' }, workspace().app)).toThrow();
   });
 
   it('refuses a short pepper', () => {

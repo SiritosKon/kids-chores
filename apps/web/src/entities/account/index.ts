@@ -1,6 +1,6 @@
 export { useAccountStore } from './model/store';
 export { default as AccountAvatar } from './ui/AccountAvatar.vue';
-export type { ServerAuth, InvitePreviewResult } from './model/types';
+export type { ServerAuth, InvitePreviewResult, CreateInviteResult } from './model/types';
 export {
   devSignIn,
   providerStartUrl,

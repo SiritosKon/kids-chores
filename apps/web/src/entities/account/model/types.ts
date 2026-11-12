@@ -1,4 +1,4 @@
-import type { InvitePreview, MeResponse, MetaResponse } from '@kids-chores/contracts';
+import type { CreatedInvite, InvitePreview, MeResponse, MetaResponse } from '@kids-chores/contracts';
 
 export type ServerAuth = MetaResponse['auth'];
 
@@ -7,3 +7,5 @@ export type MeResult = { status: 'signedIn'; me: MeResponse } | { status: 'signe
 export type InvitePreviewResult = { status: 'ready'; preview: InvitePreview } | { status: 'gone' } | { status: 'failed' };
 
 export type JoinRequestResult = 'sent' | 'tooMany' | 'failed';
+
+export type CreateInviteResult = { status: 'created'; invite: CreatedInvite } | { status: 'tooMany' } | { status: 'failed' };

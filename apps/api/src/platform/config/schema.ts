@@ -35,6 +35,8 @@ export const envSchema = z
     TELEGRAM_CLIENT_ID: optionalText,
     TELEGRAM_CLIENT_SECRET: optionalText,
     WEBAUTHN_RP_ID: optionalText,
+    SMTP_URL: z.url({ protocol: /^smtps?$/ }),
+    MAIL_FROM: z.string().min(3),
     DEV_LOGIN: z.stringbool().default(false),
   })
   .superRefine((env, ctx) => {

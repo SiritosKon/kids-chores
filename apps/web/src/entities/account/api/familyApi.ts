@@ -3,17 +3,29 @@ import {
   familyResponseSchema,
   invitePreviewSchema,
   type Contact,
-  type CreatedInvite,
+  type CreateInviteRequest,
   type FamilyResponse,
 } from '@kids-chores/contracts';
 import { apiJson, apiOk, apiRequest } from '@/shared/api/http';
-import type { InvitePreviewResult, JoinRequestResult } from '../model/types';
+import type { CreateInviteResult, InvitePreviewResult, JoinRequestResult } from '../model/types';
 
 export const fetchFamily = (): Promise<FamilyResponse | null> =>
   apiJson('/family', (data) => familyResponseSchema.parse(data));
 
-export const createInvite = (): Promise<CreatedInvite | null> =>
-  apiJson('/family/invites', (data) => createdInviteSchema.parse(data), 'POST');
+export const createInvite = async (request: CreateInviteRequest): Promise<CreateInviteResult> => {
+  const response = await apiRequest('/family/invites', 'POST', request);
+  if (response?.status === 429) {
+    return { status: 'tooMany' };
+  }
+  if (!response?.ok) {
+    return { status: 'failed' };
+  }
+  try {
+    return { status: 'created', invite: createdInviteSchema.parse(await response.json()) };
+  } catch {
+    return { status: 'failed' };
+  }
+};
 
 export const dropInvite = (id: string): Promise<boolean> => apiOk(`/family/invites/${id}`, 'DELETE');
 

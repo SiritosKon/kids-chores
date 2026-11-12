@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Re
 import type { FastifyReply } from 'fastify';
 import type { CreatedInvite, FamilyResponse, InvitePreview, Session } from '@kids-chores/contracts';
 import { AuthRateLimit } from '../../platform/rate-limit';
-import { ContactRequestDto, InviteTokenDto } from './dto';
+import { ContactRequestDto, CreateInviteDto, InviteTokenDto } from './dto';
 import { FamilyService } from './family.service';
 import { CurrentSession } from './lib';
 import { SessionsService } from './sessions.service';
@@ -21,8 +21,8 @@ export class FamilyController {
 
   @AuthRateLimit()
   @Post('invites')
-  invite(@CurrentSession() session: Session): Promise<CreatedInvite> {
-    return this.family.invite(session);
+  invite(@CurrentSession() session: Session, @Body() body: CreateInviteDto): Promise<CreatedInvite> {
+    return this.family.invite(session, body);
   }
 
   @Delete('invites/:id')

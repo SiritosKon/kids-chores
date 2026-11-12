@@ -7,17 +7,28 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
-import type { Contact, CreatedInvite, FamilyInvite, FamilyResponse, InvitePreview, Session } from '@kids-chores/contracts';
+import type {
+  Contact,
+  CreatedInvite,
+  CreateInviteRequest,
+  FamilyInvite,
+  FamilyResponse,
+  InvitePreview,
+  Session,
+} from '@kids-chores/contracts';
 import type { Redis } from 'ioredis';
 import type { FamilyInvite as InviteRow } from '../../generated/prisma/client';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { PrismaService } from '../../platform/database';
+import { MailService } from '../../platform/mail';
 import { RATE_LIMIT_PREFIX } from '../../platform/rate-limit';
 import { VALKEY } from '../../platform/valkey';
-import { DAY_SECONDS, INVITE_TTL_MS, JOIN_REQUEST_TTL_MS, JOIN_REQUESTS_PER_DAY } from './constants';
-import { contactHash, inviteTokenHash, newInviteToken } from './lib';
+import { DAY_SECONDS, INVITE_MAILS_PER_DAY, INVITE_TTL_MS, JOIN_REQUEST_TTL_MS, JOIN_REQUESTS_PER_DAY } from './constants';
+import { contactHash, inviteMail, inviteTokenHash, inviteUrl, newInviteToken } from './lib';
 import { MembershipsService } from './memberships.service';
 import { SessionsService } from './sessions.service';
 import type { InviteWithInviter } from './types';
@@ -30,12 +41,15 @@ const toInvite = (row: InviteRow): FamilyInvite => ({
 
 @Injectable()
 export class FamilyService {
+  private readonly logger = new Logger(FamilyService.name);
+
   constructor(
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     @Inject(VALKEY) private readonly valkey: Redis,
     private readonly prisma: PrismaService,
     private readonly memberships: MembershipsService,
-    private readonly sessions: SessionsService
+    private readonly sessions: SessionsService,
+    private readonly mail: MailService
   ) {}
 
   async family(session: Session): Promise<FamilyResponse> {
@@ -79,8 +93,11 @@ export class FamilyService {
     return this.prisma.joinRequest.count({ where: { familyId: session.familyId, expiresAt: { gt: new Date() } } });
   }
 
-  async invite(session: Session): Promise<CreatedInvite> {
+  async invite(session: Session, request: CreateInviteRequest): Promise<CreatedInvite> {
     await this.requireOwner(session);
+    if (request.email) {
+      await this.limit(`mail:invite:${session.familyId}`, INVITE_MAILS_PER_DAY);
+    }
     const token = newInviteToken();
     const row = await this.prisma.familyInvite.create({
       data: {
@@ -91,6 +108,17 @@ export class FamilyService {
         expiresAt: new Date(Date.now() + INVITE_TTL_MS),
       },
     });
+    if (request.email) {
+      const inviter = await this.prisma.user.findUniqueOrThrow({ where: { id: session.userId }, select: { name: true } });
+      const link = inviteUrl(this.config, token);
+      try {
+        await this.mail.send({ to: request.email, ...inviteMail(request.locale, inviter.name, link, row.expiresAt) });
+      } catch (error) {
+        await this.prisma.familyInvite.deleteMany({ where: { id: row.id } });
+        this.logger.warn(`invite mail failed: ${error instanceof Error ? error.name : 'unknown error'}`);
+        throw new ServiceUnavailableException();
+      }
+    }
     return { id: row.id, token, expiresAt: row.expiresAt.toISOString() };
   }
 
@@ -123,11 +151,7 @@ export class FamilyService {
   }
 
   async requestToJoin(session: Session, contact: Contact): Promise<void> {
-    const key = `${RATE_LIMIT_PREFIX}join:${session.userId}`;
-    const replies = await this.valkey.multi().set(key, 0, 'EX', DAY_SECONDS, 'NX').incr(key).exec();
-    if (Number(replies?.[1]?.[1] ?? 0) > JOIN_REQUESTS_PER_DAY) {
-      throw new HttpException('Too Many Requests', HttpStatus.TOO_MANY_REQUESTS);
-    }
+    await this.limit(`join:${session.userId}`, JOIN_REQUESTS_PER_DAY);
     const { kind, hash } = contactHash(this.config.AUTH_PEPPER, contact);
     const holder = await this.prisma.userContact.findUnique({ where: { kind_hash: { kind, hash } }, select: { userId: true } });
     const target = holder ? await this.prisma.membership.findUnique({ where: { userId: holder.userId } }) : null;
@@ -180,6 +204,14 @@ export class FamilyService {
     }
     await this.memberships.detach(session.userId, session.familyId);
     await this.sessions.endUser(session.familyId, session.userId);
+  }
+
+  private async limit(name: string, perDay: number): Promise<void> {
+    const key = `${RATE_LIMIT_PREFIX}${name}`;
+    const replies = await this.valkey.multi().set(key, 0, 'EX', DAY_SECONDS, 'NX').incr(key).exec();
+    if (Number(replies?.[1]?.[1] ?? 0) > perDay) {
+      throw new HttpException('Too Many Requests', HttpStatus.TOO_MANY_REQUESTS);
+    }
   }
 
   private async join(userId: string, familyId: string): Promise<void> {

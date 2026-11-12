@@ -1,6 +1,6 @@
 import type { ServerMetadata } from 'openid-client';
-import type { AuthProvider } from '@kids-chores/contracts';
-import type { OidcProvider } from './types';
+import type { AuthProvider, MailLocale } from '@kids-chores/contracts';
+import type { MailText, OidcProvider } from './types';
 
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 
@@ -30,6 +30,8 @@ export const FAMILY_DELETED_VERSION = 1;
 
 export const HOME_ROUTE = '#/';
 
+export const JOIN_ROUTE = '#/join/';
+
 export const CONTACT_HASH_PREFIX = 'contact:';
 
 export const GMAIL_DOMAINS: readonly string[] = ['gmail.com', 'googlemail.com'];
@@ -43,6 +45,43 @@ export const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const JOIN_REQUEST_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export const JOIN_REQUESTS_PER_DAY = 5;
+
+export const INVITE_MAILS_PER_DAY = 10;
+
+export const MAIL_DATE_FORMAT: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
+
+export const INVITE_MAILS: Readonly<Record<MailLocale, MailText>> = {
+  ru: {
+    subject: '{name} зовёт вас в семью в Little Big Deals',
+    paragraphs: [
+      '{name} зовёт вас в семью в Little Big Deals — приложении, где дети отмечают домашние дела и копят баллы на награды.',
+      'Откройте ссылку и войдите в приложение — после входа вы сразу окажетесь в семье:',
+      '{link}',
+      'Ссылка одноразовая и действует до {date}. Если вы не ждали приглашения, просто удалите это письмо.',
+    ],
+    someone: 'Родитель',
+  },
+  en: {
+    subject: '{name} invites you to their family in Little Big Deals',
+    paragraphs: [
+      '{name} invites you to their family in Little Big Deals, the app where kids tick off chores and save points for rewards.',
+      "Open the link and sign in to the app — right after signing in you're in the family:",
+      '{link}',
+      "The link works once and is valid until {date}. If you weren't expecting an invitation, just delete this email.",
+    ],
+    someone: 'A parent',
+  },
+  es: {
+    subject: '{name} te invita a su familia en Little Big Deals',
+    paragraphs: [
+      '{name} te invita a su familia en Little Big Deals, la app donde los niños marcan sus tareas y ahorran puntos para premios.',
+      'Abre el enlace y entra en la app: justo después de entrar estarás en la familia:',
+      '{link}',
+      'El enlace sirve una sola vez y es válido hasta el {date}. Si no esperabas una invitación, borra este correo.',
+    ],
+    someone: 'Un padre o una madre',
+  },
+};
 
 export const DAY_SECONDS = 24 * 60 * 60;
 

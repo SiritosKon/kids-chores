@@ -14,6 +14,24 @@
           <q-btn outline no-caps color="primary" icon="content_copy" :label="t('familyInvite.copy')" @click="copy" />
           <q-btn v-if="canShare" unelevated no-caps color="primary" icon="ios_share" :label="t('familyInvite.share')" @click="share" />
         </div>
+        <q-separator class="q-my-md" />
+        <div class="text-subtitle2 q-mb-sm">{{ t('familyInvite.byEmail') }}</div>
+        <div class="row no-wrap items-start q-gutter-sm">
+          <q-input
+            v-model="email"
+            dense
+            outlined
+            dark
+            type="email"
+            autocomplete="email"
+            class="col"
+            :label="t('familyInvite.emailLabel')"
+            :error="emailInvalid"
+            :error-message="t('shared.contact.invalid')"
+            @keyup.enter="sendEmail"
+          />
+          <q-btn unelevated no-caps color="primary" icon="send" :label="t('familyInvite.sendEmail')" :loading="sending" :disable="!email.trim()" @click="sendEmail" />
+        </div>
       </q-card-section>
 
       <q-card-section v-else-if="failed" class="q-pt-none">
@@ -33,8 +51,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { copyToClipboard, useQuasar } from 'quasar';
+import { emailSchema } from '@kids-chores/contracts';
 import { useI18n } from 'vue-i18n';
 import { APP_NAME } from '@/shared/config/constants';
+import { currentLocale } from '@/shared/i18n';
 import { formatTimestampLong } from '@/shared/lib/date';
 import QrCode from '@/shared/ui/QrCode.vue';
 import { createInvite } from '@/entities/account';
@@ -49,18 +69,41 @@ const canShare = typeof navigator.share === 'function';
 const link = ref<string | null>(null);
 const date = ref('');
 const failed = ref(false);
+const email = ref('');
+const emailInvalid = ref(false);
+const sending = ref(false);
 
 const create = async (): Promise<void> => {
   failed.value = false;
   link.value = null;
-  const invite = await createInvite();
-  if (!invite) {
+  email.value = '';
+  emailInvalid.value = false;
+  const result = await createInvite({ locale: currentLocale() });
+  if (result.status !== 'created') {
     failed.value = true;
     return;
   }
-  link.value = inviteLink(invite.token);
-  date.value = formatTimestampLong(Date.parse(invite.expiresAt));
+  link.value = inviteLink(result.invite.token);
+  date.value = formatTimestampLong(Date.parse(result.invite.expiresAt));
   emit('invited');
+};
+
+const sendEmail = async (): Promise<void> => {
+  const address = emailSchema.safeParse(email.value);
+  emailInvalid.value = !address.success;
+  if (!address.success || sending.value) {
+    return;
+  }
+  sending.value = true;
+  const result = await createInvite({ email: address.data, locale: currentLocale() });
+  sending.value = false;
+  if (result.status === 'created') {
+    $q.notify({ type: 'positive', message: t('familyInvite.emailSent', { email: address.data }) });
+    email.value = '';
+    emit('invited');
+    return;
+  }
+  $q.notify({ type: 'negative', message: result.status === 'tooMany' ? t('familyInvite.tooMany') : t('familyInvite.emailFailed') });
 };
 
 const copy = async (): Promise<void> => {
