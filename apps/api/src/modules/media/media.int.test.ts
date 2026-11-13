@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { MEDIA_MAX_BYTES, mediaCreatedSchema, meResponseSchema } from '@kids-chores/contracts';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { mediaKey, StorageService } from '../../platform/storage';
+import { MediaSweepService } from './media-sweep.service';
 import { cookieHeader, createTestApp } from '../../testing';
 
 const jpeg = (size = 64): Buffer => Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(size - 4, 7)]);
@@ -73,5 +74,22 @@ describe('photos in the closed storage', () => {
     expect(await storage.get(mediaKey(familyId, id))).not.toBeNull();
     expect((await app.inject({ method: 'DELETE', url: '/v1/me', headers: { origin, cookie: solo } })).statusCode).toBe(204);
     expect(await storage.get(mediaKey(familyId, id))).toBeNull();
+  });
+
+  it('sweeps files of families that are gone and files nobody points at', async () => {
+    const storage = app.get(StorageService);
+    const lost = mediaKey(randomUUID(), randomUUID());
+    await storage.put(lost, jpeg(), 'image/jpeg');
+
+    const keeper = await devLogin(`keeper-${randomUUID().slice(0, 8)}`);
+    const { familyId } = meResponseSchema.parse((await app.inject({ method: 'GET', url: '/v1/me', headers: { cookie: keeper } })).json());
+    const { id } = mediaCreatedSchema.parse((await upload(keeper, jpeg())).json());
+    const orphan = mediaKey(familyId, randomUUID());
+    await storage.put(orphan, jpeg(), 'image/jpeg');
+
+    await app.get(MediaSweepService).sweep();
+    expect(await storage.get(lost)).toBeNull();
+    expect(await storage.get(orphan)).toBeNull();
+    expect(await storage.get(mediaKey(familyId, id))).not.toBeNull();
   });
 });

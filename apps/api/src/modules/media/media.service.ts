@@ -19,13 +19,20 @@ export class MediaService {
       throw new BadRequestException();
     }
     const { familyId } = session;
-    const count = await this.prisma.inFamily(familyId, (tx) => tx.media.count({ where: { familyId } }));
-    if (count >= MEDIA_PER_FAMILY) {
-      throw new ConflictException();
-    }
     const id = randomUUID();
-    await this.storage.put(mediaKey(familyId, id), body, MEDIA_TYPE);
-    await this.prisma.inFamily(familyId, (tx) => tx.media.create({ data: { id, familyId, bytes: body.length } }));
+    await this.prisma.inFamily(familyId, async (tx) => {
+      await tx.$queryRaw`SELECT id FROM core.families WHERE id = ${familyId}::uuid FOR UPDATE`;
+      if ((await tx.media.count({ where: { familyId } })) >= MEDIA_PER_FAMILY) {
+        throw new ConflictException();
+      }
+      await tx.media.create({ data: { id, familyId, bytes: body.length } });
+    });
+    try {
+      await this.storage.put(mediaKey(familyId, id), body, MEDIA_TYPE);
+    } catch (error) {
+      await this.prisma.inFamily(familyId, (tx) => tx.media.deleteMany({ where: { id } }));
+      throw error;
+    }
     return { id };
   }
 
