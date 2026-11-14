@@ -1,9 +1,12 @@
 <template>
   <q-dialog :model-value="open" persistent>
     <q-card class="dialog--form">
-      <q-card-section class="text-h6">{{ t('joinFamily.inviteTitle') }}</q-card-section>
+      <q-card-section class="row items-center no-wrap">
+        <div class="text-h6 col">{{ t('joinFamily.inviteTitle') }}</div>
+        <q-btn flat round dense icon="close" :aria-label="t('common.close')" @click="invite.dismiss()" />
+      </q-card-section>
       <q-card-section class="q-pt-none">
-        <PendingInvite :decline-label="t('joinFamily.decline')" />
+        <PendingInvite />
       </q-card-section>
     </q-card>
   </q-dialog>

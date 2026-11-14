@@ -18,7 +18,6 @@
         {{ alone ? t('joinFamily.acceptAlone') : t('joinFamily.acceptShared') }}
       </p>
       <div class="row justify-end q-gutter-sm q-mt-md">
-        <q-btn flat no-caps color="grey-5" :label="declineLabel" :disable="busy" @click="decline" />
         <q-btn unelevated no-caps color="primary" :label="t('joinFamily.accept')" :loading="busy" @click="accept" />
       </div>
     </template>
@@ -27,7 +26,7 @@
       <p>{{ invite.state === 'gone' ? t('joinFamily.gone') : t('joinFamily.checkFailed') }}</p>
       <div class="row justify-end q-gutter-sm">
         <q-btn v-if="invite.state === 'failed'" flat no-caps color="primary" :label="t('joinFamily.retry')" @click="invite.load()" />
-        <q-btn unelevated no-caps color="primary" :label="t('joinFamily.done')" @click="decline" />
+        <q-btn unelevated no-caps color="primary" :label="t('joinFamily.done')" @click="dismiss" />
       </div>
     </template>
   </div>
@@ -41,7 +40,6 @@ import { formatTimestampLong } from '@/shared/lib/date';
 import { useAccountStore } from '@/entities/account';
 import { usePendingInviteStore } from '../model/store';
 
-defineProps<{ declineLabel: string }>();
 const emit = defineEmits<{ joined: []; dismissed: [] }>();
 
 const $q = useQuasar();
@@ -73,7 +71,7 @@ watch(
   { immediate: true }
 );
 
-const decline = (): void => {
+const dismiss = (): void => {
   invite.dismiss();
   emit('dismissed');
 };

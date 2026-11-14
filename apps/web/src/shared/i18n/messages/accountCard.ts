@@ -16,7 +16,7 @@ export const accountCard = defineMessages({
     removeMessage:
       'С сервера удалятся аккаунт, дети, задачи, награды и вся история, а все устройства семьи выйдут из аккаунта. Отменить это нельзя. Чтобы сохранить копию, сначала сделайте «Экспорт данных» в меню.',
     removeMemberMessage:
-      'С сервера удалятся ваш аккаунт и способы входа, а ваши устройства выйдут из семьи. Дети, задачи и история останутся у остальных взрослых семьи. Отменить это нельзя.',
+      'С сервера удалятся ваш аккаунт и способы входа, а ваши устройства отключатся от семьи. Дети, задачи и история останутся у остальных взрослых семьи. Отменить это нельзя.',
     removeConfirm: 'Удалить всё',
     removeFailed: 'Не получилось удалить аккаунт. Проверьте интернет и попробуйте ещё раз.',
   },
@@ -35,7 +35,7 @@ export const accountCard = defineMessages({
     removeMessage:
       "The account, kids, chores, rewards and the whole history are deleted from the server, and every family device is signed out. This can't be undone. To keep a copy, use “Export data” in the menu first.",
     removeMemberMessage:
-      "Your account and sign-in methods are deleted from the server, and your devices leave the family. The kids, chores and history stay with the other adults of the family. This can't be undone.",
+      "Your account and sign-in methods are deleted from the server, and your devices are disconnected from the family. The kids, chores and history stay with the other adults of the family. This can't be undone.",
     removeConfirm: 'Delete everything',
     removeFailed: "Couldn't delete the account. Check the internet and try again.",
   },
@@ -54,7 +54,7 @@ export const accountCard = defineMessages({
     removeMessage:
       'Se eliminarán del servidor la cuenta, los niños, las tareas, los premios y todo el historial, y todos los dispositivos de la familia cerrarán sesión. No se puede deshacer. Para guardar una copia, usa antes «Exportar datos» en el menú.',
     removeMemberMessage:
-      'Se eliminarán del servidor tu cuenta y tus formas de entrar, y tus dispositivos saldrán de la familia. Los niños, las tareas y el historial se quedan con los demás adultos de la familia. No se puede deshacer.',
+      'Se eliminarán del servidor tu cuenta y tus formas de entrar, y tus dispositivos se desconectarán de la familia. Los niños, las tareas y el historial se quedan con los demás adultos de la familia. No se puede deshacer.',
     removeConfirm: 'Eliminar todo',
     removeFailed: 'No se pudo eliminar la cuenta. Revisa internet e inténtalo de nuevo.',
   },

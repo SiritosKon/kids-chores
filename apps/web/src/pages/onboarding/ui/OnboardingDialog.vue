@@ -38,13 +38,13 @@
       </template>
 
       <q-card-section v-else-if="stage === 'invite'" class="q-pt-none">
-        <PendingInvite :decline-label="t('onboardingPage.ownFamily')" @joined="onJoined" />
+        <PendingInvite @joined="onJoined" />
       </q-card-section>
 
       <q-card-section v-else-if="stage === 'waiting'" class="text-center">
         <q-spinner color="primary" size="32px" />
         <p class="q-mt-md">{{ t('onboardingPage.waiting') }}</p>
-        <q-btn flat no-caps color="grey-5" :label="t('onboardingPage.ownFamily')" @click="stopWaiting" />
+        <q-btn flat no-caps color="grey-5" :label="t('onboardingPage.startAlone')" @click="stopWaiting" />
       </q-card-section>
 
       <template v-else>
