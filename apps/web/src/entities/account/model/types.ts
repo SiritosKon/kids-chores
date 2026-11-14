@@ -18,4 +18,8 @@ export type PinSaveResult = 'ok' | 'denied' | 'offline' | 'failed';
 
 export type PinConfirmResult = 'ok' | 'wrong' | 'tooMany' | 'offline' | 'failed';
 
+export type PasswordSignInResult = 'ok' | 'wrong' | 'tooMany' | 'offline' | 'failed';
+
+export type PasswordSaveResult = 'ok' | 'denied' | 'noEmail' | 'breached' | 'offline' | 'failed';
+
 export type EmailLinkResult = 'ok' | 'wrong' | 'gone' | 'taken' | 'offline' | 'failed';

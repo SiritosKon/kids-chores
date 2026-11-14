@@ -11,6 +11,7 @@ const me = {
   role: 'owner' as const,
   members: 2,
   hasEmail: true,
+  hasPassword: false,
   joinRequests: 0,
   providers: ['google' as const],
   pins: [{ userId: '6a1e0d7c-5f0b-4c2e-8b8d-9f2e3c4d5a6b', pin: { salt: 'c2FsdA==', hash: 'aGFzaA==', iterations: 600_000 } }],
@@ -41,7 +42,7 @@ describe('rememberedAccount', () => {
   it('reads an account remembered before families had several adults', () => {
     const older = { userId: me.userId, familyId: me.familyId, deviceId: me.deviceId, name: me.name, hasPasskey: false };
     localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(older));
-    expect(rememberedAccount()).toEqual({ ...older, role: 'owner', members: 1, hasEmail: false, joinRequests: 0, providers: [] });
+    expect(rememberedAccount()).toEqual({ ...older, role: 'owner', members: 1, hasEmail: false, hasPassword: false, joinRequests: 0, providers: [] });
     expect(rememberedAccount()?.pins).toBeUndefined();
   });
 

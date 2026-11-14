@@ -43,6 +43,7 @@ export const envSchema = z
     S3_SECRET_KEY: z.string().min(1),
     MAIL_FROM: z.string().min(3),
     EMAIL_SIGN_IN: z.stringbool().default(false),
+    PWNED_PASSWORDS_URL: optionalText,
     DEV_LOGIN: z.stringbool().default(false),
   })
   .superRefine((env, ctx) => {

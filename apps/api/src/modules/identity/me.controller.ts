@@ -9,6 +9,7 @@ import {
   NotFoundException,
   Patch,
   Post,
+  Put,
   Req,
   Res,
 } from '@nestjs/common';
@@ -18,9 +19,10 @@ import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { AuthRateLimit } from '../../platform/rate-limit';
 import { AccountsService } from './accounts.service';
 import { EMAIL_PROVIDER } from './constants';
-import { EmailCodeRequestDto, EmailSignInDto, UpdateMeDto } from './dto';
+import { EmailCodeRequestDto, EmailSignInDto, SetPasswordDto, UpdateMeDto } from './dto';
 import { EmailCodesService } from './email-codes.service';
 import { canonicalContact, contactHash, CurrentSession, emailLinkSubject, subjectHash } from './lib';
+import { PasswordsService } from './passwords.service';
 import { PinsService } from './pins.service';
 import { SessionsService } from './sessions.service';
 
@@ -31,7 +33,8 @@ export class MeController {
     private readonly accounts: AccountsService,
     private readonly sessions: SessionsService,
     private readonly codes: EmailCodesService,
-    private readonly pins: PinsService
+    private readonly pins: PinsService,
+    private readonly passwords: PasswordsService
   ) {}
 
   @Get()
@@ -70,6 +73,22 @@ export class MeController {
     const outcome = await this.accounts.link(EMAIL_PROVIDER, subject, session.userId, { contacts: [contact], linkable: [contact] });
     if (outcome === 'taken') {
       throw new ConflictException();
+    }
+  }
+
+  @AuthRateLimit()
+  @Put('password')
+  @HttpCode(204)
+  async setPassword(
+    @CurrentSession() session: Session,
+    @Body() body: SetPasswordDto,
+    @Req() request: FastifyRequest
+  ): Promise<void> {
+    if (!this.config.EMAIL_SIGN_IN) {
+      throw new NotFoundException();
+    }
+    if (await this.passwords.set(session, body)) {
+      await this.sessions.endUser(session.familyId, session.userId, request.sessionToken);
     }
   }
 

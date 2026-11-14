@@ -15,13 +15,15 @@ import { MembershipsService } from './memberships.service';
 import { OidcService } from './oidc.service';
 import { PinController } from './pin.controller';
 import { PasskeysService } from './passkeys.service';
+import { PasswordController } from './password.controller';
+import { PasswordsService } from './passwords.service';
 import { PinsService } from './pins.service';
 import { SessionGuard } from './session.guard';
 import { SessionsService } from './sessions.service';
 
 @Module({
   imports: [OutboxModule, MailModule],
-  controllers: [AuthController, EmailAuthController, MeController, FamilyController, PinController, DevController],
+  controllers: [AuthController, EmailAuthController, MeController, FamilyController, PinController, PasswordController, DevController],
   providers: [
     AccountsService,
     MembershipsService,
@@ -32,6 +34,7 @@ import { SessionsService } from './sessions.service';
     OidcService,
     PasskeysService,
     PinsService,
+    PasswordsService,
     { provide: APP_GUARD, useClass: SessionGuard },
   ],
 })

@@ -11,6 +11,8 @@ import {
   PHONE_PATTERN,
   PARENT_PIN_PATTERN,
   PHONE_SEPARATORS,
+  PASSWORD_MAX,
+  PASSWORD_MIN,
   PIN_HASH_ITERATIONS_MAX,
   PROVIDER_PICTURE_HOST,
   REGIONS,
@@ -96,6 +98,15 @@ export const setPinRequestSchema = z.object({ pin: pinHashSchema });
 
 export const pinCheckRequestSchema = z.object({ pin: z.string().regex(PARENT_PIN_PATTERN) });
 
+export const passwordSchema = z.string().min(PASSWORD_MIN).max(PASSWORD_MAX);
+
+export const passwordSignInSchema = z.object({ email: emailSchema, password: z.string().min(1).max(PASSWORD_MAX) });
+
+export const setPasswordRequestSchema = z.object({
+  password: passwordSchema,
+  current: z.string().min(1).max(PASSWORD_MAX).optional(),
+});
+
 export const meResponseSchema = z.object({
   userId: z.uuid(),
   familyId: z.uuid(),
@@ -105,6 +116,7 @@ export const meResponseSchema = z.object({
   role: memberRoleSchema.default('owner'),
   members: z.number().int().positive().default(1),
   hasEmail: z.boolean().default(false),
+  hasPassword: z.boolean().default(false),
   joinRequests: z.number().int().nonnegative().default(0),
   providers: z.array(z.enum(AUTH_PROVIDERS)).default([]),
   pins: z.array(memberPinSchema).optional(),

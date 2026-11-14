@@ -4,12 +4,13 @@ import type { ContactKind, MeResponse, PinHash } from '@kids-chores/contracts';
 import { hashPin, pinMatches } from '@/shared/lib/pinHash';
 import { fetchMe, fetchServerAuth, renameAccount, requestAccountRemoval, requestSignOut } from '../api/accountApi';
 import { requestFamilyLeave } from '../api/familyApi';
+import { savePassword } from '../api/passwordApi';
 import { confirmPin, savePin } from '../api/pinCodeApi';
 import { storeAccountPhoto, storedAccountPhoto } from '../lib/accountPhoto';
 import { downloadProviderPhoto, providerPhotoUrl } from '../lib/providerPhoto';
 import { forgetAccount, rememberAccount, rememberedAccount } from '../lib/rememberedAccount';
 import { wipeDevice } from '../lib/wipeDevice';
-import type { PinSaveResult, ServerAuth } from './types';
+import type { PasswordSaveResult, PinSaveResult, ServerAuth } from './types';
 
 export const useAccountStore = defineStore('account', () => {
   const server = ref<ServerAuth | null>(null);
@@ -51,6 +52,16 @@ export const useAccountStore = defineStore('account', () => {
   };
 
   const adoptPin = (hash: PinHash): Promise<PinSaveResult> => storePin(hash);
+
+  const setPassword = async (password: string, current?: string): Promise<PasswordSaveResult> => {
+    const result = await savePassword(password, current);
+    const known = me.value;
+    if (result === 'ok' && known) {
+      me.value = { ...known, hasPassword: true };
+      rememberAccount(me.value);
+    }
+    return result;
+  };
 
   const refresh = async (): Promise<void> => {
     const [auth, result] = await Promise.all([fetchServerAuth(), fetchMe()]);
@@ -120,6 +131,7 @@ export const useAccountStore = defineStore('account', () => {
     checkOwnPin,
     setPin,
     adoptPin,
+    setPassword,
     refresh,
     adoptProviderPhoto,
     rename,

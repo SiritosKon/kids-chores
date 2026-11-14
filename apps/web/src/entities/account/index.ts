@@ -1,5 +1,6 @@
 export { useAccountStore } from './model/store';
 export { default as AccountAvatar } from './ui/AccountAvatar.vue';
+export { default as PasswordForm } from './ui/PasswordForm.vue';
 export type { ServerAuth, InvitePreviewResult, CreateInviteResult, PinSaveResult } from './model/types';
 export {
   devSignIn,
@@ -25,4 +26,5 @@ export {
   removeMember,
 } from './api/familyApi';
 export { requestPinCode, checkPinCode, confirmPin } from './api/pinCodeApi';
+export { passwordSignIn } from './api/passwordApi';
 export { requestSignInCode, verifySignInCode, requestEmailLinkCode, verifyEmailLink } from './api/emailSignInApi';

@@ -40,6 +40,7 @@ import { familyCard } from './familyCard';
 import { familyInvite } from './familyInvite';
 import { joinFamily } from './joinFamily';
 import { linkSignIn } from './linkSignIn';
+import { passwordForm } from './passwordForm';
 
 export const messages = {
   ru: {
@@ -85,6 +86,7 @@ export const messages = {
     familyInvite: familyInvite.ru,
     joinFamily: joinFamily.ru,
     linkSignIn: linkSignIn.ru,
+    passwordForm: passwordForm.ru,
   },
   en: {
     common: common.en,
@@ -129,6 +131,7 @@ export const messages = {
     familyInvite: familyInvite.en,
     joinFamily: joinFamily.en,
     linkSignIn: linkSignIn.en,
+    passwordForm: passwordForm.en,
   },
   es: {
     common: common.es,
@@ -173,5 +176,6 @@ export const messages = {
     familyInvite: familyInvite.es,
     joinFamily: joinFamily.es,
     linkSignIn: linkSignIn.es,
+    passwordForm: passwordForm.es,
   },
 };

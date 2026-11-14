@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div v-if="emailOpen" class="row justify-center">
-      <EmailSignIn @cancel="emailOpen = false" @signed-in="finish(true, '')" />
+    <div v-if="emailMode" class="row justify-center">
+      <EmailSignIn :initial-mode="emailMode" @cancel="emailMode = null" @signed-in="finish(true, '')" />
     </div>
     <div v-else class="sign-in-options__buttons">
       <q-btn
@@ -34,7 +34,17 @@
         icon="mail"
         class="q-px-lg"
         :label="t('signIn.email')"
-        @click="emailOpen = true"
+        @click="emailMode = 'code'"
+      />
+      <q-btn
+        v-if="server?.emailSignIn"
+        outline
+        no-caps
+        color="grey-5"
+        icon="password"
+        class="q-px-lg"
+        :label="t('signIn.password')"
+        @click="emailMode = 'password'"
       />
       <q-btn
         v-if="passkeysSupported"
@@ -74,6 +84,7 @@ import type { AuthProvider } from '@kids-chores/contracts';
 import { ROUTES } from '@/shared/config/constants';
 import { devSignIn, providerStartUrl, useAccountStore } from '@/entities/account';
 import { signInWithPasskey } from '../model/passkeySignIn';
+import type { EmailMode } from '../model/types';
 import EmailSignIn from './EmailSignIn.vue';
 
 const $q = useQuasar();
@@ -87,7 +98,7 @@ const hasTelegram = computed(() => server.value?.providers.includes('telegram') 
 const passkeysSupported = browserSupportsWebAuthn();
 const busy = ref(false);
 const devName = ref('');
-const emailOpen = ref(false);
+const emailMode = ref<EmailMode | null>(null);
 
 const signInWith = (provider: AuthProvider): void => {
   window.location.assign(providerStartUrl(provider));

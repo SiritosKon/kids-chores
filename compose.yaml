@@ -30,6 +30,7 @@ x-api-env: &api-env
   S3_SECRET_KEY: ${S3_SECRET_KEY:-local-secret}
   WEBAUTHN_RP_ID: ${WEBAUTHN_RP_ID:-}
   EMAIL_SIGN_IN: ${EMAIL_SIGN_IN:-true}
+  PWNED_PASSWORDS_URL: ${PWNED_PASSWORDS_URL:-}
   DEV_LOGIN: ${DEV_LOGIN:-false}
 
 services:

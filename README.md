@@ -34,8 +34,9 @@ sync between devices and accounts (see the roadmap in the `research` branch).
   forgotten PIN is reset with a code sent to the parent's email (a grown-ups-only sum for accounts
   without one). Children, tasks and rewards are edited on their
   own pages; settings cover the streak, the bonus and the PIN.
-- **First launch.** The app first asks to sign in with Google, Telegram, a code sent by email or
-  Face ID; there is no guest mode.
+- **First launch.** The app first asks to sign in with Google, Telegram, a code sent by email, an
+  email and password, or Face ID; there is no guest mode. Then it asks for a name if the sign-in
+  gave none, offers to add an email after a Telegram sign-in and a password after an email one.
   The board opens with an editable example — a kid, three chores and three
   rewards — a PIN window over it and a four-step tour: kids, chores, rewards and the menu. A
   device that joins a family with data takes that data and skips the tour. An adult who opened
@@ -48,8 +49,12 @@ sync between devices and accounts (see the roadmap in the `research` branch).
   family's other devices; offline changes wait on the device. Photos of kids and reward variants
   go to a closed storage bucket and reach only the family's devices.
 - **Several adults in a family.** The adult who created the family invites others with a
-  one-time link shown as a QR code or emailed by the server, approves requests to join (found by a parent's email or phone)
-  and can remove members; anyone can leave. The server keeps only keyed hashes of the link token
+  one-time link shown as a QR code or emailed by the server, confirms connection requests (found by an adult's email or phone)
+  and can disconnect members; anyone can disconnect their own account. Every adult has their own parent PIN, and any of
+  them opens parent mode on any family device. A forgotten PIN is reset with an email code or a fresh Google or
+  Telegram sign-in.
+- **Sign-in methods.** Google, Telegram, an email and a password can be linked to one account in the account settings,
+  after the PIN is entered again. The server keeps only keyed hashes of the link token
   and of verified contacts; an emailed address is used once to send the mail and is not stored.
 
 ## Repository
@@ -182,9 +187,12 @@ kept in a closed object storage bucket (SeaweedFS locally, Hetzner Object Storag
 and only the family's own sessions can read them. On iOS a web app added to the home screen has its own storage, separate
 from Safari, and removing the icon deletes that data — export first.
 
-The backend is designed to keep as little personal data as possible: no passwords, no emails or
-phone numbers, only a keyed hash of the provider's account id, keyed hashes of the verified email
-(Google) or phone (Telegram) to find a family a person asks to join, and the name the parent sees
-in the app. Request limits count
+The backend is designed to keep as little personal data as possible: no emails or phone numbers,
+only a keyed hash of the provider's account id, keyed hashes of the verified email (Google or an
+email code) or phone (Telegram) to find a family a person asks to join, and the name the parent
+sees in the app. A password, if the person sets one, is kept only as an argon2id hash; with
+`PWNED_PASSWORDS_URL` (`https://api.pwnedpasswords.com/range` in production) the server refuses
+passwords from leak lists, sending the service only the first five characters of the password's
+SHA-1. Parent PINs are PBKDF2 hashes, one per adult. Request limits count
 by a keyed hash of the address and of the session, the counters live for a few minutes, and the
 logs carry no addresses.

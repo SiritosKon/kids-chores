@@ -16,6 +16,10 @@ export const PIN_HASH_ITERATIONS_MAX = 10_000_000;
 
 export const PARENT_PIN_PATTERN = /^\d{6}$/;
 
+export const PASSWORD_MIN = 8;
+
+export const PASSWORD_MAX = 128;
+
 export const MEMBER_ROLES = ['owner', 'parent'] as const;
 
 export const CONTACT_KINDS = ['email', 'phone'] as const;

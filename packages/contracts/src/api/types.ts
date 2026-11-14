@@ -15,6 +15,8 @@ import type {
   memberPinSchema,
   setPinRequestSchema,
   pinCheckRequestSchema,
+  passwordSignInSchema,
+  setPasswordRequestSchema,
   createdInviteSchema,
   mediaCreatedSchema,
   invitePreviewSchema,
@@ -57,6 +59,9 @@ export type MemberPin = z.infer<typeof memberPinSchema>;
 export type SetPinRequest = z.infer<typeof setPinRequestSchema>;
 
 export type PinCheckRequest = z.infer<typeof pinCheckRequestSchema>;
+export type PasswordSignIn = z.infer<typeof passwordSignInSchema>;
+
+export type SetPasswordRequest = z.infer<typeof setPasswordRequestSchema>;
 
 export type InviteTokenRequest = z.infer<typeof inviteTokenRequestSchema>;
 

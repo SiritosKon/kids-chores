@@ -15,3 +15,10 @@ export const CODE_ERRORS = {
   offline: 'signIn.offline',
   failed: 'signIn.failed',
 } as const;
+
+export const PASSWORD_ERRORS = {
+  wrong: 'signIn.wrongPassword',
+  tooMany: 'signIn.tooManyPasswords',
+  offline: 'signIn.offline',
+  failed: 'signIn.failed',
+} as const;

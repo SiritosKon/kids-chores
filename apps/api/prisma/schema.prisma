@@ -35,6 +35,7 @@ model User {
   id           String        @id @db.Uuid
   name         String?       @db.VarChar(40)
   pinHash      Json?         @map("pin_hash")
+  passwordHash String?       @map("password_hash")
   createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   authAccounts AuthAccount[]
   passkeys     Passkey[]

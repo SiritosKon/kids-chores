@@ -97,9 +97,13 @@ export class SessionsService {
     }
   }
 
-  async endUser(familyId: string, userId: string): Promise<void> {
+  async endUser(familyId: string, userId: string, keepToken?: string): Promise<void> {
     const family = familySessionsKey(familyId);
+    const kept = keepToken ? sessionKey(keepToken) : null;
     for (const key of await this.valkey.smembers(family)) {
+      if (key === kept) {
+        continue;
+      }
       const session = await this.read(key);
       if (session === null || session.userId === userId) {
         await this.valkey.multi().del(key).srem(family, key).exec();

@@ -8,6 +8,7 @@ import { EMAIL_PROVIDER } from './constants';
 import { EmailCodeRequestDto, EmailSignInDto } from './dto';
 import { EmailCodesService } from './email-codes.service';
 import { canonicalContact, contactHash, subjectHash } from './lib';
+import { PasswordsService } from './passwords.service';
 import { SessionsService } from './sessions.service';
 
 @Controller('auth/email')
@@ -16,7 +17,8 @@ export class EmailAuthController {
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     private readonly codes: EmailCodesService,
     private readonly accounts: AccountsService,
-    private readonly sessions: SessionsService
+    private readonly sessions: SessionsService,
+    private readonly passwords: PasswordsService
   ) {}
 
   @Public()
@@ -45,6 +47,7 @@ export class EmailAuthController {
     const subject = subjectHash(pepper, EMAIL_PROVIDER, canonicalContact({ kind: 'email', value: body.email }));
     const signedIn = await this.accounts.signIn(EMAIL_PROVIDER, subject, { contacts: [contact], linkable: [contact] });
     await this.sessions.start(request, reply, signedIn);
+    await this.passwords.grant(signedIn.userId);
   }
 
   private requireEnabled(): void {

@@ -9,6 +9,7 @@
         </p>
         <p v-else-if="stage === 'name'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.nameIntro') }}</p>
         <p v-else-if="stage === 'email'" class="q-mt-sm q-mb-none">{{ t('linkSignIn.offerIntro') }}</p>
+        <p v-else-if="stage === 'password'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.passwordIntro') }}</p>
         <p v-else-if="stage === 'pin'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.intro') }}</p>
         <p v-else-if="stage === 'invite'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.inviteIntro') }}</p>
       </q-card-section>
@@ -66,6 +67,9 @@
       <q-card-section v-else-if="stage === 'email'" class="q-pt-none">
         <EmailLinkForm :cancel-label="t('linkSignIn.later')" @cancel="emailOffered = true" @added="emailOffered = true" />
       </q-card-section>
+      <q-card-section v-else-if="stage === 'password'" class="q-pt-none">
+        <PasswordForm :cancel-label="t('linkSignIn.later')" @cancel="passwordOffered = true" @saved="passwordOffered = true" />
+      </q-card-section>
       <q-card-section v-else-if="stage === 'invite'" class="q-pt-none">
         <PendingInvite @joined="onJoined" />
       </q-card-section>
@@ -107,7 +111,7 @@ import { ACCOUNT_NAME_MAX } from '@kids-chores/contracts';
 import { APP_NAME } from '@/shared/config/constants';
 import { currentLocale } from '@/shared/i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
-import { useAccountStore } from '@/entities/account';
+import { PasswordForm, useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { setupSettings, useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
 import { JoinRequestDialog, PendingInvite, usePendingInviteStore } from '@/features/join-family';
@@ -134,9 +138,18 @@ const joinOpen = ref(false);
 const waiting = ref(false);
 const draftName = ref('');
 const emailOffered = ref(false);
+const passwordOffered = ref(false);
 const savingName = ref(false);
 const adopting = ref(false);
 let poll: ReturnType<typeof setInterval> | undefined;
+
+const offerPassword = computed(
+  () =>
+    account.server?.emailSignIn === true &&
+    account.me?.hasEmail === true &&
+    account.me.hasPassword === false &&
+    account.me.providers.length === 0
+);
 
 const stage = computed<OnboardingStage>(() => {
   if (!account.signedIn) {
@@ -150,6 +163,9 @@ const stage = computed<OnboardingStage>(() => {
   }
   if (!emailOffered.value && account.server?.emailSignIn === true && account.me?.hasEmail === false) {
     return 'email';
+  }
+  if (!passwordOffered.value && offerPassword.value) {
+    return 'password';
   }
   if (waiting.value) {
     return 'waiting';

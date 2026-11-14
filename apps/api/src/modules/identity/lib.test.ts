@@ -7,6 +7,7 @@ import {
   contactHash,
   failedSignInUrl,
   freshSignIn,
+  hashPassword,
   homeUrl,
   inviteTokenHash,
   newInviteToken,
@@ -15,10 +16,12 @@ import {
   profilePhone,
   providerIdentity,
   profilePicture,
+  pwnedCount,
   relyingPartyId,
   sessionCookieOptions,
   sessionKey,
   subjectHash,
+  verifyPassword,
 } from './lib';
 
 const config = (overrides: Partial<AppConfig> = {}): AppConfig => ({
@@ -48,6 +51,7 @@ const config = (overrides: Partial<AppConfig> = {}): AppConfig => ({
   S3_ACCESS_KEY: 'local',
   S3_SECRET_KEY: 'local-secret',
   EMAIL_SIGN_IN: false,
+  PWNED_PASSWORDS_URL: undefined,
   DEV_LOGIN: false,
   APP_VERSION: '0.6.0',
   ...overrides,
@@ -202,5 +206,24 @@ describe('provider identity', () => {
     expect(providerIdentity('google', 'g', { ...verified, email: 'anya@gmail.com' }).linkable).toHaveLength(1);
     expect(providerIdentity('google', 'g', { ...verified, email: 'anya@school.org', hd: 'school.org' }).linkable).toHaveLength(1);
     expect(providerIdentity('google', 'g', { ...verified, email: 'anya@example.com' }).linkable).toEqual([]);
+  });
+});
+
+describe('passwords', () => {
+  it('stores an argon2id hash that only the same password matches', async () => {
+    const stored = await hashPassword('correct horse battery');
+    expect(stored).toMatch(/^\$argon2id\$v=19\$m=19456,t=2,p=1\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$/);
+    expect(stored).not.toContain('correct');
+    expect(await hashPassword('correct horse battery')).not.toBe(stored);
+    expect(await verifyPassword('correct horse battery', stored)).toBe(true);
+    expect(await verifyPassword('correct horse batterY', stored)).toBe(false);
+    expect(await verifyPassword('correct horse battery', 'plain text')).toBe(false);
+  });
+
+  it('finds a password suffix in a breached-passwords range answer', () => {
+    const body = '0018A45C4D1DEF81644B54AB7F969B88D65:1\r\n00D4F6E8FA6EECAD2A3AA415EEC418D38EC:2\r\n011053FD0102E94D6AE2F8B83D76FAF94F6:0';
+    expect(pwnedCount(body, '00d4f6e8fa6eecad2a3aa415eec418d38ec')).toBe(2);
+    expect(pwnedCount(body, '011053FD0102E94D6AE2F8B83D76FAF94F6')).toBe(0);
+    expect(pwnedCount(body, 'FFFF')).toBe(0);
   });
 });

@@ -95,7 +95,10 @@ export class AccountsService {
     const members = await this.prisma.membership.count({ where: { familyId: session.familyId } });
     const accounts = await this.prisma.authAccount.findMany({ where: { userId: session.userId }, select: { provider: true } });
     const emails = await this.prisma.userContact.count({ where: { userId: session.userId, kind: 'email' } });
-    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: session.userId }, select: { name: true } });
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: session.userId },
+      select: { name: true, passwordHash: true },
+    });
     return {
       userId: session.userId,
       familyId: session.familyId,
@@ -105,6 +108,7 @@ export class AccountsService {
       role: membership.role,
       members,
       hasEmail: emails > 0,
+      hasPassword: user.passwordHash !== null,
       joinRequests: membership.role === 'owner' ? await this.family.pendingRequests(session) : 0,
       providers: AUTH_PROVIDERS.filter((provider: AuthProvider) => accounts.some((account) => account.provider === provider)),
       pins: await this.pins.family(session.familyId),

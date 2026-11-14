@@ -32,6 +32,32 @@ export const STEP_UP_FAILS_WINDOW_SECONDS = 15 * 60;
 
 export const PIN_DIGEST_BYTES = 32;
 
+export const ARGON2_MEMORY_KIB = 19_456;
+
+export const ARGON2_PASSES = 2;
+
+export const ARGON2_PARALLELISM = 1;
+
+export const ARGON2_TAG_BYTES = 32;
+
+export const ARGON2_SALT_BYTES = 16;
+
+export const PASSWORD_HASH_PATTERN = /^\$argon2id\$v=19\$m=(\d+),t=(\d+),p=(\d+)\$([A-Za-z0-9+/]+)\$([A-Za-z0-9+/]+)$/;
+
+export const PASSWORD_FAILS_PREFIX = 'password:fails:';
+
+export const PASSWORD_FAILS_LIMIT = 10;
+
+export const PASSWORD_FAILS_WINDOW_SECONDS = 15 * 60;
+
+export const PASSWORD_GRANT_PREFIX = 'password:grant:';
+
+export const PASSWORD_GRANT_TTL_SECONDS = 10 * 60;
+
+export const PWNED_PREFIX_LENGTH = 5;
+
+export const PWNED_TIMEOUT_MS = 3000;
+
 export const REAUTH_PARAMS: Readonly<Record<string, string>> = { prompt: 'login', max_age: '0' };
 
 export const REAUTH_CLOCK_SKEW_SECONDS = 60;

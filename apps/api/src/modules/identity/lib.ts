@@ -1,4 +1,4 @@
-import { createHash, createHmac, pbkdf2, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
+import { argon2, createHash, createHmac, pbkdf2, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { createParamDecorator, type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import type { CookieSerializeOptions } from '@fastify/cookie';
@@ -18,6 +18,11 @@ import {
 } from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
 import {
+  ARGON2_MEMORY_KIB,
+  ARGON2_PARALLELISM,
+  ARGON2_PASSES,
+  ARGON2_SALT_BYTES,
+  ARGON2_TAG_BYTES,
   AUTH_STATE_TTL_SECONDS,
   CONTACT_HASH_PREFIX,
   EMAIL_CODE_LENGTH,
@@ -33,6 +38,9 @@ import {
   INVITE_TOKEN_BYTES,
   JOIN_ROUTE,
   MAIL_DATE_FORMAT,
+  PASSWORD_FAILS_PREFIX,
+  PASSWORD_GRANT_PREFIX,
+  PASSWORD_HASH_PATTERN,
   PIN_DIGEST_BYTES,
   PIN_GRANT_PREFIX,
   REAUTH_CLOCK_SKEW_SECONDS,
@@ -168,6 +176,50 @@ export const stepUpKey = (userId: string): string => `${STEP_UP_PREFIX}${userId}
 export const stepUpFailsKey = (userId: string): string => `${STEP_UP_FAILS_PREFIX}${userId}`;
 
 const pbkdf2Async = promisify(pbkdf2);
+
+const argon2Async = promisify(argon2);
+
+const unpadded = (bytes: Buffer): string => bytes.toString('base64').replace(/=+$/, '');
+
+const argon2id = (password: string, salt: Buffer, memory: number, passes: number, parallelism: number, tagLength: number) =>
+  argon2Async('argon2id', { message: password, nonce: salt, memory, passes, parallelism, tagLength });
+
+export const hashPassword = async (password: string, salt = randomBytes(ARGON2_SALT_BYTES)): Promise<string> => {
+  const hash = await argon2id(password, salt, ARGON2_MEMORY_KIB, ARGON2_PASSES, ARGON2_PARALLELISM, ARGON2_TAG_BYTES);
+  return `$argon2id$v=19$m=${ARGON2_MEMORY_KIB},t=${ARGON2_PASSES},p=${ARGON2_PARALLELISM}$${unpadded(salt)}$${unpadded(hash)}`;
+};
+
+export const verifyPassword = async (password: string, stored: string): Promise<boolean> => {
+  const parts = PASSWORD_HASH_PATTERN.exec(stored);
+  if (!parts) {
+    return false;
+  }
+  const [, memory = '', passes = '', parallelism = '', salt = '', hash = ''] = parts;
+  const expected = Buffer.from(hash, 'base64');
+  const actual = await argon2id(
+    password,
+    Buffer.from(salt, 'base64'),
+    Number(memory),
+    Number(passes),
+    Number(parallelism),
+    expected.length
+  );
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+};
+
+export const pwnedCount = (body: string, suffix: string): number => {
+  for (const line of body.split('\n')) {
+    const [hash, count] = line.trim().split(':');
+    if (hash?.toUpperCase() === suffix.toUpperCase()) {
+      return Number(count) || 0;
+    }
+  }
+  return 0;
+};
+
+export const passwordFailsKey = (emailHash: string): string => `${PASSWORD_FAILS_PREFIX}${emailHash}`;
+
+export const passwordGrantKey = (userId: string): string => `${PASSWORD_GRANT_PREFIX}${userId}`;
 
 export const pinDigest = async (pin: string, stored: PinHash): Promise<string> =>
   (await pbkdf2Async(pin, Buffer.from(stored.salt, 'base64'), stored.iterations, PIN_DIGEST_BYTES, 'sha256')).toString('base64');
