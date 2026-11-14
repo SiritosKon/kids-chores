@@ -40,6 +40,8 @@ export const devSignIn = (name: string): Promise<boolean> => apiOk('/dev/login',
 
 export const providerStartUrl = (provider: AuthProvider): string => `${API_PREFIX}/auth/${provider}/start`;
 
+export const providerReauthUrl = (provider: AuthProvider): string => `${providerStartUrl(provider)}?intent=reauth`;
+
 export const fetchPasskeyCreationOptions = (): Promise<PasskeyCreationOptions | null> =>
   apiJson('/auth/passkey/register/options', (data) => passkeyCreationOptionsSchema.parse(data), 'POST');
 

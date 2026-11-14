@@ -9,6 +9,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
   Req,
   Res,
 } from '@nestjs/common';
@@ -20,6 +21,8 @@ import { AuthRateLimit } from '../../platform/rate-limit';
 import { AccountsService } from './accounts.service';
 import { OidcService } from './oidc.service';
 import { PasskeyLoginDto, PasskeyRegisterDto } from './dto';
+import { PinsService } from './pins.service';
+import { authIntentSchema } from './schema';
 import { AUTH_STATE_COOKIE } from './constants';
 import {
   authStateCookieOptions,
@@ -27,12 +30,13 @@ import {
   CurrentSession,
   failedSignInUrl,
   homeUrl,
+  pinResetUrl,
   publicOrigin,
   subjectHash,
 } from './lib';
 import { PasskeysService } from './passkeys.service';
 import { SessionsService } from './sessions.service';
-import type { PasskeyLoginOptions, PasskeyRegisterOptions } from './types';
+import type { AuthState, PasskeyLoginOptions, PasskeyRegisterOptions, ProviderIdentity } from './types';
 
 @Controller('auth')
 export class AuthController {
@@ -43,15 +47,26 @@ export class AuthController {
     private readonly accounts: AccountsService,
     private readonly sessions: SessionsService,
     private readonly oidc: OidcService,
-    private readonly passkeys: PasskeysService
+    private readonly passkeys: PasskeysService,
+    private readonly pins: PinsService
   ) {}
 
   @Public()
   @AuthRateLimit()
   @Get(':provider/start')
-  async start(@Param('provider') provider: string, @Res() reply: FastifyReply): Promise<FastifyReply> {
+  async start(
+    @Param('provider') provider: string,
+    @Query('intent') rawIntent: unknown,
+    @Req() request: FastifyRequest,
+    @Res() reply: FastifyReply
+  ): Promise<FastifyReply> {
     const known = this.requireProvider(provider);
-    const { url, state } = await this.oidc.start(known);
+    const intent = authIntentSchema.parse(rawIntent);
+    const userId = request.authSession?.userId;
+    if (intent === 'reauth' && !userId) {
+      return reply.redirect(pinResetUrl(this.config, 'failed'), 302);
+    }
+    const { url, state } = await this.oidc.start(known, intent, userId);
     reply.setCookie(AUTH_STATE_COOKIE, state, authStateCookieOptions(this.config));
     return reply.redirect(url, 302);
   }
@@ -66,21 +81,39 @@ export class AuthController {
     const known = this.requireProvider(provider);
     const browserState = request.cookies[AUTH_STATE_COOKIE];
     reply.clearCookie(AUTH_STATE_COOKIE, { path: authStateCookieOptions(this.config).path });
+    const callbackAt = new URL(request.url, publicOrigin(this.config));
+    let stored: AuthState | null = null;
     try {
-      const callbackAt = new URL(request.url, publicOrigin(this.config));
-      const { subject, name, picture, contacts, linkable } = await this.oidc.finish(known, callbackAt, browserState);
+      stored = await this.oidc.takeState(known, callbackAt, browserState);
+      const identity = await this.oidc.finish(known, callbackAt, stored);
+      if (stored.intent === 'reauth') {
+        return reply.redirect(pinResetUrl(this.config, await this.reauth(known, identity, stored.userId)), 302);
+      }
       const pepper = this.config.AUTH_PEPPER;
-      const signedIn = await this.accounts.signIn(known, subjectHash(pepper, known, subject), {
-        name,
-        contacts: contacts.map((contact) => contactHash(pepper, contact)),
-        linkable: linkable.map((contact) => contactHash(pepper, contact)),
+      const signedIn = await this.accounts.signIn(known, subjectHash(pepper, known, identity.subject), {
+        name: identity.name,
+        contacts: identity.contacts.map((contact) => contactHash(pepper, contact)),
+        linkable: identity.linkable.map((contact) => contactHash(pepper, contact)),
       });
       await this.sessions.start(request, reply, signedIn);
-      return reply.redirect(homeUrl(this.config, known, picture), 302);
+      return reply.redirect(homeUrl(this.config, known, identity.picture), 302);
     } catch (error) {
-      this.logger.warn(`${known} sign-in failed: ${error instanceof Error ? error.name : 'unknown error'}`);
-      return reply.redirect(failedSignInUrl(this.config, known), 302);
+      this.logger.warn(`${known} ${stored?.intent ?? 'sign-in'} failed: ${error instanceof Error ? error.name : 'unknown error'}`);
+      return reply.redirect(
+        stored?.intent === 'reauth' ? pinResetUrl(this.config, 'failed') : failedSignInUrl(this.config, known),
+        302
+      );
     }
+  }
+
+  private async reauth(provider: AuthProvider, identity: ProviderIdentity, userId: string | undefined): Promise<'granted' | 'failed'> {
+    const subject = subjectHash(this.config.AUTH_PEPPER, provider, identity.subject);
+    const account = await this.accounts.findAccount(provider, subject);
+    if (!userId || account?.userId !== userId) {
+      return 'failed';
+    }
+    await this.pins.grant(userId);
+    return 'granted';
   }
 
   @Public()

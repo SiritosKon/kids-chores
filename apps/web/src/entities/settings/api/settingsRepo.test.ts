@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { reactive } from 'vue';
 import { db } from '@/shared/api/db';
-import { pinMatches } from '../lib/pinHash';
-import { getSettings, saveSettings, setupParentPin } from './settingsRepo';
+import { getSettings, saveSettings, setupSettings } from './settingsRepo';
 
 beforeEach(async () => {
   if (db.isOpen()) {
@@ -12,37 +11,35 @@ beforeEach(async () => {
   await db.open();
 });
 
-describe('setupParentPin', () => {
+describe('setupSettings', () => {
   it('creates settings with the tour pending and the daily bonus on for a fresh device', async () => {
-    await setupParentPin('246810', 'es');
+    await setupSettings('es');
 
-    const settings = await getSettings();
-    expect(settings).toMatchObject({
+    expect(await getSettings()).toMatchObject({
       parentPin: null,
+      pinHash: null,
       bonus: { enabled: true, points: 2 },
       streak: { enabled: false, milestones: [] },
       tourPending: true,
       locale: 'es',
     });
-    expect(settings?.pinHash && (await pinMatches('246810', settings.pinHash))).toBe(true);
   });
 
-  it('only sets the pin when settings already exist', async () => {
+  it('leaves settings that already exist alone', async () => {
+    const pinHash = { salt: 'c2FsdA==', hash: 'aGFzaA==', iterations: 600_000 };
     await saveSettings({
       id: 'app',
       parentPin: null,
-      pinHash: null,
+      pinHash,
       bonus: { enabled: true, points: 2 },
       streak: { enabled: false, milestones: [] },
       tourPending: false,
       locale: 'ru',
     });
 
-    await setupParentPin('246810', 'es');
+    await setupSettings('es');
 
-    const settings = await getSettings();
-    expect(settings).toMatchObject({ parentPin: null, bonus: { enabled: true, points: 2 }, tourPending: false });
-    expect(settings?.pinHash && (await pinMatches('246810', settings.pinHash))).toBe(true);
+    expect(await getSettings()).toMatchObject({ pinHash, tourPending: false, locale: 'ru' });
   });
 });
 

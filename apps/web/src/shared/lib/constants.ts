@@ -14,3 +14,9 @@ export const DEFAULT_CELEBRATION_COLOR = '#FF9F0A';
 export const FESTIVE_COLORS = ['#FFD60A', '#FF375F', '#30D158', '#0A84FF', '#BF5AF2', '#FFFFFF'];
 
 export const FIRE_SPARK_COLORS = ['#FF9F0A', '#FFD60A', '#FF453A'];
+
+export const PIN_HASH_ITERATIONS = 600_000;
+
+export const PIN_HASH_BITS = 256;
+
+export const PIN_SALT_BYTES = 16;

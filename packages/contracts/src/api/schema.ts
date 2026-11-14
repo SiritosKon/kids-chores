@@ -10,6 +10,7 @@ import {
   MEMBER_ROLES,
   PHONE_PATTERN,
   PHONE_SEPARATORS,
+  PIN_HASH_ITERATIONS_MAX,
   PROVIDER_PICTURE_HOST,
   REGIONS,
 } from '../constants.js';
@@ -82,6 +83,16 @@ export const invitePreviewSchema = z.object({
   sameFamily: z.boolean(),
 });
 
+export const pinHashSchema = z.object({
+  salt: z.string().min(1).max(64),
+  hash: z.string().min(1).max(128),
+  iterations: z.number().int().positive().max(PIN_HASH_ITERATIONS_MAX),
+});
+
+export const memberPinSchema = z.object({ userId: z.uuid(), pin: pinHashSchema });
+
+export const setPinRequestSchema = z.object({ pin: pinHashSchema, current: z.string().min(1).max(128).optional() });
+
 export const meResponseSchema = z.object({
   userId: z.uuid(),
   familyId: z.uuid(),
@@ -92,6 +103,8 @@ export const meResponseSchema = z.object({
   members: z.number().int().positive().default(1),
   hasEmail: z.boolean().default(false),
   joinRequests: z.number().int().nonnegative().default(0),
+  providers: z.array(z.enum(AUTH_PROVIDERS)).default([]),
+  pins: z.array(memberPinSchema).optional(),
 });
 
 export const familyMemberSchema = z.object({

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { AUTH_PROVIDERS } from '@kids-chores/contracts';
+import { AUTH_INTENTS } from './constants';
 
 const base64url = z.string().regex(/^[A-Za-z0-9_-]+$/);
 
@@ -14,7 +15,11 @@ const clientExtensionResults = z.object({
 export const authStateSchema = z.object({
   provider: z.enum(AUTH_PROVIDERS),
   verifier: z.string().min(43),
+  intent: z.enum(AUTH_INTENTS).default('signIn'),
+  userId: z.uuid().optional(),
 });
+
+export const authIntentSchema = z.enum(AUTH_INTENTS).catch('signIn');
 
 export const registrationResponseSchema = z.object({
   id: base64url,

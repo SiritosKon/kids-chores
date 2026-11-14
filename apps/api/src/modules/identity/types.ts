@@ -3,6 +3,7 @@ import type { ServerMetadata } from 'openid-client';
 import type { z } from 'zod';
 import type { Contact, ContactKind, Session } from '@kids-chores/contracts';
 import type { FamilyInvite } from '../../generated/prisma/client';
+import type { AUTH_INTENTS } from './constants';
 import type { authStateSchema } from './schema';
 
 export type AuthState = z.infer<typeof authStateSchema>;
@@ -73,6 +74,10 @@ export interface InviteMailText extends MailText {
 }
 
 export type EmailCodePurpose = 'pin' | 'signIn';
+
+export type AuthIntent = (typeof AUTH_INTENTS)[number];
+
+export type PinResetOutcome = 'granted' | 'failed';
 
 export interface DailyLimit {
   name: string;

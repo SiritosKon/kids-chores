@@ -113,7 +113,7 @@
   </q-drawer>
 
   <input ref="fileInput" type="file" accept="application/json" style="display: none" @change="onFile" />
-  <PinDialog v-model="showLogin" />
+  <PinDialog v-model="showLogin" :granted="pinResetGranted" @hide="pinResetGranted = false" />
 </template>
 
 <script setup lang="ts">
@@ -127,7 +127,7 @@ import { applyLocale, currentLocale, LOCALE_NAMES, LOCALE_OPTIONS, type Locale }
 import { AccountAvatar, useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { useSettingsStore } from '@/entities/settings';
-import { PinDialog, useLogout } from '@/features/parent-login';
+import { PinDialog, useLogout, usePinResetReturn } from '@/features/parent-login';
 import { canAddToHomeScreen } from '@/features/install-app';
 import { exportAll, importAll, downloadJson } from '@/features/backup';
 import { recalculateStreaks } from '@/features/track-streak';
@@ -148,6 +148,11 @@ const tourPending = computed(() => settingsStore.settings?.tourPending === true)
 const appVersion = __APP_VERSION__;
 const iconUrl = `${import.meta.env.BASE_URL}favicon.svg`;
 const showLogin = ref(false);
+const pinResetGranted = ref(false);
+usePinResetReturn(() => {
+  pinResetGranted.value = true;
+  showLogin.value = true;
+});
 const current = computed(() => currentLocale());
 const installable = canAddToHomeScreen();
 

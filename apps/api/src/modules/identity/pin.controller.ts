@@ -1,20 +1,28 @@
-import { Body, ConflictException, Controller, HttpCode, Inject, Post, Req, UnprocessableEntityException } from '@nestjs/common';
+import { Body, ConflictException, Controller, HttpCode, Inject, Post, Put, Req, UnprocessableEntityException } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import type { Session } from '@kids-chores/contracts';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { PrismaService } from '../../platform/database';
 import { AuthRateLimit } from '../../platform/rate-limit';
-import { EmailCodeCheckDto, EmailCodeRequestDto } from './dto';
+import { EmailCodeCheckDto, EmailCodeRequestDto, SetPinDto } from './dto';
 import { EmailCodesService } from './email-codes.service';
 import { contactHash, CurrentSession } from './lib';
+import { PinsService } from './pins.service';
 
 @Controller('pin')
 export class PinController {
   constructor(
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     private readonly prisma: PrismaService,
-    private readonly codes: EmailCodesService
+    private readonly codes: EmailCodesService,
+    private readonly pins: PinsService
   ) {}
+
+  @Put()
+  @HttpCode(204)
+  set(@CurrentSession() session: Session, @Body() body: SetPinDto): Promise<void> {
+    return this.pins.set(session, body);
+  }
 
   @AuthRateLimit()
   @Post('code')
@@ -39,7 +47,8 @@ export class PinController {
   @AuthRateLimit()
   @Post('code/check')
   @HttpCode(204)
-  check(@CurrentSession() session: Session, @Body() body: EmailCodeCheckDto): Promise<void> {
-    return this.codes.check('pin', session.userId, body.code);
+  async check(@CurrentSession() session: Session, @Body() body: EmailCodeCheckDto): Promise<void> {
+    await this.codes.check('pin', session.userId, body.code);
+    await this.pins.grant(session.userId);
   }
 }

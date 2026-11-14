@@ -83,6 +83,7 @@
         <q-card-section>
           <div class="text-center text-subtitle1 q-mb-sm">{{ t(PIN_SETUP_TITLE_KEYS[step]) }}</div>
           <PinInput :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="error" @complete="onPin" />
+          <div class="text-center text-caption text-grey-6 q-mt-sm">{{ t('shared.pinHint') }}</div>
           <div class="text-center q-mt-sm">
             <q-btn flat dense no-caps color="grey-5" :label="t('onboardingPage.joinExisting')" @click="joinOpen = true" />
           </div>
@@ -104,7 +105,7 @@ import { currentLocale } from '@/shared/i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
 import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { setupParentPin, useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
+import { setupSettings, useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
 import { JoinRequestDialog, PendingInvite, usePendingInviteStore } from '@/features/join-family';
 import { SignInOptions } from '@/features/sign-in';
 import { seedPresets } from '@/features/starter-presets';
@@ -118,7 +119,7 @@ const route = useRoute();
 const account = useAccountStore();
 const sync = useSyncStore();
 const parentSession = useParentSessionStore();
-const hadPin = useSettingsStore().hasPin;
+const settingsStore = useSettingsStore();
 
 const familyLoaded = ref(false);
 const retrying = ref(false);
@@ -128,14 +129,14 @@ const joinOpen = ref(false);
 const waiting = ref(false);
 const draftName = ref('');
 const savingName = ref(false);
-let pinChosen = false;
+const adopting = ref(false);
 let poll: ReturnType<typeof setInterval> | undefined;
 
 const stage = computed<OnboardingStage>(() => {
   if (!account.signedIn) {
     return account.loaded ? 'account' : 'loading';
   }
-  if (!familyLoaded.value || joining.value) {
+  if (!familyLoaded.value || joining.value || adopting.value) {
     return 'loading';
   }
   if (!account.name) {
@@ -164,6 +165,25 @@ const startWaiting = (): void => {
   clearInterval(poll);
   poll = setInterval(() => void account.refresh(), WAIT_POLL_MS);
 };
+
+const keepFamilyPin = async (): Promise<void> => {
+  const legacy = settingsStore.settings?.pinHash;
+  if (!legacy || !account.pinsKnown || (account.me?.members ?? 1) > 1 || adopting.value) {
+    return;
+  }
+  adopting.value = true;
+  const kept = (await account.adoptPin(legacy)) === 'ok';
+  adopting.value = false;
+  if (kept) {
+    $q.notify({ type: 'info', message: t('onboardingPage.pinKept') });
+  }
+};
+
+watch(stage, (current) => {
+  if (current === 'pin') {
+    void keepFamilyPin();
+  }
+}, { immediate: true });
 
 const saveName = async (): Promise<void> => {
   if (!draftName.value.trim() || savingName.value) {
@@ -201,9 +221,6 @@ watch(
 onBeforeUnmount(() => {
   clearInterval(poll);
   window.removeEventListener('online', retryOnline);
-  if (account.signedIn && !hadPin && !pinChosen) {
-    $q.notify({ type: 'info', message: t('onboardingPage.familyPin'), timeout: 8000 });
-  }
 });
 const signInFailed = computed(() => typeof route.query.error === 'string');
 
@@ -234,8 +251,13 @@ const onPin = async (value: string): Promise<void> => {
     $q.notify({ type: 'negative', message: t('onboardingPage.pinMismatch') });
     return;
   }
-  pinChosen = true;
-  await setupParentPin(value, currentLocale());
+  await setupSettings(currentLocale());
+  if ((await account.setPin(value)) !== 'ok') {
+    $q.notify({ type: 'negative', message: t('onboardingPage.pinFailed') });
+    step.value = 'choose';
+    pin.value = '';
+    return;
+  }
   parentSession.unlock();
 };
 </script>

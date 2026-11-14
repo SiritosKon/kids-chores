@@ -12,6 +12,8 @@ export const SESSION_KEY_PREFIX = 'session:';
 
 export const ACCOUNT_NAME_MAX = 40;
 
+export const PIN_HASH_ITERATIONS_MAX = 10_000_000;
+
 export const MEMBER_ROLES = ['owner', 'parent'] as const;
 
 export const CONTACT_KINDS = ['email', 'phone'] as const;

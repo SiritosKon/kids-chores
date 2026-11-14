@@ -126,7 +126,8 @@ watch(
   { immediate: true }
 );
 
-const welcome = computed(() => settingsStore.loaded && (!settingsStore.hasPin || !account.signedIn));
+const pinReady = computed(() => account.hasOwnPin || (!account.pinsKnown && settingsStore.hasPin));
+const welcome = computed(() => settingsStore.loaded && (!account.signedIn || !pinReady.value));
 const docked = useDockedMenu();
 const menuDocked = computed(() => docked.value && !welcome.value);
 

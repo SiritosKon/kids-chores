@@ -14,6 +14,12 @@ export const AUTH_STATE_PREFIX = 'auth:state:';
 
 export const AUTH_STATE_COOKIE = 'lbd_auth_state';
 
+export const AUTH_INTENTS = ['signIn', 'reauth'] as const;
+
+export const PIN_GRANT_PREFIX = 'pin:grant:';
+
+export const PIN_GRANT_TTL_SECONDS = 10 * 60;
+
 export const PASSKEY_CHALLENGE_TTL_SECONDS = 5 * 60;
 
 export const PASSKEY_REGISTER_PREFIX = 'auth:passkey:register:';

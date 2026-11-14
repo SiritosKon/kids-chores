@@ -7,7 +7,7 @@ import { VALKEY } from '../../platform/valkey';
 import { AUTH_STATE_PREFIX, AUTH_STATE_TTL_SECONDS, OIDC_PROVIDERS } from './constants';
 import { callbackUrl, providerCredentials, providerIdentity } from './lib';
 import { authStateSchema } from './schema';
-import type { AuthState, ProviderIdentity, ProviderStart } from './types';
+import type { AuthIntent, AuthState, ProviderIdentity, ProviderStart } from './types';
 
 @Injectable()
 export class OidcService {
@@ -28,10 +28,10 @@ export class OidcService {
     }
   }
 
-  async start(provider: AuthProvider): Promise<ProviderStart> {
+  async start(provider: AuthProvider, intent: AuthIntent = 'signIn', userId?: string): Promise<ProviderStart> {
     const client = this.requireClient(provider);
     const state = oidc.randomState();
-    const stored: AuthState = { provider, verifier: oidc.randomPKCECodeVerifier() };
+    const stored: AuthState = { provider, verifier: oidc.randomPKCECodeVerifier(), intent, userId };
     await this.valkey.set(`${AUTH_STATE_PREFIX}${state}`, JSON.stringify(stored), 'EX', AUTH_STATE_TTL_SECONDS);
     const url = oidc.buildAuthorizationUrl(client, {
       ...OIDC_PROVIDERS[provider].params,
@@ -44,8 +44,7 @@ export class OidcService {
     return { url, state };
   }
 
-  async finish(provider: AuthProvider, callback: URL, browserState: string | undefined): Promise<ProviderIdentity> {
-    const client = this.requireClient(provider);
+  async takeState(provider: AuthProvider, callback: URL, browserState: string | undefined): Promise<AuthState> {
     const state = callback.searchParams.get('state') ?? '';
     if (!browserState || browserState !== state) {
       throw new UnauthorizedException();
@@ -55,9 +54,14 @@ export class OidcService {
     if (!stored.success || stored.data.provider !== provider) {
       throw new UnauthorizedException();
     }
+    return stored.data;
+  }
+
+  async finish(provider: AuthProvider, callback: URL, stored: AuthState): Promise<ProviderIdentity> {
+    const client = this.requireClient(provider);
     const tokens = await oidc.authorizationCodeGrant(client, callback, {
-      pkceCodeVerifier: stored.data.verifier,
-      expectedState: state,
+      pkceCodeVerifier: stored.verifier,
+      expectedState: callback.searchParams.get('state') ?? '',
     });
     const claims = tokens.claims();
     if (!claims?.sub) {

@@ -11,6 +11,9 @@ import type {
   emailCodeRequestSchema,
   emailSignInSchema,
   updateMeRequestSchema,
+  pinHashSchema,
+  memberPinSchema,
+  setPinRequestSchema,
   createdInviteSchema,
   mediaCreatedSchema,
   invitePreviewSchema,
@@ -45,6 +48,12 @@ export type EmailCodeCheck = z.infer<typeof emailCodeCheckSchema>;
 export type EmailSignIn = z.infer<typeof emailSignInSchema>;
 
 export type UpdateMeRequest = z.infer<typeof updateMeRequestSchema>;
+
+export type PinHash = z.infer<typeof pinHashSchema>;
+
+export type MemberPin = z.infer<typeof memberPinSchema>;
+
+export type SetPinRequest = z.infer<typeof setPinRequestSchema>;
 
 export type InviteTokenRequest = z.infer<typeof inviteTokenRequestSchema>;
 

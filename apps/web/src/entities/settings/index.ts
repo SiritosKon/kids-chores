@@ -2,7 +2,7 @@ export { settingsSchema, storedSettingsSchema, parentPinSchema, pinHashSchema, i
 export { SETTINGS_ID, PARENT_PIN_LENGTH } from './model/constants';
 export type { Settings, BonusSettings, StreakSettings, StreakMilestone, PinHash } from './model/types';
 export { useSettingsStore } from './model/store';
-export { getSettings, saveSettings, setupParentPin, settingsTable } from './api/settingsRepo';
+export { getSettings, saveSettings, setupSettings, settingsTable } from './api/settingsRepo';
 export {
   openMilestones,
   addMilestone,

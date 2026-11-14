@@ -7,7 +7,7 @@
         <q-btn flat round dense icon="close" v-close-popup :aria-label="t('common.close')" />
       </q-card-section>
       <q-card-section v-if="modelValue && mode === 'reset'" class="q-pt-sm q-pb-lg">
-        <PinResetForm @done="close" @cancel="mode = 'login'" />
+        <PinResetForm :granted="granted" @done="close" @cancel="mode = 'login'" />
       </q-card-section>
       <q-card-section v-else-if="modelValue" class="q-pt-sm q-pb-md">
         <div v-if="lockedMs > 0" class="text-center text-grey-4 q-py-md">
@@ -28,28 +28,42 @@ import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
 import { useParentSessionStore } from '@/entities/parent-session';
+import { useAccountStore } from '@/entities/account';
 import { useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
 import { clearPinFailures, pinLockedFor, recordPinFailure } from '../lib/pinLock';
 import PinResetForm from './PinResetForm.vue';
 import type { PinDialogMode } from '../model/types';
 
-const props = withDefaults(defineProps<{ modelValue?: boolean }>(), { modelValue: false });
+const props = withDefaults(defineProps<{ modelValue?: boolean; granted?: boolean }>(), {
+  modelValue: false,
+  granted: false,
+});
 const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>();
 
 const $q = useQuasar();
 const { t } = useI18n();
 const parentSession = useParentSessionStore();
 const settingsStore = useSettingsStore();
+const account = useAccountStore();
 
 const pin = ref('');
 const error = ref(false);
-const mode = ref<PinDialogMode>('login');
+const mode = ref<PinDialogMode>(props.granted ? 'reset' : 'login');
 
 const reset = (): void => {
   pin.value = '';
   error.value = false;
   mode.value = 'login';
 };
+
+watch(
+  () => props.granted,
+  (granted) => {
+    if (granted) {
+      mode.value = 'reset';
+    }
+  }
+);
 
 const close = (): void => {
   emit('update:modelValue', false);
@@ -93,7 +107,7 @@ watch(
 onBeforeUnmount(() => clearInterval(ticker));
 
 const submit = async (value: string): Promise<void> => {
-  if (await settingsStore.checkPin(value)) {
+  if (account.pinsKnown ? await account.checkPin(value) : await settingsStore.checkPin(value)) {
     clearPinFailures();
     parentSession.unlock();
     $q.notify({ type: 'positive', message: t('parentLogin.unlocked') });

@@ -1,7 +1,7 @@
 import { ref, computed, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { getSettings, saveSettings, watchSettings } from '../api/settingsRepo';
-import { hashPin, pinMatches } from '../lib/pinHash';
+import { hashPin, pinMatches } from '@/shared/lib/pinHash';
 import { NO_BONUS, NO_STREAK } from './constants';
 import type { Settings } from './types';
 
@@ -54,5 +54,5 @@ export const useSettingsStore = defineStore('settings', () => {
   });
   onScopeDispose(() => subscription.unsubscribe());
 
-  return { settings, loaded, bonus, streak, hasPin, update, changePin, checkPin };
+  return { settings, loaded, bonus, streak, hasPin, update, checkPin };
 });

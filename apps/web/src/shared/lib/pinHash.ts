@@ -1,5 +1,5 @@
+import type { PinHash } from '@kids-chores/contracts';
 import { PIN_HASH_BITS, PIN_HASH_ITERATIONS, PIN_SALT_BYTES } from './constants';
-import type { PinHash } from '../model/types';
 
 const toBase64 = (bytes: Uint8Array): string => btoa(String.fromCharCode(...bytes));
 

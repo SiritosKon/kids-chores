@@ -13,3 +13,5 @@ export type CreateInviteResult = { status: 'created'; invite: CreatedInvite } | 
 export type PinCodeSendResult = 'sent' | 'mismatch' | 'tooMany' | 'offline' | 'failed';
 
 export type PinCodeCheckResult = 'ok' | 'wrong' | 'gone' | 'offline' | 'failed';
+
+export type PinSaveResult = 'ok' | 'denied' | 'offline' | 'failed';

@@ -15,6 +15,7 @@ import { MembershipsService } from './memberships.service';
 import { OidcService } from './oidc.service';
 import { PinController } from './pin.controller';
 import { PasskeysService } from './passkeys.service';
+import { PinsService } from './pins.service';
 import { SessionGuard } from './session.guard';
 import { SessionsService } from './sessions.service';
 
@@ -30,6 +31,7 @@ import { SessionsService } from './sessions.service';
     SessionsService,
     OidcService,
     PasskeysService,
+    PinsService,
     { provide: APP_GUARD, useClass: SessionGuard },
   ],
 })

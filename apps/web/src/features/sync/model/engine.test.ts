@@ -3,7 +3,7 @@ import { syncPushRequestSchema, type SyncMutation, type SyncRecord } from '@kids
 import { db } from '@/shared/api/db';
 import { childrenCatalogue, createChild } from '@/entities/child';
 import { getAllCompletions, saveDayMarks } from '@/entities/completion';
-import { getSettings, setupParentPin } from '@/entities/settings';
+import { getSettings, saveSettings, setupSettings } from '@/entities/settings';
 import { seedPresets } from '@/features/starter-presets';
 import { syncFamily, pendingChanges } from './engine';
 
@@ -122,7 +122,7 @@ describe('syncFamily', () => {
   });
 
   it('takes device-only fields such as the language from the device, never from the server', async () => {
-    await setupParentPin('123456', 'ru');
+    await setupSettings('ru');
     await createChild({ name: 'Тимофей', carColor: '#0A84FF', photo: 'data:image/png;base64,AAAA' });
     await syncFamily('family-1');
     const settings = server.records.get('settings/app');
@@ -139,8 +139,12 @@ describe('syncFamily', () => {
     expect(await getSettings()).toMatchObject({ parentPin: null, locale: 'ru', bonus: { enabled: true, points: 5 } });
   });
 
-  it('shares the PIN hash with the whole family', async () => {
-    await setupParentPin('123456', 'ru');
+  it('still carries the family PIN hash an older version set', async () => {
+    await setupSettings('ru');
+    const fresh = await getSettings();
+    if (fresh) {
+      await saveSettings({ ...fresh, pinHash: { salt: 'b2xk', hash: 'b2xkLWhhc2g=', iterations: 600_000 } });
+    }
     await syncFamily('family-1');
     const settings = server.records.get('settings/app');
     expect(settings?.data.pinHash).toEqual((await getSettings())?.pinHash);

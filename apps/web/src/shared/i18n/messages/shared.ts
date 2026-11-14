@@ -5,6 +5,7 @@ export const shared = defineMessages({
     pinLabel: 'PIN-код',
     showPin: 'Показать PIN',
     hidePin: 'Скрыть PIN',
+    pinHint: 'Не используйте PIN от банковской карты',
     contact: {
       email: 'Почта',
       phone: 'Телефон',
@@ -25,6 +26,7 @@ export const shared = defineMessages({
     pinLabel: 'PIN',
     showPin: 'Show PIN',
     hidePin: 'Hide PIN',
+    pinHint: "Don't use your bank card PIN",
     contact: {
       email: 'Email',
       phone: 'Phone',
@@ -53,6 +55,7 @@ export const shared = defineMessages({
     },
     showPin: 'Mostrar PIN',
     hidePin: 'Ocultar PIN',
+    pinHint: 'No uses el PIN de tu tarjeta bancaria',
     figures: {
       truck: 'Camión',
       boat: 'Barquito',

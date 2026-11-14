@@ -1,9 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import type { MeResponse, Session } from '@kids-chores/contracts';
+import { AUTH_PROVIDERS, type AuthProvider, type MeResponse, type Session } from '@kids-chores/contracts';
 import { isUniqueViolation, PrismaService } from '../../platform/database';
 import { FamilyService } from './family.service';
 import { MembershipsService } from './memberships.service';
+import { PinsService } from './pins.service';
 import type { AccountProfile, RemovedUser, SignedIn } from './types';
 
 @Injectable()
@@ -11,7 +12,8 @@ export class AccountsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly memberships: MembershipsService,
-    private readonly family: FamilyService
+    private readonly family: FamilyService,
+    private readonly pins: PinsService
   ) {}
 
   async signIn(provider: string, subjectHash: string, profile: AccountProfile): Promise<SignedIn> {
@@ -39,6 +41,13 @@ export class AccountsService {
     }
   }
 
+  findAccount(provider: string, subjectHash: string): Promise<{ userId: string } | null> {
+    return this.prisma.authAccount.findUnique({
+      where: { provider_subjectHash: { provider, subjectHash } },
+      select: { userId: true },
+    });
+  }
+
   async addDevice(userId: string): Promise<SignedIn> {
     const membership = await this.prisma.membership.findUnique({ where: { userId }, select: { familyId: true } });
     const familyId = membership?.familyId ?? (await this.memberships.newFamily(userId));
@@ -57,6 +66,7 @@ export class AccountsService {
     );
     const passkeys = await this.prisma.passkey.count({ where: { userId: session.userId } });
     const members = await this.prisma.membership.count({ where: { familyId: session.familyId } });
+    const accounts = await this.prisma.authAccount.findMany({ where: { userId: session.userId }, select: { provider: true } });
     const emails = await this.prisma.userContact.count({ where: { userId: session.userId, kind: 'email' } });
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: session.userId }, select: { name: true } });
     return {
@@ -69,6 +79,8 @@ export class AccountsService {
       members,
       hasEmail: emails > 0,
       joinRequests: membership.role === 'owner' ? await this.family.pendingRequests(session) : 0,
+      providers: AUTH_PROVIDERS.filter((provider: AuthProvider) => accounts.some((account) => account.provider === provider)),
+      pins: await this.pins.family(session.familyId),
     };
   }
 

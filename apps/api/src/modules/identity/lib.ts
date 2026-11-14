@@ -31,12 +31,21 @@ import {
   INVITE_TOKEN_BYTES,
   JOIN_ROUTE,
   MAIL_DATE_FORMAT,
+  PIN_GRANT_PREFIX,
   SESSION_TOKEN_BYTES,
   SESSION_TTL_SECONDS,
 } from './constants';
 import { providerProfileSchema } from './schema';
 import type { MailMessage } from '../../platform/mail';
-import type { ContactHash, EmailCodePurpose, EmailParts, MailText, ProviderCredentials, ProviderIdentity } from './types';
+import type {
+  ContactHash,
+  EmailCodePurpose,
+  EmailParts,
+  MailText,
+  PinResetOutcome,
+  ProviderCredentials,
+  ProviderIdentity,
+} from './types';
 
 export const newSessionToken = (): string => randomBytes(SESSION_TOKEN_BYTES).toString('base64url');
 
@@ -77,9 +86,9 @@ export const newInviteToken = (): string => randomBytes(INVITE_TOKEN_BYTES).toSt
 export const inviteTokenHash = (pepper: string, token: string): string =>
   createHmac('sha256', pepper).update(`${INVITE_HASH_PREFIX}${token}`).digest('hex');
 
-export const sameHash = (left: string, right: string): boolean => {
-  const a = Buffer.from(left, 'hex');
-  const b = Buffer.from(right, 'hex');
+export const sameHash = (left: string, right: string, encoding: BufferEncoding = 'hex'): boolean => {
+  const a = Buffer.from(left, encoding);
+  const b = Buffer.from(right, encoding);
   return a.length > 0 && a.length === b.length && timingSafeEqual(a, b);
 };
 
@@ -144,6 +153,11 @@ export const publicOrigin = (config: AppConfig): string => new URL(config.PUBLIC
 
 export const callbackUrl = (config: AppConfig, provider: string): string =>
   `${publicOrigin(config)}${API_PREFIX}/auth/${provider}/callback`;
+
+export const pinGrantKey = (userId: string): string => `${PIN_GRANT_PREFIX}${userId}`;
+
+export const pinResetUrl = (config: AppConfig, outcome: PinResetOutcome): string =>
+  `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?pinReset=${outcome}`;
 
 export const failedSignInUrl = (config: AppConfig, error: string): string =>
   `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?error=${encodeURIComponent(error)}`;

@@ -39,69 +39,63 @@
         <q-spinner v-if="busy" color="primary" size="24px" />
       </div>
     </div>
-    <div v-else-if="step === 'check'" class="form-stack">
-      <div class="text-center text-h5">{{ t('parentLogin.question', { question: check.question }) }}</div>
-      <q-input
-        v-model="answer"
-        type="text"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        :label="t('parentLogin.answer')"
-        autofocus
-        :error="checkError"
-        :error-message="t('parentLogin.wrongAnswer')"
-        @keyup.enter="submitCheck"
-      />
+    <div v-else-if="step === 'providers'" class="form-stack">
+      <div class="text-grey-5">{{ providers.length > 0 ? t('parentLogin.providerOnlyIntro') : t('parentLogin.noWay') }}</div>
       <div class="row">
         <q-btn flat no-caps :label="t('common.back')" @click="emit('cancel')" />
-        <q-space />
+      </div>
+    </div>
+    <template v-else>
+      <PinInput :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="pinError" @complete="onPin" />
+      <div class="text-center text-caption text-grey-6 q-mt-sm">{{ t('shared.pinHint') }}</div>
+    </template>
+    <div v-if="(step === 'email' || step === 'providers') && providers.length > 0" class="q-mt-md">
+      <div v-if="step === 'email'" class="text-grey-5 q-mb-sm">{{ t('parentLogin.providerIntro') }}</div>
+      <div class="row q-gutter-sm">
         <q-btn
-          unelevated
+          v-for="provider in providers"
+          :key="provider"
+          outline
           no-caps
-          color="primary"
-          :label="t('common.next')"
-          :disable="answer.trim() === ''"
-          @click="submitCheck"
+          color="grey-5"
+          :label="t(PROVIDER_LABELS[provider])"
+          @click="reauth(provider)"
         />
       </div>
     </div>
-    <PinInput v-else :key="step" v-model="pin" :length="PARENT_PIN_LENGTH" :error="pinError" @complete="onPin" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
 import { useParentSessionStore } from '@/entities/parent-session';
-import { EMAIL_CODE_PATTERN, emailSchema } from '@kids-chores/contracts';
+import { EMAIL_CODE_PATTERN, emailSchema, type AuthProvider } from '@kids-chores/contracts';
 import { currentLocale } from '@/shared/i18n';
-import { checkPinCode, requestPinCode, useAccountStore } from '@/entities/account';
-import { useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
-import { makeParentCheck } from '../lib/parentCheck';
+import { checkPinCode, providerReauthUrl, requestPinCode, useAccountStore } from '@/entities/account';
+import { PARENT_PIN_LENGTH } from '@/entities/settings';
 import { clearPinFailures } from '../lib/pinLock';
-import { RESET_STEP_TITLES } from '../model/constants';
+import { PROVIDER_LABELS, RESET_STEP_TITLES } from '../model/constants';
 import type { ResetStep } from '../model/types';
 
+const props = withDefaults(defineProps<{ granted?: boolean }>(), { granted: false });
 const emit = defineEmits<{ done: []; cancel: [] }>();
 
 const $q = useQuasar();
 const { t } = useI18n();
 const parentSession = useParentSessionStore();
-const settingsStore = useSettingsStore();
-
 const account = useAccountStore();
-const step = ref<ResetStep>(account.me?.hasEmail === true ? 'email' : 'check');
+const providers = computed<readonly AuthProvider[]>(() => account.me?.providers ?? []);
+const firstStep = (): ResetStep => (account.me?.hasEmail === true ? 'email' : 'providers');
+const step = ref<ResetStep>(props.granted ? 'next' : firstStep());
 const email = ref('');
 const emailError = ref<string | null>(null);
 const sentTo = ref('');
 const code = ref('');
 const codeError = ref<string | null>(null);
 const busy = ref(false);
-const check = ref(makeParentCheck());
-const answer = ref('');
-const checkError = ref(false);
 const pin = ref('');
 const nextPin = ref('');
 const pinError = ref(false);
@@ -155,14 +149,8 @@ const onCode = async (value: string | number | null): Promise<void> => {
   codeError.value = t(result === 'wrong' ? 'parentLogin.wrongCode' : 'parentLogin.offline');
 };
 
-const submitCheck = (): void => {
-  if (Number(answer.value.trim()) === check.value.answer) {
-    step.value = 'next';
-    return;
-  }
-  check.value = makeParentCheck();
-  answer.value = '';
-  checkError.value = true;
+const reauth = (provider: AuthProvider): void => {
+  window.location.assign(providerReauthUrl(provider));
 };
 
 const onPin = async (value: string): Promise<void> => {
@@ -181,7 +169,13 @@ const onPin = async (value: string): Promise<void> => {
     });
     return;
   }
-  await settingsStore.changePin(value);
+  const result = await account.setPin(value);
+  if (result !== 'ok') {
+    $q.notify({ type: 'negative', message: t(result === 'denied' ? 'parentLogin.resetExpired' : 'parentLogin.saveFailed') });
+    step.value = result === 'denied' ? firstStep() : 'next';
+    pin.value = '';
+    return;
+  }
   clearPinFailures();
   parentSession.unlock();
   $q.notify({ type: 'positive', message: t('parentLogin.pinChanged') });
