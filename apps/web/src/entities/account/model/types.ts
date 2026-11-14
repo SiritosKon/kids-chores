@@ -15,3 +15,5 @@ export type PinCodeSendResult = 'sent' | 'mismatch' | 'tooMany' | 'offline' | 'f
 export type PinCodeCheckResult = 'ok' | 'wrong' | 'gone' | 'offline' | 'failed';
 
 export type PinSaveResult = 'ok' | 'denied' | 'offline' | 'failed';
+
+export type EmailLinkResult = 'ok' | 'wrong' | 'gone' | 'taken' | 'offline' | 'failed';

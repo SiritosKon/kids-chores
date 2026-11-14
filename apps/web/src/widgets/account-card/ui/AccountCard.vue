@@ -11,6 +11,8 @@
       </q-item-section>
     </q-item>
     <q-separator />
+    <SignInMethods />
+    <q-separator />
     <PasskeySetup />
     <q-separator />
     <q-item clickable :disable="busy" @click="confirmSignOut">
@@ -31,6 +33,7 @@ import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import { ACCOUNT_NAME_MAX } from '@kids-chores/contracts';
 import { AccountAvatar, useAccountStore } from '@/entities/account';
+import { SignInMethods } from '@/features/link-sign-in';
 import { PasskeySetup } from '@/features/passkey-setup';
 import { SyncStatus, useSyncStore } from '@/features/sync';
 

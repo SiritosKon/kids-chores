@@ -30,6 +30,7 @@ import {
   CurrentSession,
   failedSignInUrl,
   homeUrl,
+  linkedUrl,
   pinResetUrl,
   publicOrigin,
   subjectHash,
@@ -66,6 +67,9 @@ export class AuthController {
     if (intent === 'reauth' && !userId) {
       return reply.redirect(pinResetUrl(this.config, 'failed'), 302);
     }
+    if (intent === 'link' && !userId) {
+      return reply.redirect(linkedUrl(this.config, 'failed'), 302);
+    }
     const { url, state } = await this.oidc.start(known, intent, userId);
     reply.setCookie(AUTH_STATE_COOKIE, state, authStateCookieOptions(this.config));
     return reply.redirect(url, 302);
@@ -90,20 +94,30 @@ export class AuthController {
         return reply.redirect(pinResetUrl(this.config, await this.reauth(known, identity, stored.userId)), 302);
       }
       const pepper = this.config.AUTH_PEPPER;
-      const signedIn = await this.accounts.signIn(known, subjectHash(pepper, known, identity.subject), {
+      const subject = subjectHash(pepper, known, identity.subject);
+      const profile = {
         name: identity.name,
         contacts: identity.contacts.map((contact) => contactHash(pepper, contact)),
         linkable: identity.linkable.map((contact) => contactHash(pepper, contact)),
-      });
+      };
+      if (stored.intent === 'link') {
+        const outcome = stored.userId ? await this.accounts.link(known, subject, stored.userId, profile) : 'taken';
+        return reply.redirect(linkedUrl(this.config, outcome === 'linked' ? known : 'taken'), 302);
+      }
+      const signedIn = await this.accounts.signIn(known, subject, profile);
       await this.sessions.start(request, reply, signedIn);
       return reply.redirect(homeUrl(this.config, known, identity.picture), 302);
     } catch (error) {
       this.logger.warn(`${known} ${stored?.intent ?? 'sign-in'} failed: ${error instanceof Error ? error.name : 'unknown error'}`);
-      return reply.redirect(
-        stored?.intent === 'reauth' ? pinResetUrl(this.config, 'failed') : failedSignInUrl(this.config, known),
-        302
-      );
+      return reply.redirect(this.failedUrl(known, stored), 302);
     }
+  }
+
+  private failedUrl(provider: AuthProvider, stored: AuthState | null): string {
+    if (stored?.intent === 'reauth') {
+      return pinResetUrl(this.config, 'failed');
+    }
+    return stored?.intent === 'link' ? linkedUrl(this.config, 'failed') : failedSignInUrl(this.config, provider);
   }
 
   private async reauth(provider: AuthProvider, identity: ProviderIdentity, userId: string | undefined): Promise<'granted' | 'failed'> {

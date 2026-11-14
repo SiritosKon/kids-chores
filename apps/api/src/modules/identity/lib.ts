@@ -41,6 +41,7 @@ import type {
   ContactHash,
   EmailCodePurpose,
   EmailParts,
+  LinkReturn,
   MailText,
   PinResetOutcome,
   ProviderCredentials,
@@ -158,6 +159,11 @@ export const pinGrantKey = (userId: string): string => `${PIN_GRANT_PREFIX}${use
 
 export const pinResetUrl = (config: AppConfig, outcome: PinResetOutcome): string =>
   `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?pinReset=${outcome}`;
+
+export const linkedUrl = (config: AppConfig, outcome: LinkReturn): string =>
+  `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?linked=${outcome}`;
+
+export const emailLinkSubject = (userId: string, contactHashValue: string): string => `${userId}:${contactHashValue}`;
 
 export const failedSignInUrl = (config: AppConfig, error: string): string =>
   `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?error=${encodeURIComponent(error)}`;

@@ -39,6 +39,7 @@ import { sync } from './sync';
 import { familyCard } from './familyCard';
 import { familyInvite } from './familyInvite';
 import { joinFamily } from './joinFamily';
+import { linkSignIn } from './linkSignIn';
 
 export const messages = {
   ru: {
@@ -83,6 +84,7 @@ export const messages = {
     familyCard: familyCard.ru,
     familyInvite: familyInvite.ru,
     joinFamily: joinFamily.ru,
+    linkSignIn: linkSignIn.ru,
   },
   en: {
     common: common.en,
@@ -126,6 +128,7 @@ export const messages = {
     familyCard: familyCard.en,
     familyInvite: familyInvite.en,
     joinFamily: joinFamily.en,
+    linkSignIn: linkSignIn.en,
   },
   es: {
     common: common.es,
@@ -169,5 +172,6 @@ export const messages = {
     familyCard: familyCard.es,
     familyInvite: familyInvite.es,
     joinFamily: joinFamily.es,
+    linkSignIn: linkSignIn.es,
   },
 };

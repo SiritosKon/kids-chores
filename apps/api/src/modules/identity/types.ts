@@ -1,7 +1,7 @@
 import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/server';
 import type { ServerMetadata } from 'openid-client';
 import type { z } from 'zod';
-import type { Contact, ContactKind, Session } from '@kids-chores/contracts';
+import type { AuthProvider, Contact, ContactKind, Session } from '@kids-chores/contracts';
 import type { FamilyInvite } from '../../generated/prisma/client';
 import type { AUTH_INTENTS } from './constants';
 import type { authStateSchema } from './schema';
@@ -73,11 +73,15 @@ export interface InviteMailText extends MailText {
   someone: string;
 }
 
-export type EmailCodePurpose = 'pin' | 'signIn';
+export type EmailCodePurpose = 'pin' | 'signIn' | 'link';
+
+export type LinkOutcome = 'linked' | 'taken';
 
 export type AuthIntent = (typeof AUTH_INTENTS)[number];
 
 export type PinResetOutcome = 'granted' | 'failed';
+
+export type LinkReturn = AuthProvider | 'email' | 'taken' | 'failed';
 
 export interface DailyLimit {
   name: string;

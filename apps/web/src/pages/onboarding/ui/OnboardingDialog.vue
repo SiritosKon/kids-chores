@@ -8,6 +8,7 @@
           {{ invite.token ? t('onboardingPage.invitedIntro') : t('onboardingPage.accountIntro') }}
         </p>
         <p v-else-if="stage === 'name'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.nameIntro') }}</p>
+        <p v-else-if="stage === 'email'" class="q-mt-sm q-mb-none">{{ t('linkSignIn.offerIntro') }}</p>
         <p v-else-if="stage === 'pin'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.intro') }}</p>
         <p v-else-if="stage === 'invite'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.inviteIntro') }}</p>
       </q-card-section>
@@ -62,6 +63,9 @@
           />
         </div>
       </q-card-section>
+      <q-card-section v-else-if="stage === 'email'" class="q-pt-none">
+        <EmailLinkForm :cancel-label="t('linkSignIn.later')" @cancel="emailOffered = true" @added="emailOffered = true" />
+      </q-card-section>
       <q-card-section v-else-if="stage === 'invite'" class="q-pt-none">
         <PendingInvite @joined="onJoined" />
       </q-card-section>
@@ -107,6 +111,7 @@ import { useAccountStore } from '@/entities/account';
 import { useParentSessionStore } from '@/entities/parent-session';
 import { setupSettings, useSettingsStore, PARENT_PIN_LENGTH } from '@/entities/settings';
 import { JoinRequestDialog, PendingInvite, usePendingInviteStore } from '@/features/join-family';
+import { EmailLinkForm } from '@/features/link-sign-in';
 import { SignInOptions } from '@/features/sign-in';
 import { seedPresets } from '@/features/starter-presets';
 import { useSyncStore } from '@/features/sync';
@@ -128,6 +133,7 @@ const joining = ref(false);
 const joinOpen = ref(false);
 const waiting = ref(false);
 const draftName = ref('');
+const emailOffered = ref(false);
 const savingName = ref(false);
 const adopting = ref(false);
 let poll: ReturnType<typeof setInterval> | undefined;
@@ -141,6 +147,9 @@ const stage = computed<OnboardingStage>(() => {
   }
   if (!account.name) {
     return 'name';
+  }
+  if (!emailOffered.value && account.server?.emailSignIn === true && account.me?.hasEmail === false) {
+    return 'email';
   }
   if (waiting.value) {
     return 'waiting';

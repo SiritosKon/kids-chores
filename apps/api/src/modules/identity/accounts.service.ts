@@ -5,7 +5,7 @@ import { isUniqueViolation, PrismaService } from '../../platform/database';
 import { FamilyService } from './family.service';
 import { MembershipsService } from './memberships.service';
 import { PinsService } from './pins.service';
-import type { AccountProfile, RemovedUser, SignedIn } from './types';
+import type { AccountProfile, LinkOutcome, RemovedUser, SignedIn } from './types';
 
 @Injectable()
 export class AccountsService {
@@ -46,6 +46,33 @@ export class AccountsService {
       where: { provider_subjectHash: { provider, subjectHash } },
       select: { userId: true },
     });
+  }
+
+  async link(provider: string, subjectHash: string, userId: string, profile: AccountProfile): Promise<LinkOutcome> {
+    const existing = await this.findAccount(provider, subjectHash);
+    if (existing && existing.userId !== userId) {
+      return 'taken';
+    }
+    for (const { kind, hash } of profile.linkable ?? []) {
+      const holder = await this.prisma.userContact.findUnique({ where: { kind_hash: { kind, hash } } });
+      if (holder?.owned && holder.userId !== userId) {
+        return 'taken';
+      }
+    }
+    if (!existing) {
+      await this.prisma.authAccount.createMany({
+        data: [{ id: randomUUID(), provider, subjectHash, userId }],
+        skipDuplicates: true,
+      });
+      if ((await this.findAccount(provider, subjectHash))?.userId !== userId) {
+        return 'taken';
+      }
+    }
+    if (profile.name) {
+      await this.prisma.user.updateMany({ where: { id: userId, name: null }, data: { name: profile.name } });
+    }
+    await this.saveContacts(userId, profile);
+    return 'linked';
   }
 
   async addDevice(userId: string): Promise<SignedIn> {

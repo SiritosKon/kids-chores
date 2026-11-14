@@ -14,7 +14,7 @@ export const AUTH_STATE_PREFIX = 'auth:state:';
 
 export const AUTH_STATE_COOKIE = 'lbd_auth_state';
 
-export const AUTH_INTENTS = ['signIn', 'reauth'] as const;
+export const AUTH_INTENTS = ['signIn', 'reauth', 'link'] as const;
 
 export const PIN_GRANT_PREFIX = 'pin:grant:';
 
@@ -126,6 +126,29 @@ export const EMAIL_CODE_MAILS: Readonly<Record<EmailCodePurpose, Readonly<Record
       paragraphs: [
         'Tu código para entrar en Little Big Deals: {code}',
         'Sirve durante {minutes} minutos. Si no intentaste entrar, borra este correo.',
+      ],
+    },
+  },
+  link: {
+    ru: {
+      subject: 'Little Big Deals: код для подтверждения почты',
+      paragraphs: [
+        'Код, чтобы добавить эту почту к аккаунту в Little Big Deals: {code}',
+        'Он действует {minutes} минут. Если вы ничего не добавляли, просто удалите это письмо.',
+      ],
+    },
+    en: {
+      subject: 'Little Big Deals: confirm your email',
+      paragraphs: [
+        'Your code to add this email to your Little Big Deals account: {code}',
+        'It works for {minutes} minutes. If you did not add an email, just delete this message.',
+      ],
+    },
+    es: {
+      subject: 'Little Big Deals: confirma tu correo',
+      paragraphs: [
+        'Tu código para añadir este correo a tu cuenta de Little Big Deals: {code}',
+        'Sirve durante {minutes} minutos. Si no añadiste ningún correo, borra este mensaje.',
       ],
     },
   },

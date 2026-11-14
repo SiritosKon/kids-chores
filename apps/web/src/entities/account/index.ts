@@ -5,6 +5,7 @@ export {
   devSignIn,
   providerStartUrl,
   providerReauthUrl,
+  providerLinkUrl,
   fetchPasskeyCreationOptions,
   savePasskey,
   fetchPasskeyLoginOptions,
@@ -24,4 +25,4 @@ export {
   removeMember,
 } from './api/familyApi';
 export { requestPinCode, checkPinCode } from './api/pinCodeApi';
-export { requestSignInCode, verifySignInCode } from './api/emailSignInApi';
+export { requestSignInCode, verifySignInCode, requestEmailLinkCode, verifyEmailLink } from './api/emailSignInApi';

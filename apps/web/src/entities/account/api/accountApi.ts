@@ -42,6 +42,8 @@ export const providerStartUrl = (provider: AuthProvider): string => `${API_PREFI
 
 export const providerReauthUrl = (provider: AuthProvider): string => `${providerStartUrl(provider)}?intent=reauth`;
 
+export const providerLinkUrl = (provider: AuthProvider): string => `${providerStartUrl(provider)}?intent=link`;
+
 export const fetchPasskeyCreationOptions = (): Promise<PasskeyCreationOptions | null> =>
   apiJson('/auth/passkey/register/options', (data) => passkeyCreationOptionsSchema.parse(data), 'POST');
 

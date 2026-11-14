@@ -88,6 +88,7 @@ import { useLogout } from '@/features/parent-login';
 import { InviteLinkDialog, useJoinRequestNotice } from '@/features/join-family';
 import { useMediaSyncStore } from '@/features/media-sync';
 import { useSignedInNotice } from '@/features/sign-in';
+import { useLinkedNotice } from '@/features/link-sign-in';
 import { useSyncStore } from '@/features/sync';
 import { recalculateStreaks } from '@/features/track-streak';
 import { SideMenu, useDockedMenu } from '@/widgets/side-menu';
@@ -109,6 +110,7 @@ const tourPending = computed(() => settingsStore.settings?.tourPending === true)
 
 useParentAutoLogout();
 useSignedInNotice();
+useLinkedNotice();
 useJoinRequestNotice();
 
 const route = useRoute();

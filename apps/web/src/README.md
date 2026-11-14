@@ -9,7 +9,7 @@
 | `app` | Точка сборки: провайдеры (pinia, Quasar), глобальные стили, корневой `App.vue` | — |
 | `pages` | Экраны целиком | `home`, `onboarding`, `settings`, `reward`, `task`, `child`, `spends`, `whats-new`, `install` |
 | `widgets` | Самостоятельные композиции экрана | `tasks-board`, `goal-meter-board`, `rewards-panel`, `side-menu`, `account-card`, `family-card` |
-| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets`, `sign-in`, `passkey-setup`, `sync`, `family-invite`, `join-family` |
+| `features` | Действия пользователя | `parent-login`, `select-date`, `award-reward`, `rollback-spend`, `wallet-history`, `whats-new`, `backup`, `track-streak`, `celebrate-streak`, `streak-details`, `edit-child`, `edit-task`, `edit-reward`, `edit-settings`, `choose-reward-variant`, `install-app`, `parent-auto-logout`, `starter-presets`, `sign-in`, `link-sign-in`, `passkey-setup`, `sync`, `family-invite`, `join-family` |
 | `entities` | Предметные сущности: схема, состояние, доступ к данным | `child`, `task`, `reward`, `completion`, `spend`, `wallet`, `streak`, `settings`, `app-version`, `parent-session`, `account` |
 | `shared` | Код без привязки к предметной области | `api`, `lib`, `ui`, `config`, `assets`, `i18n` |
 
@@ -321,15 +321,27 @@ Telegram — переход на `/v1/auth/<провайдер>/start`; посл
 подтвердил Google, ведёт в тот же аккаунт, и наоборот: аккаунт ищется по HMAC подтверждённой
 почты. Google привязывается к чужому аккаунту, только если сам ведёт этот ящик — адрес на
 `gmail.com` или в домене Google Workspace; Telegram не привязывается никогда: номер телефона может
-перейти к другому человеку. Так на iPad можно войти без перехода в Safari. Имени у такого аккаунта нет, пока человек
-не войдёт через Google или Telegram. Сессия живёт в httpOnly-cookie,
-скрипт её не видит.
+перейти к другому человеку. Так на iPad можно войти без перехода в Safari. Имя такой аккаунт
+спрашивает в окне первого запуска. Сессия живёт в httpOnly-cookie, скрипт её не видит.
+
+Связать способы входа вручную можно в карточке «Аккаунт» — блок «Способы входа»
+(`features/link-sign-in`): Google и Telegram, которые есть на сервере, и почта. «Подключить» у
+провайдера ведёт на `/v1/auth/<провайдер>/start?intent=link`; сервер запоминает в состоянии
+входа, кто начал, и после возврата добавляет этот вход к его аккаунту. Вход уже открывает другой
+аккаунт — сервер ничего не переносит и возвращает `#/?linked=taken`, удачно — `?linked=<провайдер>`,
+сбой — `?linked=failed`; `useLinkedNotice` показывает итог и обновляет `/v1/me`. Почта
+добавляется кодом из письма (`POST /v1/me/email/start` и `/v1/me/email/verify`, своё письмо «код
+для подтверждения почты»); код привязан к паре «пользователь — адрес». Почта, которую уже
+подтвердил другой аккаунт, не переносится: `409`, а узнаёт об этом только тот, кто доказал, что
+ящик его. Аккаунту без почты (вход только через Telegram) окно первого запуска после имени
+предлагает добавить её, кнопка «Позже» пропускает шаг. Какие провайдеры уже подключены, сервер
+отдаёт в `/v1/me` полем `providers`.
 
 Наверху меню, под названием, между двумя линиями — аватарка и имя; пункт не нажимается.
 Строка `SyncStatus` под именем появляется, только когда что-то не так. Отдельной страницы аккаунта нет, править в профиле
-нечего: имя и фото берутся из Google. Имя хранится в аккаунте на сервере (`users.name`, до 40
-символов), поэтому его видно и после входа по Face ID; каждый вход через Google обновляет его из
-профиля (право `profile`), dev-вход пишет имя, под которым вошли. Фото — только на устройстве, в
+почти нечего: фото берётся из Google, имя — из Google или Telegram, а сменить его можно карандашом в
+карточке «Аккаунт». Имя хранится в аккаунте на сервере (`users.name`, до 40 символов), поэтому его
+видно и после входа по Face ID; вход через провайдера пишет имя, только если его ещё нет. Фото — только на устройстве, в
 `localStorage` под ключом с id пользователя; на сервер оно не уходит. После входа через Google
 сервер кладёт ссылку на фото профиля в адрес возврата (`&picture=`) и нигде её не хранит.
 `useSignedInNotice` убирает её из адреса, а `adoptProviderPhoto` скачивает картинку 256 px; не
