@@ -52,6 +52,8 @@ export const PASSWORD_FAILS_WINDOW_SECONDS = 15 * 60;
 
 export const PASSWORD_GRANT_PREFIX = 'password:grant:';
 
+export const PASSWORD_CHECK_FAILS_PREFIX = 'password:check-fails:';
+
 export const PASSWORD_GRANT_TTL_SECONDS = 10 * 60;
 
 export const PWNED_PREFIX_LENGTH = 5;

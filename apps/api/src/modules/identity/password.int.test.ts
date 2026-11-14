@@ -91,6 +91,28 @@ describe('sign-in with an email and a password', () => {
     expect((await setPassword(cookie, { password: 'some password' })).statusCode).toBe(204);
   });
 
+  it('lets only the session that just signed in by code set a password without the current one', async () => {
+    const email = `grant-${randomUUID().slice(0, 8)}@example.com`;
+    const older = await emailSignIn(email);
+    await setPassword(older, { password: 'first password' });
+    const fresh = await emailSignIn(email);
+    expect((await setPassword(older, { password: 'stolen password' })).statusCode).toBe(403);
+    expect((await setPassword(fresh, { password: 'second password' })).statusCode).toBe(204);
+    expect((await passwordSignIn(email, 'second password')).statusCode).toBe(204);
+  });
+
+  it('stops checking the current password after ten misses', async () => {
+    const email = `current-${randomUUID().slice(0, 8)}@example.com`;
+    const cookie = await emailSignIn(email);
+    await setPassword(cookie, { password: 'the right one' });
+    const misses = await Promise.all(
+      Array.from({ length: 11 }, (_, index) => setPassword(cookie, { password: 'new password', current: `wrong ${index}` }))
+    );
+    expect(misses.filter(({ statusCode }) => statusCode === 403)).toHaveLength(10);
+    expect(misses.filter(({ statusCode }) => statusCode === 429)).toHaveLength(1);
+    expect((await setPassword(cookie, { password: 'new password', current: 'the right one' })).statusCode).toBe(429);
+  });
+
   it('stops trying passwords for an address after ten misses', async () => {
     const email = `guess-${randomUUID().slice(0, 8)}@example.com`;
     const cookie = await emailSignIn(email);

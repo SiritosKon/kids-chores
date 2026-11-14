@@ -55,7 +55,7 @@ export class SessionsService {
     return moved;
   }
 
-  async start(request: FastifyRequest, reply: FastifyReply, signedIn: SignedIn): Promise<void> {
+  async start(request: FastifyRequest, reply: FastifyReply, signedIn: SignedIn): Promise<string> {
     await this.forget(request);
     const token = newSessionToken();
     const session: Session = { ...signedIn, createdAt: new Date().toISOString() };
@@ -67,6 +67,7 @@ export class SessionsService {
       .expire(family, SESSION_TTL_SECONDS)
       .exec();
     reply.setCookie(SESSION_COOKIE, token, sessionCookieOptions(this.config));
+    return token;
   }
 
   refreshCookie(reply: FastifyReply, token: string): void {

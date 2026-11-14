@@ -46,8 +46,8 @@ export class EmailAuthController {
     await this.codes.check('signIn', contact.hash, body.code);
     const subject = subjectHash(pepper, EMAIL_PROVIDER, canonicalContact({ kind: 'email', value: body.email }));
     const signedIn = await this.accounts.signIn(EMAIL_PROVIDER, subject, { contacts: [contact], linkable: [contact] });
-    await this.sessions.start(request, reply, signedIn);
-    await this.passwords.grant(signedIn.userId);
+    const token = await this.sessions.start(request, reply, signedIn);
+    await this.passwords.grant(signedIn.userId, token);
   }
 
   private requireEnabled(): void {

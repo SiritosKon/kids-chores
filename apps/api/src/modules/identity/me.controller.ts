@@ -87,7 +87,7 @@ export class MeController {
     if (!this.config.EMAIL_SIGN_IN) {
       throw new NotFoundException();
     }
-    if (await this.passwords.set(session, body)) {
+    if (await this.passwords.set(session, body, request.sessionToken)) {
       await this.sessions.endUser(session.familyId, session.userId, request.sessionToken);
     }
   }

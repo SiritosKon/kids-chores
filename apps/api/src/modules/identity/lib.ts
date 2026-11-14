@@ -38,6 +38,7 @@ import {
   INVITE_TOKEN_BYTES,
   JOIN_ROUTE,
   MAIL_DATE_FORMAT,
+  PASSWORD_CHECK_FAILS_PREFIX,
   PASSWORD_FAILS_PREFIX,
   PASSWORD_GRANT_PREFIX,
   PASSWORD_HASH_PATTERN,
@@ -220,6 +221,8 @@ export const pwnedCount = (body: string, suffix: string): number => {
 export const passwordFailsKey = (emailHash: string): string => `${PASSWORD_FAILS_PREFIX}${emailHash}`;
 
 export const passwordGrantKey = (userId: string): string => `${PASSWORD_GRANT_PREFIX}${userId}`;
+
+export const passwordCheckFailsKey = (userId: string): string => `${PASSWORD_CHECK_FAILS_PREFIX}${userId}`;
 
 export const pinDigest = async (pin: string, stored: PinHash): Promise<string> =>
   (await pbkdf2Async(pin, Buffer.from(stored.salt, 'base64'), stored.iterations, PIN_DIGEST_BYTES, 'sha256')).toString('base64');
