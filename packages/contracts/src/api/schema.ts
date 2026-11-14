@@ -92,7 +92,7 @@ export const pinHashSchema = z.object({
 
 export const memberPinSchema = z.object({ userId: z.uuid(), pin: pinHashSchema });
 
-export const setPinRequestSchema = z.object({ pin: pinHashSchema, current: z.string().min(1).max(128).optional() });
+export const setPinRequestSchema = z.object({ pin: pinHashSchema });
 
 export const pinCheckRequestSchema = z.object({ pin: z.string().regex(PARENT_PIN_PATTERN) });
 

@@ -4,7 +4,7 @@ import type { ContactKind, MeResponse, PinHash } from '@kids-chores/contracts';
 import { hashPin, pinMatches } from '@/shared/lib/pinHash';
 import { fetchMe, fetchServerAuth, renameAccount, requestAccountRemoval, requestSignOut } from '../api/accountApi';
 import { requestFamilyLeave } from '../api/familyApi';
-import { savePin } from '../api/pinCodeApi';
+import { confirmPin, savePin } from '../api/pinCodeApi';
 import { storeAccountPhoto, storedAccountPhoto } from '../lib/accountPhoto';
 import { downloadProviderPhoto, providerPhotoUrl } from '../lib/providerPhoto';
 import { forgetAccount, rememberAccount, rememberedAccount } from '../lib/rememberedAccount';
@@ -30,8 +30,8 @@ export const useAccountStore = defineStore('account', () => {
 
   const checkOwnPin = async (pin: string): Promise<boolean> => (ownPin.value ? pinMatches(pin, ownPin.value) : false);
 
-  const storePin = async (hash: PinHash, current?: string): Promise<PinSaveResult> => {
-    const result = await savePin({ pin: hash, current });
+  const storePin = async (hash: PinHash): Promise<PinSaveResult> => {
+    const result = await savePin({ pin: hash });
     const known = me.value;
     if (result === 'ok' && known) {
       me.value = { ...known, pins: [...pins.value.filter(({ userId }) => userId !== known.userId), { userId: known.userId, pin: hash }] };
@@ -41,9 +41,13 @@ export const useAccountStore = defineStore('account', () => {
   };
 
   const setPin = async (pin: string, current?: string): Promise<PinSaveResult> => {
-    const own = ownPin.value;
-    const proof = current !== undefined && own ? (await hashPin(current, own.salt, own.iterations)).hash : undefined;
-    return storePin(await hashPin(pin), proof);
+    if (current !== undefined) {
+      const confirmed = await confirmPin(current);
+      if (confirmed !== 'ok') {
+        return confirmed === 'offline' ? 'offline' : 'denied';
+      }
+    }
+    return storePin(await hashPin(pin));
   };
 
   const adoptPin = (hash: PinHash): Promise<PinSaveResult> => storePin(hash);

@@ -22,11 +22,9 @@ export class PinsService {
     await this.valkey.set(pinGrantKey(userId), '1', 'EX', PIN_GRANT_TTL_SECONDS);
   }
 
-  async set(session: Session, { pin, current }: SetPinRequest): Promise<void> {
-    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: session.userId }, select: { pinHash: true } });
-    const stored = pinHashSchema.safeParse(user.pinHash);
-    const proven = stored.success && current !== undefined && sameHash(current, stored.data.hash, 'base64');
-    if (stored.success && !proven && (await this.valkey.getdel(pinGrantKey(session.userId))) === null) {
+  async set(session: Session, { pin }: SetPinRequest): Promise<void> {
+    const hasPin = (await this.ownPin(session.userId)) !== null;
+    if (hasPin && !(await this.takeProof(session.userId))) {
       throw new ForbiddenException();
     }
     await this.prisma.user.update({ where: { id: session.userId }, data: { pinHash: pin } });
@@ -68,6 +66,14 @@ export class PinsService {
       const pin = pinHashSchema.safeParse(user.pinHash);
       return pin.success ? [{ userId, pin: pin.data }] : [];
     });
+  }
+
+  private async takeProof(userId: string): Promise<boolean> {
+    const [grant, stepUp] = await Promise.all([
+      this.valkey.getdel(pinGrantKey(userId)),
+      this.valkey.getdel(stepUpKey(userId)),
+    ]);
+    return grant !== null || stepUp !== null;
   }
 
   private async ownPin(userId: string): Promise<PinHash | null> {

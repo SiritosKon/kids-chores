@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { pbkdf2Sync, randomUUID } from 'node:crypto';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Redis } from 'ioredis';
@@ -92,9 +92,12 @@ describe('PIN codes by email', () => {
   const putPin = (cookie: string, payload: object) =>
     app.inject({ method: 'PUT', url: '/v1/pin', headers: { origin, cookie }, payload });
 
-  const pinHash = (hash: string): PinHash => ({ salt: 'c2FsdA==', hash, iterations: 600_000 });
+  const pinHash = (pin: string): PinHash => {
+    const salt = Buffer.from(randomUUID()).toString('base64');
+    return { salt, hash: pbkdf2Sync(pin, Buffer.from(salt, 'base64'), 1000, 32, 'sha256').toString('base64'), iterations: 1000 };
+  };
 
-  it('keeps a PIN per adult and changes it only with the current one or a fresh code', async () => {
+  it('keeps a PIN per adult and changes it only after the server checks the current one or a fresh code', async () => {
     const tag = randomUUID().slice(0, 8);
     const email = `pin-${tag}@example.com`;
     const mom = await devLogin(`mom-${tag}`, email);
@@ -104,23 +107,28 @@ describe('PIN codes by email', () => {
     await app.get(MembershipsService).move(dadId, familyId);
     expect((await me(mom)).pins).toEqual([]);
 
-    expect((await putPin(mom, { pin: pinHash('bW9tLTE=') })).statusCode).toBe(204);
-    expect((await putPin(dad, { pin: pinHash('ZGFkLTE=') })).statusCode).toBe(204);
+    const momFirst = pinHash('111111');
+    expect((await putPin(mom, { pin: momFirst })).statusCode).toBe(204);
+    expect((await putPin(dad, { pin: pinHash('222222') })).statusCode).toBe(204);
     const pins = (await me(dad)).pins ?? [];
-    expect(pins.map(({ pin }) => pin.hash).sort()).toEqual(['ZGFkLTE=', 'bW9tLTE=']);
-    expect(pins.find(({ userId }) => userId === dadId)?.pin.hash).toBe('ZGFkLTE=');
+    expect(pins).toHaveLength(2);
+    expect(pins.find(({ userId }) => userId !== dadId)?.pin).toEqual(momFirst);
 
-    expect((await putPin(mom, { pin: pinHash('bW9tLTI=') })).statusCode).toBe(403);
-    expect((await putPin(mom, { pin: pinHash('bW9tLTI='), current: 'ZGFkLTE=' })).statusCode).toBe(403);
-    expect((await putPin(mom, { pin: pinHash('bW9tLTI='), current: 'bW9tLTE=' })).statusCode).toBe(204);
+    expect((await putPin(mom, { pin: pinHash('333333') })).statusCode).toBe(403);
+    expect((await putPin(mom, { pin: pinHash('333333'), current: momFirst.hash })).statusCode).toBe(403);
+    expect((await send(mom, '/v1/pin/check', { pin: '222222' })).statusCode).toBe(403);
+    expect((await send(mom, '/v1/pin/check', { pin: '111111' })).statusCode).toBe(204);
+    expect((await putPin(mom, { pin: pinHash('333333') })).statusCode).toBe(204);
+    expect((await putPin(mom, { pin: pinHash('444444') })).statusCode).toBe(403);
     expect((await putPin(mom, { pin: { salt: '', hash: 'x', iterations: 1 } })).statusCode).toBe(400);
 
     await send(mom, '/v1/pin/code', { email, locale: 'ru' });
     expect((await send(mom, '/v1/pin/code/check', { code: codeFrom((await lastMailTo(email)).Text) })).statusCode).toBe(204);
-    expect((await putPin(dad, { pin: pinHash('ZGFkLTI=') })).statusCode).toBe(403);
-    expect((await putPin(mom, { pin: pinHash('bW9tLTM=') })).statusCode).toBe(204);
-    expect((await putPin(mom, { pin: pinHash('bW9tLTQ=') })).statusCode).toBe(403);
-    expect((await me(mom)).pins?.find(({ userId }) => userId !== dadId)?.pin.hash).toBe('bW9tLTM=');
+    expect((await putPin(dad, { pin: pinHash('555555') })).statusCode).toBe(403);
+    const momLast = pinHash('666666');
+    expect((await putPin(mom, { pin: momLast })).statusCode).toBe(204);
+    expect((await putPin(mom, { pin: pinHash('777777') })).statusCode).toBe(403);
+    expect((await me(mom)).pins?.find(({ userId }) => userId !== dadId)?.pin).toEqual(momLast);
   });
 
   it('starts a PIN reset through a provider only for a signed-in adult', async () => {
