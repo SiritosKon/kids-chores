@@ -1,4 +1,5 @@
-import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, pbkdf2, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
+import { promisify } from 'node:util';
 import { createParamDecorator, type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyRequest } from 'fastify';
@@ -12,6 +13,7 @@ import {
   type AuthProvider,
   type Contact,
   type MailLocale,
+  type PinHash,
   type Session,
 } from '@kids-chores/contracts';
 import type { AppConfig } from '../../platform/config';
@@ -31,8 +33,11 @@ import {
   INVITE_TOKEN_BYTES,
   JOIN_ROUTE,
   MAIL_DATE_FORMAT,
+  PIN_DIGEST_BYTES,
   PIN_GRANT_PREFIX,
   REAUTH_CLOCK_SKEW_SECONDS,
+  STEP_UP_FAILS_PREFIX,
+  STEP_UP_PREFIX,
   SESSION_TOKEN_BYTES,
   SESSION_TTL_SECONDS,
 } from './constants';
@@ -157,6 +162,15 @@ export const callbackUrl = (config: AppConfig, provider: string): string =>
   `${publicOrigin(config)}${API_PREFIX}/auth/${provider}/callback`;
 
 export const pinGrantKey = (userId: string): string => `${PIN_GRANT_PREFIX}${userId}`;
+
+export const stepUpKey = (userId: string): string => `${STEP_UP_PREFIX}${userId}`;
+
+export const stepUpFailsKey = (userId: string): string => `${STEP_UP_FAILS_PREFIX}${userId}`;
+
+const pbkdf2Async = promisify(pbkdf2);
+
+export const pinDigest = async (pin: string, stored: PinHash): Promise<string> =>
+  (await pbkdf2Async(pin, Buffer.from(stored.salt, 'base64'), stored.iterations, PIN_DIGEST_BYTES, 'sha256')).toString('base64');
 
 export const pinResetUrl = (config: AppConfig, outcome: PinResetOutcome): string =>
   `${publicOrigin(config)}${config.APP_PATH}${HOME_ROUTE}?pinReset=${outcome}`;

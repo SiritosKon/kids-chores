@@ -1,6 +1,20 @@
 import type { MailLocale, SetPinRequest } from '@kids-chores/contracts';
 import { apiRequest } from '@/shared/api/http';
-import type { PinCodeCheckResult, PinCodeSendResult, PinSaveResult } from '../model/types';
+import type { PinCodeCheckResult, PinCodeSendResult, PinConfirmResult, PinSaveResult } from '../model/types';
+
+export const confirmPin = async (pin: string): Promise<PinConfirmResult> => {
+  const response = await apiRequest('/pin/check', 'POST', { pin });
+  if (!response) {
+    return 'offline';
+  }
+  if (response.status === 403) {
+    return 'wrong';
+  }
+  if (response.status === 429) {
+    return 'tooMany';
+  }
+  return response.ok ? 'ok' : 'failed';
+};
 
 export const savePin = async (body: SetPinRequest): Promise<PinSaveResult> => {
   const response = await apiRequest('/pin', 'PUT', body);

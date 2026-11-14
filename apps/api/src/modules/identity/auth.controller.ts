@@ -68,7 +68,7 @@ export class AuthController {
     if (intent === 'reauth' && !userId) {
       return reply.redirect(pinResetUrl(this.config, 'failed'), 302);
     }
-    if (intent === 'link' && !userId) {
+    if (intent === 'link' && (!userId || !(await this.pins.stepUpReady(userId)))) {
       return reply.redirect(linkedUrl(this.config, 'failed'), 302);
     }
     const { url, state } = await this.oidc.start(known, intent, userId);

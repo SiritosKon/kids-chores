@@ -8,7 +8,7 @@
         <span v-if="linked.includes(provider)" class="row items-center no-wrap text-positive">
           <q-icon name="check" class="q-mr-xs" />{{ t('linkSignIn.linked') }}
         </span>
-        <q-btn v-else flat dense no-caps color="primary" :label="t('linkSignIn.connect')" @click="connect(provider)" />
+        <q-btn v-else flat dense no-caps color="primary" :label="t('linkSignIn.connect')" @click="guard(() => connect(provider))" />
       </q-item-section>
     </q-item>
     <q-item v-if="emailOn">
@@ -21,9 +21,10 @@
         <span v-if="hasEmail" class="row items-center no-wrap text-positive">
           <q-icon name="check" class="q-mr-xs" />{{ t('linkSignIn.emailLinked') }}
         </span>
-        <q-btn v-else flat dense no-caps color="primary" :label="t('linkSignIn.addEmail')" @click="adding = true" />
+        <q-btn v-else flat dense no-caps color="primary" :label="t('linkSignIn.addEmail')" @click="guard(() => (adding = true))" />
       </q-item-section>
     </q-item>
+    <PinConfirmDialog v-model="confirming" @confirmed="confirmed" />
     <q-dialog v-model="adding">
       <q-card class="dialog--form">
         <q-card-section class="text-h6">{{ t('linkSignIn.dialogTitle') }}</q-card-section>
@@ -43,15 +44,32 @@ import type { AuthProvider } from '@kids-chores/contracts';
 import { providerLinkUrl, useAccountStore } from '@/entities/account';
 import { PROVIDER_ICONS, PROVIDER_NAMES } from '../model/constants';
 import EmailLinkForm from './EmailLinkForm.vue';
+import PinConfirmDialog from './PinConfirmDialog.vue';
 
 const $q = useQuasar();
 const { t } = useI18n();
 const account = useAccountStore();
 const adding = ref(false);
+const confirming = ref(false);
+let pending: (() => void) | null = null;
 const available = computed<readonly AuthProvider[]>(() => account.server?.providers ?? []);
 const linked = computed<readonly AuthProvider[]>(() => account.me?.providers ?? []);
 const emailOn = computed(() => account.server?.emailSignIn === true || account.me?.hasEmail === true);
 const hasEmail = computed(() => account.me?.hasEmail === true);
+
+const guard = (action: () => void): void => {
+  if (!account.hasOwnPin) {
+    action();
+    return;
+  }
+  pending = action;
+  confirming.value = true;
+};
+
+const confirmed = (): void => {
+  pending?.();
+  pending = null;
+};
 
 const connect = (provider: AuthProvider): void => {
   window.location.assign(providerLinkUrl(provider));

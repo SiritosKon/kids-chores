@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { pbkdf2Sync, randomUUID } from 'node:crypto';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import type { Redis } from 'ioredis';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -93,5 +93,44 @@ describe('linking sign-in methods to one account', () => {
     const state = new URL(String(started.headers.location)).searchParams.get('state');
     const stored: unknown = JSON.parse((await app.get<Redis>(VALKEY).get(`${AUTH_STATE_PREFIX}${state}`)) ?? 'null');
     expect(stored).toMatchObject({ intent: 'link', userId: (await me(cookie)).userId });
+  });
+
+  const setPin = async (cookie: string, pin: string): Promise<void> => {
+    const salt = Buffer.from(randomUUID()).toString('base64');
+    const hash = pbkdf2Sync(pin, Buffer.from(salt, 'base64'), 1000, 32, 'sha256').toString('base64');
+    const response = await app.inject({
+      method: 'PUT',
+      url: '/v1/pin',
+      headers: { origin, cookie },
+      payload: { pin: { salt, hash, iterations: 1000 } },
+    });
+    expect(response.statusCode).toBe(204);
+  };
+
+  it('asks for the PIN before adding a sign-in method to an account that has one', async () => {
+    const tag = randomUUID().slice(0, 8);
+    const cookie = await devLogin(`stepup-${tag}`);
+    await setPin(cookie, '246810');
+    const email = `stepup-${tag}@example.com`;
+    expect((await post('/v1/me/email/start', { email, locale: 'ru' }, cookie)).statusCode).toBe(403);
+    const link = await app.inject({ method: 'GET', url: '/v1/auth/telegram/start?intent=link', headers: { cookie } });
+    expect(link.headers.location).toMatch(/#\/\?linked=failed$/);
+
+    expect((await post('/v1/pin/check', { pin: '135790' }, cookie)).statusCode).toBe(403);
+    expect((await post('/v1/pin/check', { pin: '246810' }, cookie)).statusCode).toBe(204);
+    expect(await addEmail(cookie, email)).toBe(204);
+    const linked = await app.inject({ method: 'GET', url: '/v1/auth/telegram/start?intent=link', headers: { cookie } });
+    expect(linked.headers.location).toMatch(/^https:\/\/oauth\.telegram\.org\//);
+  });
+
+  it('stops checking PINs after five misses in a row', async () => {
+    const tag = randomUUID().slice(0, 8);
+    const cookie = await devLogin(`guess-${tag}`);
+    await setPin(cookie, '246810');
+    const tries = await Promise.all(
+      Array.from({ length: 7 }, (_, index) => post('/v1/pin/check', { pin: String(100000 + index) }, cookie))
+    );
+    expect(tries.map(({ statusCode }) => statusCode).sort()).toEqual([403, 403, 403, 403, 403, 429, 429]);
+    expect((await post('/v1/pin/check', { pin: '246810' }, cookie)).statusCode).toBe(429);
   });
 });

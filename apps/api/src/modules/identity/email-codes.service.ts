@@ -23,7 +23,16 @@ import {
   EMAIL_CODE_TTL_SECONDS,
 } from './constants';
 import { DailyLimitsService } from './daily-limits.service';
-import { emailCodeHash, emailCodeKey, emailCodeMail, emailCodeSentKey, newEmailCode, sameHash, subjectHash } from './lib';
+import {
+  contactHash,
+  emailCodeHash,
+  emailCodeKey,
+  emailCodeMail,
+  emailCodeSentKey,
+  newEmailCode,
+  sameHash,
+  subjectHash,
+} from './lib';
 import { checkedCodeSchema } from './schema';
 import type { DailyLimit, EmailCodePurpose } from './types';
 
@@ -43,7 +52,7 @@ export class EmailCodesService {
     if ((await this.valkey.set(sent, '1', 'EX', EMAIL_CODE_RESEND_SECONDS, 'NX')) !== 'OK') {
       throw new HttpException('Too Many Requests', HttpStatus.TOO_MANY_REQUESTS);
     }
-    const limits = this.mailLimits(purpose, subject, ip);
+    const limits = this.mailLimits(purpose, email, ip);
     try {
       await this.limits.reserve(limits);
     } catch (error) {
@@ -68,9 +77,10 @@ export class EmailCodesService {
     }
   }
 
-  private mailLimits(purpose: EmailCodePurpose, subject: string, ip: string): DailyLimit[] {
+  private mailLimits(purpose: EmailCodePurpose, email: string, ip: string): DailyLimit[] {
+    const recipient = contactHash(this.config.AUTH_PEPPER, { kind: 'email', value: email }).hash;
     return [
-      { name: `mail:code:${purpose}:${subject}`, perDay: CODE_MAILS_PER_ADDRESS },
+      { name: `mail:code:${purpose}:${recipient}`, perDay: CODE_MAILS_PER_ADDRESS },
       { name: `mail:code:ip:${subjectHash(this.config.AUTH_PEPPER, 'ip', ip)}`, perDay: CODE_MAILS_PER_IP },
       { name: `mail:code:${purpose}:all`, perDay: CODE_MAILS_PER_DAY_TOTAL },
     ];

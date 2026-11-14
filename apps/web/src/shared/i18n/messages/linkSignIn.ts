@@ -29,6 +29,10 @@ export const linkSignIn = defineMessages({
     taken: 'Этот вход уже открывает другой аккаунт.',
     linkFailed: 'Не получилось подключить. Попробуйте ещё раз.',
     offerIntro: 'Добавьте почту: по ней можно войти без Telegram и сбросить PIN, если забудете его.',
+    confirmTitle: 'Введите свой PIN',
+    confirmIntro: 'Чтобы добавить способ входа, подтвердите, что это вы.',
+    wrongPin: 'Неверный PIN',
+    tooManyPins: 'Слишком много неверных попыток. Попробуйте через 15 минут.',
   },
   en: {
     title: 'Sign-in methods',
@@ -58,6 +62,10 @@ export const linkSignIn = defineMessages({
     taken: 'This sign-in already opens another account.',
     linkFailed: "Couldn't connect it. Try again.",
     offerIntro: 'Add an email: with it you can sign in without Telegram and reset the PIN if you forget it.',
+    confirmTitle: 'Enter your PIN',
+    confirmIntro: 'To add a sign-in method, confirm it is you.',
+    wrongPin: 'Wrong PIN',
+    tooManyPins: 'Too many wrong tries. Try again in 15 minutes.',
   },
   es: {
     title: 'Formas de entrar',
@@ -87,5 +95,9 @@ export const linkSignIn = defineMessages({
     taken: 'Esta forma de entrar ya abre otra cuenta.',
     linkFailed: 'No se pudo conectar. Inténtalo de nuevo.',
     offerIntro: 'Añade un correo: con él puedes entrar sin Telegram y restablecer el PIN si lo olvidas.',
+    confirmTitle: 'Introduce tu PIN',
+    confirmIntro: 'Para añadir una forma de entrar, confirma que eres tú.',
+    wrongPin: 'PIN incorrecto',
+    tooManyPins: 'Demasiados intentos fallidos. Inténtalo dentro de 15 minutos.',
   },
 });

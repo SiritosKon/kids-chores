@@ -9,6 +9,7 @@ import {
   MAIL_LOCALES,
   MEMBER_ROLES,
   PHONE_PATTERN,
+  PARENT_PIN_PATTERN,
   PHONE_SEPARATORS,
   PIN_HASH_ITERATIONS_MAX,
   PROVIDER_PICTURE_HOST,
@@ -92,6 +93,8 @@ export const pinHashSchema = z.object({
 export const memberPinSchema = z.object({ userId: z.uuid(), pin: pinHashSchema });
 
 export const setPinRequestSchema = z.object({ pin: pinHashSchema, current: z.string().min(1).max(128).optional() });
+
+export const pinCheckRequestSchema = z.object({ pin: z.string().regex(PARENT_PIN_PATTERN) });
 
 export const meResponseSchema = z.object({
   userId: z.uuid(),

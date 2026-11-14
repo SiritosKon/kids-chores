@@ -20,6 +20,18 @@ export const PIN_GRANT_PREFIX = 'pin:grant:';
 
 export const PIN_GRANT_TTL_SECONDS = 10 * 60;
 
+export const STEP_UP_PREFIX = 'stepup:';
+
+export const STEP_UP_FAILS_PREFIX = 'stepup:fails:';
+
+export const STEP_UP_TTL_SECONDS = 10 * 60;
+
+export const STEP_UP_FAILS_LIMIT = 5;
+
+export const STEP_UP_FAILS_WINDOW_SECONDS = 15 * 60;
+
+export const PIN_DIGEST_BYTES = 32;
+
 export const REAUTH_PARAMS: Readonly<Record<string, string>> = { prompt: 'login', max_age: '0' };
 
 export const REAUTH_CLOCK_SKEW_SECONDS = 60;

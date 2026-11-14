@@ -26,3 +26,10 @@ export const CODE_ERRORS = {
   offline: 'linkSignIn.offline',
   failed: 'linkSignIn.failed',
 } as const;
+
+export const CONFIRM_ERRORS = {
+  wrong: 'linkSignIn.wrongPin',
+  tooMany: 'linkSignIn.tooManyPins',
+  offline: 'linkSignIn.offline',
+  failed: 'linkSignIn.failed',
+} as const;

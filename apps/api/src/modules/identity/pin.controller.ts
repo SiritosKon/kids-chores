@@ -4,7 +4,7 @@ import type { Session } from '@kids-chores/contracts';
 import { APP_CONFIG, type AppConfig } from '../../platform/config';
 import { PrismaService } from '../../platform/database';
 import { AuthRateLimit } from '../../platform/rate-limit';
-import { EmailCodeCheckDto, EmailCodeRequestDto, SetPinDto } from './dto';
+import { EmailCodeCheckDto, EmailCodeRequestDto, PinCheckDto, SetPinDto } from './dto';
 import { EmailCodesService } from './email-codes.service';
 import { contactHash, CurrentSession } from './lib';
 import { PinsService } from './pins.service';
@@ -22,6 +22,13 @@ export class PinController {
   @HttpCode(204)
   set(@CurrentSession() session: Session, @Body() body: SetPinDto): Promise<void> {
     return this.pins.set(session, body);
+  }
+
+  @AuthRateLimit()
+  @Post('check')
+  @HttpCode(204)
+  checkPin(@CurrentSession() session: Session, @Body() body: PinCheckDto): Promise<void> {
+    return this.pins.checkPin(session, body.pin);
   }
 
   @AuthRateLimit()
