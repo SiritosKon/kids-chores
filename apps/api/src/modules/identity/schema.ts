@@ -17,6 +17,7 @@ export const authStateSchema = z.object({
   verifier: z.string().min(43),
   intent: z.enum(AUTH_INTENTS).default('signIn'),
   userId: z.uuid().optional(),
+  startedAt: z.number().int().positive().optional(),
 });
 
 export const authIntentSchema = z.enum(AUTH_INTENTS).catch('signIn');
@@ -66,6 +67,7 @@ export const providerProfileSchema = z.object({
   hd: z.string().optional(),
   phone_number: z.string().optional(),
   phone_number_verified: z.boolean().optional(),
+  auth_time: z.number().int().positive().optional(),
 });
 
 export const checkedCodeSchema = z.tuple([z.string().min(1), z.number().int().positive()]);

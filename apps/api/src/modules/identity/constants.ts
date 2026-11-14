@@ -20,6 +20,10 @@ export const PIN_GRANT_PREFIX = 'pin:grant:';
 
 export const PIN_GRANT_TTL_SECONDS = 10 * 60;
 
+export const REAUTH_PARAMS: Readonly<Record<string, string>> = { prompt: 'login', max_age: '0' };
+
+export const REAUTH_CLOCK_SKEW_SECONDS = 60;
+
 export const PASSKEY_CHALLENGE_TTL_SECONDS = 5 * 60;
 
 export const PASSKEY_REGISTER_PREFIX = 'auth:passkey:register:';

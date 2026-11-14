@@ -32,6 +32,7 @@ import {
   JOIN_ROUTE,
   MAIL_DATE_FORMAT,
   PIN_GRANT_PREFIX,
+  REAUTH_CLOCK_SKEW_SECONDS,
   SESSION_TOKEN_BYTES,
   SESSION_TTL_SECONDS,
 } from './constants';
@@ -209,8 +210,12 @@ export const providerIdentity = (provider: AuthProvider, subject: string, claims
     picture: profilePicture(claims),
     contacts: [...emailContact, ...(phone ? [{ kind: 'phone' as const, value: phone }] : [])],
     linkable: email && googleOwnsMailbox(email, claims) ? emailContact : [],
+    authTime: providerProfileSchema.safeParse(claims).data?.auth_time,
   };
 };
+
+export const freshSignIn = (startedAt: number | undefined, authTime: number | undefined): boolean =>
+  startedAt !== undefined && authTime !== undefined && authTime >= startedAt - REAUTH_CLOCK_SKEW_SECONDS;
 
 export const providerCredentials = (config: AppConfig, provider: AuthProvider): ProviderCredentials | null => {
   const [clientId, clientSecret] =

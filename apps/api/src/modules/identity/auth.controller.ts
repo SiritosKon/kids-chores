@@ -29,6 +29,7 @@ import {
   contactHash,
   CurrentSession,
   failedSignInUrl,
+  freshSignIn,
   homeUrl,
   linkedUrl,
   pinResetUrl,
@@ -91,7 +92,7 @@ export class AuthController {
       stored = await this.oidc.takeState(known, callbackAt, browserState);
       const identity = await this.oidc.finish(known, callbackAt, stored);
       if (stored.intent === 'reauth') {
-        return reply.redirect(pinResetUrl(this.config, await this.reauth(known, identity, stored.userId)), 302);
+        return reply.redirect(pinResetUrl(this.config, await this.reauth(known, identity, stored)), 302);
       }
       const pepper = this.config.AUTH_PEPPER;
       const subject = subjectHash(pepper, known, identity.subject);
@@ -120,10 +121,11 @@ export class AuthController {
     return stored?.intent === 'link' ? linkedUrl(this.config, 'failed') : failedSignInUrl(this.config, provider);
   }
 
-  private async reauth(provider: AuthProvider, identity: ProviderIdentity, userId: string | undefined): Promise<'granted' | 'failed'> {
+  private async reauth(provider: AuthProvider, identity: ProviderIdentity, stored: AuthState): Promise<'granted' | 'failed'> {
+    const { userId } = stored;
     const subject = subjectHash(this.config.AUTH_PEPPER, provider, identity.subject);
     const account = await this.accounts.findAccount(provider, subject);
-    if (!userId || account?.userId !== userId) {
+    if (!userId || account?.userId !== userId || !freshSignIn(stored.startedAt, identity.authTime)) {
       return 'failed';
     }
     await this.pins.grant(userId);

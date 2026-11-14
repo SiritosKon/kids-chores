@@ -16,6 +16,7 @@ export interface ProviderIdentity {
   picture?: string;
   contacts: Contact[];
   linkable: Contact[];
+  authTime?: number;
 }
 
 export interface OidcProvider {

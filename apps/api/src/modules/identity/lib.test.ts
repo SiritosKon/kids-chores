@@ -6,6 +6,7 @@ import {
   canonicalContact,
   contactHash,
   failedSignInUrl,
+  freshSignIn,
   homeUrl,
   inviteTokenHash,
   newInviteToken,
@@ -180,6 +181,20 @@ describe('provider identity', () => {
       contacts: [{ kind: 'phone', value: '+79991234567' }],
       linkable: [],
     });
+  });
+
+  it('passes on when the provider last asked the person to sign in', () => {
+    expect(providerIdentity('google', 'g', { auth_time: 1_800_000_000 }).authTime).toBe(1_800_000_000);
+    expect(providerIdentity('telegram', 't', {}).authTime).toBeUndefined();
+  });
+
+  it('trusts a confirmation only when the provider asked for a sign-in after the reset began', () => {
+    const startedAt = 1_800_000_000;
+    expect(freshSignIn(startedAt, startedAt + 20)).toBe(true);
+    expect(freshSignIn(startedAt, startedAt - 30)).toBe(true);
+    expect(freshSignIn(startedAt, startedAt - 3600)).toBe(false);
+    expect(freshSignIn(startedAt, undefined)).toBe(false);
+    expect(freshSignIn(undefined, startedAt)).toBe(false);
   });
 
   it('links to an existing account only by a mailbox Google itself runs', () => {

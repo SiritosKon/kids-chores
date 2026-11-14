@@ -135,6 +135,9 @@ describe('PIN codes by email', () => {
     const state = new URL(String(started.headers.location)).searchParams.get('state');
     const stored: unknown = JSON.parse((await app.get<Redis>(VALKEY).get(`${AUTH_STATE_PREFIX}${state}`)) ?? 'null');
     expect(stored).toMatchObject({ provider: 'telegram', intent: 'reauth', userId: (await me(mom)).userId });
+    const location = new URL(String(started.headers.location));
+    expect(location.searchParams.get('prompt')).toBe('login');
+    expect(location.searchParams.get('max_age')).toBe('0');
 
     const plain = await app.inject({ method: 'GET', url: '/v1/auth/telegram/start?intent=whatever' });
     const plainState = new URL(String(plain.headers.location)).searchParams.get('state');
