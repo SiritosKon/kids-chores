@@ -1,7 +1,8 @@
-import { Controller, Delete, Get, HttpCode, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Patch, Res } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
 import type { MeResponse, Session } from '@kids-chores/contracts';
 import { AccountsService } from './accounts.service';
+import { UpdateMeDto } from './dto';
 import { CurrentSession } from './lib';
 import { SessionsService } from './sessions.service';
 
@@ -15,6 +16,12 @@ export class MeController {
   @Get()
   read(@CurrentSession() session: Session): Promise<MeResponse> {
     return this.accounts.me(session);
+  }
+
+  @Patch()
+  @HttpCode(204)
+  update(@CurrentSession() session: Session, @Body() body: UpdateMeDto): Promise<void> {
+    return this.accounts.rename(session, body.name);
   }
 
   @Delete()

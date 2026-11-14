@@ -97,23 +97,28 @@ describe('identity over HTTP', () => {
     expect(first.hasPasskey).toBe(false);
   });
 
-  it('takes the name from the provider on every sign-in', async () => {
+  it('keeps the name the person chose and fills only a missing one from the provider', async () => {
     const name = `name-${randomUUID().slice(0, 8)}`;
     const cookie = await devLogin(name);
-    const first = meResponseSchema.parse((await me(cookie)).body);
-    expect(first.name).toBe(name);
+    expect(meResponseSchema.parse((await me(cookie)).body).name).toBe(name);
 
+    const accounts = app.get(AccountsService);
     const subject = subjectHash(app.get<AppConfig>(APP_CONFIG).AUTH_PEPPER, DEV_PROVIDER, name);
-    await app.get(AccountsService).signIn(DEV_PROVIDER, subject, { name: 'Мама', contacts: [] });
-    expect(meResponseSchema.parse((await me(cookie)).body).name).toBe('Мама');
+    await accounts.signIn(DEV_PROVIDER, subject, { name: 'Anna', contacts: [] });
+    expect(meResponseSchema.parse((await me(cookie)).body).name).toBe(name);
 
-    const rename = await app.inject({
-      method: 'PATCH',
-      url: '/v1/me',
-      headers: { origin, cookie },
-      payload: { name: 'x' },
-    });
-    expect(rename.statusCode).toBe(404);
+    const rename = (payload: object) => app.inject({ method: 'PATCH', url: '/v1/me', headers: { origin, cookie }, payload });
+    expect((await rename({ name: '  Мама ' })).statusCode).toBe(204);
+    expect(meResponseSchema.parse((await me(cookie)).body).name).toBe('Мама');
+    expect((await rename({ name: '   ' })).statusCode).toBe(400);
+    expect((await rename({ name: 'x'.repeat(41) })).statusCode).toBe(400);
+
+    const nameless = randomUUID();
+    const signedIn = await accounts.signIn(DEV_PROVIDER, nameless, { contacts: [] });
+    const session = { ...signedIn, createdAt: new Date().toISOString() };
+    expect((await accounts.me(session)).name).toBeNull();
+    await accounts.signIn(DEV_PROVIDER, nameless, { name: 'Папа', contacts: [] });
+    expect((await accounts.me(session)).name).toBe('Папа');
   });
 
   it('deletes the account with the whole family and signs out every device', async () => {

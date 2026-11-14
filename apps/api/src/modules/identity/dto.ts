@@ -7,6 +7,7 @@ import {
   emailSignInSchema,
   devLoginRequestSchema,
   inviteTokenRequestSchema,
+  updateMeRequestSchema,
 } from '@kids-chores/contracts';
 import { passkeyLoginSchema, passkeyRegisterSchema } from './schema';
 
@@ -27,3 +28,5 @@ export class EmailCodeRequestDto extends createZodDto(emailCodeRequestSchema) {}
 export class EmailCodeCheckDto extends createZodDto(emailCodeCheckSchema) {}
 
 export class EmailSignInDto extends createZodDto(emailSignInSchema) {}
+
+export class UpdateMeDto extends createZodDto(updateMeRequestSchema) {}

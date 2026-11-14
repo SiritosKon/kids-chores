@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 import type { ContactKind, MeResponse } from '@kids-chores/contracts';
-import { fetchMe, fetchServerAuth, requestAccountRemoval, requestSignOut } from '../api/accountApi';
+import { fetchMe, fetchServerAuth, renameAccount, requestAccountRemoval, requestSignOut } from '../api/accountApi';
 import { requestFamilyLeave } from '../api/familyApi';
 import { storeAccountPhoto, storedAccountPhoto } from '../lib/accountPhoto';
 import { downloadProviderPhoto, providerPhotoUrl } from '../lib/providerPhoto';
@@ -44,6 +44,16 @@ export const useAccountStore = defineStore('account', () => {
     }
   };
 
+  const rename = async (value: string): Promise<boolean> => {
+    const current = me.value;
+    if (!current || !(await renameAccount(value))) {
+      return false;
+    }
+    me.value = { ...current, name: value.trim() };
+    rememberAccount(me.value);
+    return true;
+  };
+
   const leave = async (request: () => Promise<boolean>): Promise<boolean> => {
     if (!(await request())) {
       return false;
@@ -71,6 +81,7 @@ export const useAccountStore = defineStore('account', () => {
     contactKinds,
     refresh,
     adoptProviderPhoto,
+    rename,
     signOut,
     remove,
     leaveFamily,

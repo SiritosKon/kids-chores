@@ -6,6 +6,9 @@
         <q-item-label class="text-subtitle1 ellipsis">{{ account.name ?? t('accountCard.title') }}</q-item-label>
         <SyncStatus class="q-mt-xs" />
       </q-item-section>
+      <q-item-section side>
+        <q-btn flat round dense icon="edit" color="grey-5" :aria-label="t('accountCard.rename')" :disable="busy" @click="rename" />
+      </q-item-section>
     </q-item>
     <q-separator />
     <PasskeySetup />
@@ -26,6 +29,7 @@
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
+import { ACCOUNT_NAME_MAX } from '@kids-chores/contracts';
 import { AccountAvatar, useAccountStore } from '@/entities/account';
 import { PasskeySetup } from '@/features/passkey-setup';
 import { SyncStatus, useSyncStore } from '@/features/sync';
@@ -80,6 +84,24 @@ const confirmSignOut = async (): Promise<void> => {
     return;
   }
   startOver();
+};
+
+const rename = (): void => {
+  $q.dialog({
+    title: t('accountCard.renameTitle'),
+    prompt: {
+      model: account.name ?? '',
+      type: 'text',
+      outlined: true,
+      isValid: (value: string) => value.trim().length > 0 && value.trim().length <= ACCOUNT_NAME_MAX,
+    },
+    cancel: { flat: true, noCaps: true, label: t('common.cancel') },
+    ok: { flat: true, noCaps: true, label: t('common.save') },
+  }).onOk(async (value: string) => {
+    if (!(await account.rename(value))) {
+      $q.notify({ type: 'negative', message: t('accountCard.renameFailed') });
+    }
+  });
 };
 
 const confirmRemoval = async (): Promise<void> => {

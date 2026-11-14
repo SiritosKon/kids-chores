@@ -22,7 +22,7 @@ export class AccountsService {
     const userId = account?.userId ?? (await this.linkByContact(provider, subjectHash, profile));
     if (userId) {
       if (profile.name) {
-        await this.prisma.user.update({ where: { id: userId }, data: { name: profile.name } });
+        await this.prisma.user.updateMany({ where: { id: userId, name: null }, data: { name: profile.name } });
       }
       await this.saveContacts(userId, profile);
       return this.addDevice(userId);
@@ -70,6 +70,10 @@ export class AccountsService {
       hasEmail: emails > 0,
       joinRequests: membership.role === 'owner' ? await this.family.pendingRequests(session) : 0,
     };
+  }
+
+  async rename(session: Session, name: string): Promise<void> {
+    await this.prisma.user.update({ where: { id: session.userId }, data: { name } });
   }
 
   remove(session: Session): Promise<RemovedUser> {

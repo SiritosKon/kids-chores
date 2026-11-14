@@ -3,6 +3,9 @@ import { defineMessages } from '../lib';
 export const accountCard = defineMessages({
   ru: {
     title: 'Аккаунт',
+    rename: 'Изменить имя',
+    renameTitle: 'Как вас зовут?',
+    renameFailed: 'Не получилось сохранить имя. Проверьте интернет и попробуйте ещё раз.',
     signOut: 'Выйти из аккаунта',
     signOutTitle: 'Выйти из аккаунта?',
     signOutMessage:
@@ -22,6 +25,9 @@ export const accountCard = defineMessages({
   },
   en: {
     title: 'Account',
+    rename: 'Change the name',
+    renameTitle: "What's your name?",
+    renameFailed: "Couldn't save the name. Check the internet and try again.",
     signOut: 'Sign out',
     signOutTitle: 'Sign out?',
     signOutMessage:
@@ -41,6 +47,9 @@ export const accountCard = defineMessages({
   },
   es: {
     title: 'Cuenta',
+    rename: 'Cambiar el nombre',
+    renameTitle: '¿Cómo te llamas?',
+    renameFailed: 'No se pudo guardar el nombre. Revisa internet e inténtalo de nuevo.',
     signOut: 'Cerrar sesión',
     signOutTitle: '¿Cerrar sesión?',
     signOutMessage:

@@ -7,6 +7,7 @@
         <p v-if="stage === 'account'" class="q-mt-sm q-mb-none">
           {{ invite.token ? t('onboardingPage.invitedIntro') : t('onboardingPage.accountIntro') }}
         </p>
+        <p v-else-if="stage === 'name'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.nameIntro') }}</p>
         <p v-else-if="stage === 'pin'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.intro') }}</p>
         <p v-else-if="stage === 'invite'" class="q-mt-sm q-mb-none">{{ t('onboardingPage.inviteIntro') }}</p>
       </q-card-section>
@@ -37,6 +38,30 @@
         </q-card-section>
       </template>
 
+      <q-card-section v-else-if="stage === 'name'" class="q-pt-none">
+        <q-input
+          v-model="draftName"
+          outlined
+          dark
+          autofocus
+          autocomplete="given-name"
+          :maxlength="ACCOUNT_NAME_MAX"
+          :label="t('onboardingPage.nameLabel')"
+          @keyup.enter="saveName"
+        />
+        <div class="row justify-end q-mt-md">
+          <q-btn
+            unelevated
+            no-caps
+            color="primary"
+            class="q-px-lg"
+            :label="t('onboardingPage.next')"
+            :loading="savingName"
+            :disable="!draftName.trim()"
+            @click="saveName"
+          />
+        </div>
+      </q-card-section>
       <q-card-section v-else-if="stage === 'invite'" class="q-pt-none">
         <PendingInvite @joined="onJoined" />
       </q-card-section>
@@ -73,6 +98,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
+import { ACCOUNT_NAME_MAX } from '@kids-chores/contracts';
 import { APP_NAME } from '@/shared/config/constants';
 import { currentLocale } from '@/shared/i18n';
 import PinInput from '@/shared/ui/PinInput.vue';
@@ -100,6 +126,8 @@ const invite = usePendingInviteStore();
 const joining = ref(false);
 const joinOpen = ref(false);
 const waiting = ref(false);
+const draftName = ref('');
+const savingName = ref(false);
 let pinChosen = false;
 let poll: ReturnType<typeof setInterval> | undefined;
 
@@ -109,6 +137,9 @@ const stage = computed<OnboardingStage>(() => {
   }
   if (!familyLoaded.value || joining.value) {
     return 'loading';
+  }
+  if (!account.name) {
+    return 'name';
   }
   if (waiting.value) {
     return 'waiting';
@@ -132,6 +163,18 @@ const startWaiting = (): void => {
   waiting.value = true;
   clearInterval(poll);
   poll = setInterval(() => void account.refresh(), WAIT_POLL_MS);
+};
+
+const saveName = async (): Promise<void> => {
+  if (!draftName.value.trim() || savingName.value) {
+    return;
+  }
+  savingName.value = true;
+  const saved = await account.rename(draftName.value);
+  savingName.value = false;
+  if (!saved) {
+    $q.notify({ type: 'negative', message: t('onboardingPage.nameFailed') });
+  }
 };
 
 const retry = async (): Promise<void> => {

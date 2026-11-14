@@ -30,6 +30,8 @@ export const fetchMe = async (): Promise<MeResult> => {
   }
 };
 
+export const renameAccount = (name: string): Promise<boolean> => apiOk('/me', 'PATCH', { name });
+
 export const requestAccountRemoval = (): Promise<boolean> => apiOk('/me', 'DELETE');
 
 export const requestSignOut = (): Promise<boolean> => apiOk('/auth/logout', 'POST');
