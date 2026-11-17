@@ -161,6 +161,7 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      target: local
     image: localhost/kids-chores-web:dev
     ports:
       - 127.0.0.1:${WEB_HOST_PORT:-8080}:80

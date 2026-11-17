@@ -10,6 +10,7 @@ Little Big Deals — PWA-трекер домашних дел для детей.
 | `apps/notifications` | Сервис уведомлений: читает события из Valkey; пока каркас |
 | `packages/contracts` | zod-схемы, общие для фронта и сервисов |
 | `infra/`, `compose.yaml` | Локальный контур: Postgres, Valkey, Mailpit, SeaweedFS (S3 для фото), сервисы и nginx в контейнерах |
+| `infra/compose.prod.yaml`, `infra/server/` | Сервер: те же сервисы, Caddy с HTTPS, Postgres с pgBackRest; деплой — воркфлоу `server.yml` |
 
 Node — версия из `.nvmrc`, она же в CI.
 
@@ -36,6 +37,10 @@ podman compose down -v               # снести вместе с данным
 ```
 
 Порты на машине задаются в `.env`; Valkey по умолчанию на 6380, потому что 6379 часто занят.
+На сервере `.env` собирает воркфлоу «Deploy to the server» из переменных и секретов окружения
+`production` в GitHub; как завести сервер и какие секреты нужны — раздел «The server» в
+`README.md`. Новая переменная api — добавить её в `infra/compose.prod.yaml`,
+`infra/server/write-env.sh` и шаг «Write the server settings» в `server.yml`.
 Письма локально никуда не уходят: их ловит Mailpit, посмотреть — <http://localhost:8025>. На
 сервере `SMTP_URL` указывает на почтовый сервис, порт 587: Hetzner закрывает исходящие 25 и 465.
 

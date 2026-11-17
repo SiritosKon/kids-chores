@@ -67,7 +67,7 @@ An npm workspaces monorepo:
 | `apps/api` | The backend: NestJS on Fastify, Prisma, Valkey; the HTTP API and the outbox relay |
 | `apps/notifications` | The notifications service, reads events from Valkey; a skeleton for now |
 | `packages/contracts` | zod schemas shared by the front end and the services |
-| `infra/`, `compose.yaml` | The local contour: Postgres, Valkey, the services and nginx in containers |
+| `infra/`, `compose.yaml` | The local contour: Postgres, Valkey, the services and nginx in containers; `infra/compose.prod.yaml` and `infra/server/` run the same services on the server |
 
 ## Tech stack
 
@@ -81,7 +81,7 @@ An npm workspaces monorepo:
 | Validation | [zod 4](https://zod.dev/) schemas at the boundaries; types are inferred from them |
 | Build | [Vite 6](https://vite.dev/), [vite-plugin-pwa](https://vite-pwa-org.netlify.app/), Nest CLI |
 | Tests | [Vitest](https://vitest.dev/) with [fake-indexeddb](https://github.com/dumbmatter/fakeIndexedDB) |
-| Hosting | GitHub Pages for the PWA; the backend is not deployed yet |
+| Hosting | GitHub Pages for the PWA today; one Hetzner server with Docker Compose, Caddy and Let's Encrypt for the app with the backend |
 
 ## Getting started
 
@@ -175,6 +175,70 @@ apps/api/prisma/    database schema and migrations
 - CI tags every new version as `vX.Y.Z`. For minor and major versions (`X.Y.0`) it also publishes
   a GitHub release whose notes are collected from the changelog since the previous `X.Y.0`.
 - Pull requests run type-checking, tests and a build.
+
+### The server
+
+The app with the backend runs on one server: `infra/compose.prod.yaml` starts Postgres with
+pgBackRest, Valkey, the API, the outbox relay, notifications and Caddy. Caddy serves the PWA from
+the root of the domain, proxies `/v1` and gets the certificate from Let's Encrypt. Only ports 80
+and 443 are open to the world, Postgres and Valkey have no published ports.
+
+The workflow "Deploy to the server" (`.github/workflows/server.yml`, started by hand) builds the
+images into `ghcr.io`, then waits for an approval in the `production` environment. After it, the
+job writes `.env` from the environment's variables and secrets, copies it with the compose file
+and scripts to `/opt/kids-chores`, pulls the images with a token that dies with the job, starts
+the new version (migrations run first) and checks that `/v1/meta` answers with the new commit.
+
+Setting up once:
+
+1. Create three SSH keys: yours, `deploy` for the workflow and `check` for the backup check
+   (`ssh-keygen -t ed25519 -N '' -f deploy`).
+2. Create a server with Ubuntu 24.04 and paste `infra/server/cloud-init.yaml` as its user data,
+   with the three public keys in place of `ADMIN_SSH_PUBLIC_KEY`, `DEPLOY_SSH_PUBLIC_KEY` and
+   `CHECK_SSH_PUBLIC_KEY`. It installs Docker, opens 22, 80 and 443, turns off passwords and root
+   over SSH and turns on automatic security updates. You sign in as `ops`; `deploy` can only run
+   Docker; `check` can only run the backup check.
+3. Point the domain's `A` record at the server (DNS only, without the Cloudflare proxy).
+4. Create two private buckets in Hetzner Object Storage: photos and backups.
+5. In GitHub, Settings → Environments, create `production` (required reviewers, deployments only
+   from `main`) and `backups` (only from `main`) with the values below, then run the workflow.
+
+| Variable (`production`) | Example |
+|---|---|
+| `DOMAIN` | `example.com` |
+| `SERVER_HOST` | the server's IP address |
+| `AUTH_PROVIDERS` | `google,telegram` |
+| `GOOGLE_CLIENT_ID`, `TELEGRAM_CLIENT_ID` | from Google Cloud and BotFather |
+| `MAIL_FROM` | `Little Big Deals <no-reply@example.com>` |
+| `EMAIL_SIGN_IN` | `true` |
+| `PWNED_PASSWORDS_URL` | `https://api.pwnedpasswords.com/range` |
+| `MIN_CLIENT_VERSION` | `0.7.0` |
+| `S3_HOST`, `S3_REGION` | `fsn1.your-objectstorage.com`, `fsn1` |
+| `S3_BUCKET`, `BACKUP_BUCKET` | the two bucket names |
+
+| Secret (`production`) | Where it comes from |
+|---|---|
+| `POSTGRES_PASSWORD`, `MIGRATOR_PASSWORD`, `APP_CORE_PASSWORD`, `APP_NOTIFICATIONS_PASSWORD`, `VALKEY_PASSWORD` | `openssl rand -hex 32` each |
+| `AUTH_PEPPER`, `BACKUP_CIPHER_PASS` | `openssl rand -hex 32` each, and a copy outside GitHub |
+| `GOOGLE_CLIENT_SECRET`, `TELEGRAM_CLIENT_SECRET` | from Google Cloud and BotFather |
+| `SMTP_URL` | `smtp://user:password@smtp.tem.scaleway.com:587` |
+| `S3_ACCESS_KEY`, `S3_SECRET_KEY` | Hetzner Object Storage credentials |
+| `SSH_PRIVATE_KEY` | the private `deploy` key |
+| `SSH_KNOWN_HOSTS` | `ssh-keyscan -t ed25519 <server IP>`, checked against the Hetzner console |
+
+The `backups` environment holds `SERVER_HOST` as a variable and `CHECK_SSH_PRIVATE_KEY` and
+`SSH_KNOWN_HOSTS` as secrets.
+
+GitHub never shows a secret again. `AUTH_PEPPER` and `BACKUP_CIPHER_PASS` must also live in a
+password manager: without the pepper no account can be found by its sign-in, without the cipher
+pass the backups cannot be read. Neither may change after launch.
+
+Backups: Postgres sends every WAL segment to the backups bucket (at least every five minutes),
+the server makes a full backup every night at 03:17 and keeps seven of them, everything is
+encrypted with `BACKUP_CIPHER_PASS` before it leaves the server. Every Monday the workflow "Check
+the backups" signs in with the `check` key, verifies the repository, fails if the last full backup
+is older than 36 hours, restores it with the WAL into a throwaway database and counts the families
+there. GitHub mails the repository owner when it fails.
 
 Plans, the feature backlog, research notes and architecture decisions live in the `research`
 branch, not in `main`.

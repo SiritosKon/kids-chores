@@ -1,4 +1,6 @@
 FROM docker.io/library/node:24-alpine AS build
+ARG APP_PATH=/kids-chores/
+ARG ENABLE_PWA=false
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY packages/contracts/package.json packages/contracts/
@@ -11,7 +13,11 @@ COPY apps/web apps/web
 RUN npm run build --workspace packages/contracts \
   && npm run build --workspace apps/web
 
-FROM docker.io/library/nginx:1.28-alpine
+FROM docker.io/library/caddy:2.10-alpine AS server
+COPY infra/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /app/apps/web/dist /srv
+
+FROM docker.io/library/nginx:1.28-alpine AS local
 ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
 COPY infra/nginx/local.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/apps/web/dist /usr/share/nginx/html/kids-chores

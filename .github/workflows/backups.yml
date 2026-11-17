@@ -1,0 +1,28 @@
+name: Check the backups
+
+on:
+  schedule:
+    - cron: '40 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    environment: backups
+    steps:
+      - name: Trust the server
+        env:
+          CHECK_SSH_PRIVATE_KEY: ${{ secrets.CHECK_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$CHECK_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Restore the last backup into a throwaway database
+        env:
+          SERVER: deploy@${{ vars.SERVER_HOST }}
+        run: ssh "$SERVER"

@@ -1,0 +1,122 @@
+name: Deploy to the server
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - name: api
+            file: apps/api/Dockerfile
+          - name: notifications
+            file: apps/notifications/Dockerfile
+          - name: postgres
+            file: infra/postgres/Dockerfile
+          - name: web
+            file: apps/web/Dockerfile
+            target: server
+            build-args: |
+              APP_PATH=/
+              ENABLE_PWA=true
+    steps:
+      - uses: actions/checkout@v4
+      - id: registry
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          target: ${{ matrix.target }}
+          build-args: ${{ matrix.build-args }}
+          push: true
+          tags: ${{ steps.registry.outputs.name }}/kids-chores-${{ matrix.name }}:${{ github.sha }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  deploy:
+    needs: images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    environment:
+      name: production
+      url: https://${{ vars.DOMAIN }}
+    env:
+      SERVER: deploy@${{ vars.SERVER_HOST }}
+      PUBLIC_URL: https://${{ vars.DOMAIN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write the server settings
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          DOMAIN: ${{ vars.DOMAIN }}
+          AUTH_PROVIDERS: ${{ vars.AUTH_PROVIDERS }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          TELEGRAM_CLIENT_ID: ${{ vars.TELEGRAM_CLIENT_ID }}
+          MAIL_FROM: ${{ vars.MAIL_FROM }}
+          EMAIL_SIGN_IN: ${{ vars.EMAIL_SIGN_IN }}
+          PWNED_PASSWORDS_URL: ${{ vars.PWNED_PASSWORDS_URL }}
+          MIN_CLIENT_VERSION: ${{ vars.MIN_CLIENT_VERSION }}
+          S3_HOST: ${{ vars.S3_HOST }}
+          S3_REGION: ${{ vars.S3_REGION }}
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+          BACKUP_BUCKET: ${{ vars.BACKUP_BUCKET }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          MIGRATOR_PASSWORD: ${{ secrets.MIGRATOR_PASSWORD }}
+          APP_CORE_PASSWORD: ${{ secrets.APP_CORE_PASSWORD }}
+          APP_NOTIFICATIONS_PASSWORD: ${{ secrets.APP_NOTIFICATIONS_PASSWORD }}
+          VALKEY_PASSWORD: ${{ secrets.VALKEY_PASSWORD }}
+          AUTH_PEPPER: ${{ secrets.AUTH_PEPPER }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          TELEGRAM_CLIENT_SECRET: ${{ secrets.TELEGRAM_CLIENT_SECRET }}
+          SMTP_URL: ${{ secrets.SMTP_URL }}
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          BACKUP_CIPHER_PASS: ${{ secrets.BACKUP_CIPHER_PASS }}
+        run: |
+          export REGISTRY="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}"
+          umask 077
+          infra/server/write-env.sh > "$RUNNER_TEMP/server.env"
+      - name: Trust the server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Copy the files
+        run: |
+          scp -q infra/compose.prod.yaml infra/server/deploy.sh infra/server/backup.sh \
+            infra/server/check-backups.sh infra/server/crontab "$SERVER:/opt/kids-chores/"
+          ssh "$SERVER" 'umask 077 && cat > /opt/kids-chores/.env' < "$RUNNER_TEMP/server.env"
+      - name: Start the new version
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '%s' "$REGISTRY_TOKEN" | ssh "$SERVER" /opt/kids-chores/deploy.sh
+      - name: Check the version
+        run: |
+          curl -fsS --retry 20 --retry-delay 3 --retry-all-errors "$PUBLIC_URL/v1/meta" \
+            | grep -q "$GITHUB_SHA"

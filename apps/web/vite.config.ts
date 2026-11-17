@@ -13,7 +13,7 @@ const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.ur
 };
 
 export default defineConfig({
-  base: '/kids-chores/',
+  base: process.env.APP_PATH ?? '/kids-chores/',
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
