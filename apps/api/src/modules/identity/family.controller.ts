@@ -1,0 +1,83 @@
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Req, Res } from '@nestjs/common';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { CreatedInvite, FamilyResponse, InvitePreview, Session } from '@kids-chores/contracts';
+import { AuthRateLimit } from '../../platform/rate-limit';
+import { ContactRequestDto, CreateInviteDto, InviteTokenDto } from './dto';
+import { FamilyService } from './family.service';
+import { CurrentSession } from './lib';
+import { SessionsService } from './sessions.service';
+
+@Controller('family')
+export class FamilyController {
+  constructor(
+    private readonly family: FamilyService,
+    private readonly sessions: SessionsService
+  ) {}
+
+  @Get()
+  read(@CurrentSession() session: Session): Promise<FamilyResponse> {
+    return this.family.family(session);
+  }
+
+  @AuthRateLimit()
+  @Post('invites')
+  invite(
+    @CurrentSession() session: Session,
+    @Body() body: CreateInviteDto,
+    @Req() request: FastifyRequest
+  ): Promise<CreatedInvite> {
+    return this.family.invite(session, body, request.ip);
+  }
+
+  @Delete('invites/:id')
+  @HttpCode(204)
+  dropInvite(@CurrentSession() session: Session, @Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.family.dropInvite(session, id);
+  }
+
+  @AuthRateLimit()
+  @Post('invites/preview')
+  @HttpCode(200)
+  preview(@CurrentSession() session: Session, @Body() body: InviteTokenDto): Promise<InvitePreview> {
+    return this.family.previewInvite(session, body.token);
+  }
+
+  @AuthRateLimit()
+  @Post('invites/accept')
+  @HttpCode(204)
+  accept(@CurrentSession() session: Session, @Body() body: InviteTokenDto): Promise<void> {
+    return this.family.acceptInvite(session, body.token);
+  }
+
+  @AuthRateLimit()
+  @Post('requests')
+  @HttpCode(202)
+  request(@CurrentSession() session: Session, @Body() body: ContactRequestDto): Promise<void> {
+    return this.family.requestToJoin(session, body.contact);
+  }
+
+  @Post('requests/:id/approve')
+  @HttpCode(204)
+  approve(@CurrentSession() session: Session, @Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.family.approve(session, id);
+  }
+
+  @Delete('requests/:id')
+  @HttpCode(204)
+  decline(@CurrentSession() session: Session, @Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.family.decline(session, id);
+  }
+
+  @Delete('members/:userId')
+  @HttpCode(204)
+  remove(@CurrentSession() session: Session, @Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
+    return this.family.removeMember(session, userId);
+  }
+
+  @Post('leave')
+  @HttpCode(204)
+  async leave(@CurrentSession() session: Session, @Res({ passthrough: true }) reply: FastifyReply): Promise<void> {
+    await this.family.leave(session);
+    this.sessions.clearCookie(reply);
+  }
+}

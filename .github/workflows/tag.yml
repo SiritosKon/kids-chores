@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
       - id: version
         run: |
           version="$(node -p "require('./package.json').version")"
@@ -55,5 +55,5 @@ jobs:
             echo "Release $TAG already exists, nothing to do"
             exit 0
           fi
-          node scripts/releaseNotes.mjs "$VERSION" > release-notes.md
+          node apps/web/scripts/releaseNotes.mjs "$VERSION" > release-notes.md
           gh release create "$TAG" --title "$TAG" --notes-file release-notes.md --verify-tag

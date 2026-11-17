@@ -1,0 +1,74 @@
+import { table, transaction } from '@/shared/api/db';
+import { completionId } from '@/shared/api/ids';
+import { weekDayKeys } from '@/shared/lib/week';
+import { storedCompletionSchema } from '../model/schema';
+import type { Completion } from '../model/types';
+import type { TaskMark } from './types';
+
+export const completionsTable = table<Completion>('completions');
+
+export const getDayCompletions = async (childId: string, dateKey: string): Promise<Completion[]> => {
+  const rows = await completionsTable.where('[childId+date]').equals([childId, dateKey]).toArray();
+  return storedCompletionSchema.array().parse(rows);
+};
+
+export const getTaskCompletions = async (
+  childId: string,
+  taskIds: readonly string[]
+): Promise<Completion[]> => {
+  const batches = await Promise.all(
+    taskIds.map((taskId) =>
+      completionsTable
+        .where('[childId+taskId+date]')
+        .between([childId, taskId, ''], [childId, taskId, '\uffff'])
+        .toArray()
+    )
+  );
+  return storedCompletionSchema.array().parse(batches.flat());
+};
+
+export const saveDayMarks = async (
+  childId: string,
+  dateKey: string,
+  marks: TaskMark[],
+  scope?: ReadonlySet<string>
+): Promise<void> => {
+  const existing = await getDayCompletions(childId, dateKey);
+  const existingTaskIds = new Set(existing.map((row) => row.taskId));
+  const markedTaskIds = new Set(marks.map((mark) => mark.taskId));
+
+  const now = Date.now();
+  const toAdd: Completion[] = marks
+    .filter((mark) => !existingTaskIds.has(mark.taskId))
+    .map((mark) => ({
+      id: completionId(childId, mark.taskId, dateKey),
+      childId,
+      taskId: mark.taskId,
+      date: dateKey,
+      points: mark.points,
+      createdAt: now,
+      updatedAt: now,
+    }));
+
+  const toDelete = existing
+    .filter((row) => !markedTaskIds.has(row.taskId) && (scope === undefined || scope.has(row.taskId)))
+    .map((row) => row.id);
+
+  await transaction([completionsTable], async () => {
+    if (toDelete.length > 0) {
+      await completionsTable.bulkDelete(toDelete);
+    }
+    if (toAdd.length > 0) {
+      await completionsTable.bulkPut(toAdd);
+    }
+  });
+};
+
+export const resetWeek = async (childId: string, referenceDate: Date | number = Date.now()): Promise<void> => {
+  const pairs = weekDayKeys(referenceDate).map((key) => [childId, key]);
+  await completionsTable.where('[childId+date]').anyOf(pairs).delete();
+};
+
+export const getAllCompletions = async (): Promise<Completion[]> => {
+  return storedCompletionSchema.array().parse(await completionsTable.toArray());
+};

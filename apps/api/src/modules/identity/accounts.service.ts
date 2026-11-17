@@ -1,0 +1,167 @@
+import { randomUUID } from 'node:crypto';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { AUTH_PROVIDERS, type AuthProvider, type MeResponse, type Session } from '@kids-chores/contracts';
+import { isUniqueViolation, PrismaService } from '../../platform/database';
+import { FamilyService } from './family.service';
+import { MembershipsService } from './memberships.service';
+import { PinsService } from './pins.service';
+import type { AccountProfile, LinkOutcome, RemovedUser, SignedIn } from './types';
+
+@Injectable()
+export class AccountsService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly memberships: MembershipsService,
+    private readonly family: FamilyService,
+    private readonly pins: PinsService
+  ) {}
+
+  async signIn(provider: string, subjectHash: string, profile: AccountProfile): Promise<SignedIn> {
+    const account = await this.prisma.authAccount.findUnique({
+      where: { provider_subjectHash: { provider, subjectHash } },
+      select: { userId: true },
+    });
+    const userId = account?.userId ?? (await this.linkByContact(provider, subjectHash, profile));
+    if (userId) {
+      if (profile.name) {
+        await this.prisma.user.updateMany({ where: { id: userId, name: null }, data: { name: profile.name } });
+      }
+      await this.saveContacts(userId, profile);
+      return this.addDevice(userId);
+    }
+    try {
+      const signedIn = await this.createAccount(provider, subjectHash, profile.name);
+      await this.saveContacts(signedIn.userId, profile);
+      return signedIn;
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        return this.signIn(provider, subjectHash, profile);
+      }
+      throw error;
+    }
+  }
+
+  findAccount(provider: string, subjectHash: string): Promise<{ userId: string } | null> {
+    return this.prisma.authAccount.findUnique({
+      where: { provider_subjectHash: { provider, subjectHash } },
+      select: { userId: true },
+    });
+  }
+
+  async link(provider: string, subjectHash: string, userId: string, profile: AccountProfile): Promise<LinkOutcome> {
+    const existing = await this.findAccount(provider, subjectHash);
+    if (existing && existing.userId !== userId) {
+      return 'taken';
+    }
+    for (const { kind, hash } of profile.linkable ?? []) {
+      const holder = await this.prisma.userContact.findUnique({ where: { kind_hash: { kind, hash } } });
+      if (holder?.owned && holder.userId !== userId) {
+        return 'taken';
+      }
+    }
+    if (!existing) {
+      await this.prisma.authAccount.createMany({
+        data: [{ id: randomUUID(), provider, subjectHash, userId }],
+        skipDuplicates: true,
+      });
+      if ((await this.findAccount(provider, subjectHash))?.userId !== userId) {
+        return 'taken';
+      }
+    }
+    if (profile.name) {
+      await this.prisma.user.updateMany({ where: { id: userId, name: null }, data: { name: profile.name } });
+    }
+    await this.saveContacts(userId, profile);
+    return 'linked';
+  }
+
+  async addDevice(userId: string): Promise<SignedIn> {
+    const membership = await this.prisma.membership.findUnique({ where: { userId }, select: { familyId: true } });
+    const familyId = membership?.familyId ?? (await this.memberships.newFamily(userId));
+    const deviceId = randomUUID();
+    await this.prisma.inFamily(familyId, (tx) => tx.device.create({ data: { id: deviceId, familyId, userId } }));
+    return { userId, familyId, deviceId };
+  }
+
+  async me(session: Session): Promise<MeResponse> {
+    const membership = await this.prisma.membership.findUnique({ where: { userId: session.userId } });
+    if (membership?.familyId !== session.familyId) {
+      throw new UnauthorizedException();
+    }
+    await this.prisma.inFamily(session.familyId, (tx) =>
+      tx.device.updateMany({ where: { id: session.deviceId }, data: { lastSeenAt: new Date() } })
+    );
+    const passkeys = await this.prisma.passkey.count({ where: { userId: session.userId } });
+    const members = await this.prisma.membership.count({ where: { familyId: session.familyId } });
+    const accounts = await this.prisma.authAccount.findMany({ where: { userId: session.userId }, select: { provider: true } });
+    const emails = await this.prisma.userContact.count({ where: { userId: session.userId, kind: 'email' } });
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: session.userId },
+      select: { name: true, passwordHash: true },
+    });
+    return {
+      userId: session.userId,
+      familyId: session.familyId,
+      deviceId: session.deviceId,
+      name: user.name,
+      hasPasskey: passkeys > 0,
+      role: membership.role,
+      members,
+      hasEmail: emails > 0,
+      hasPassword: user.passwordHash !== null,
+      joinRequests: membership.role === 'owner' ? await this.family.pendingRequests(session) : 0,
+      providers: AUTH_PROVIDERS.filter((provider: AuthProvider) => accounts.some((account) => account.provider === provider)),
+      pins: await this.pins.family(session.familyId),
+    };
+  }
+
+  async rename(session: Session, name: string): Promise<void> {
+    await this.prisma.user.update({ where: { id: session.userId }, data: { name } });
+  }
+
+  remove(session: Session): Promise<RemovedUser> {
+    return this.memberships.removeUser(session.userId, session.familyId);
+  }
+
+  private async linkByContact(provider: string, subjectHash: string, profile: AccountProfile): Promise<string | null> {
+    for (const { kind, hash } of profile.linkable ?? []) {
+      const holder = await this.prisma.userContact.findUnique({ where: { kind_hash: { kind, hash } } });
+      if (holder?.owned) {
+        await this.prisma.authAccount.createMany({
+          data: [{ id: randomUUID(), provider, subjectHash, userId: holder.userId }],
+          skipDuplicates: true,
+        });
+        return holder.userId;
+      }
+    }
+    return null;
+  }
+
+  private async saveContacts(userId: string, profile: AccountProfile): Promise<void> {
+    const owned = new Set((profile.linkable ?? []).map(({ kind, hash }) => `${kind}:${hash}`));
+    for (const { kind, hash } of profile.contacts) {
+      if (owned.has(`${kind}:${hash}`)) {
+        await this.prisma.userContact.upsert({
+          where: { kind_hash: { kind, hash } },
+          create: { kind, hash, userId, owned: true },
+          update: { userId, owned: true },
+        });
+      } else {
+        await this.prisma.userContact.createMany({ data: [{ kind, hash, userId }], skipDuplicates: true });
+      }
+    }
+  }
+
+  private async createAccount(provider: string, subjectHash: string, name?: string): Promise<SignedIn> {
+    const signedIn: SignedIn = { userId: randomUUID(), familyId: randomUUID(), deviceId: randomUUID() };
+    const { userId, familyId, deviceId } = signedIn;
+    await this.prisma.inFamily(familyId, async (tx) => {
+      await tx.user.create({ data: { id: userId, name } });
+      await tx.family.create({ data: { id: familyId } });
+      await tx.membership.create({ data: { userId, familyId, role: 'owner' } });
+      await tx.authAccount.create({ data: { id: randomUUID(), provider, subjectHash, userId } });
+      await tx.device.create({ data: { id: deviceId, familyId, userId } });
+    });
+    return signedIn;
+  }
+}

@@ -1,40 +1,35 @@
 {
   "name": "kids-chores",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
-    "typecheck": "vue-tsc --noEmit",
-    "test": "vitest run",
-    "preview": "vite preview",
-    "splash": "node scripts/generateSplash.mjs"
+    "dev": "npm run contracts && npm run dev -w apps/web",
+    "contracts": "npm run build -w packages/contracts",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run contracts && npm run typecheck --workspaces --if-present",
+    "test": "npm run contracts && npm run test --workspaces --if-present",
+    "test:integration": "npm run contracts && npm run test:integration --workspaces --if-present",
+    "splash": "npm run splash -w apps/web"
   },
-  "dependencies": {
-    "@quasar/extras": "^1.16.0",
-    "canvas-confetti": "^1.9.4",
-    "dexie": "^4.0.0",
-    "driver.js": "^1.8.0",
-    "pinia": "^4.0.3",
-    "quasar": "^2.17.0",
-    "vue": "^3.5.0",
-    "vue-draggable-plus": "^0.6.1",
-    "vue-i18n": "^11.4.13",
-    "vue-router": "^4.6.4",
-    "zod": "^4.6.5"
+  "overrides": {
+    "@nestjs/platform-fastify": {
+      "fastify": "5.12.5"
+    }
   },
-  "devDependencies": {
-    "@quasar/vite-plugin": "^1.9.0",
-    "@types/canvas-confetti": "^1.9.0",
-    "@types/node": "^26.6.2",
-    "@vitejs/plugin-vue": "^5.2.0",
-    "fake-indexeddb": "^6.2.5",
-    "sass-embedded": "^1.80.0",
-    "typescript": "^5.9.3",
-    "vite": "^6.0.0",
-    "vite-plugin-pwa": "^0.21.0",
-    "vitest": "^5.0.1",
-    "vue-tsc": "^3.3.11"
+  "allowScripts": {
+    "@prisma/engines@7.10.0": true,
+    "prisma@7.10.0": true,
+    "esbuild@0.25.12": true,
+    "@parcel/watcher@2.6.0": false,
+    "@swc/core@1.16.20": false,
+    "fsevents@2.3.3": false
   }
 }
